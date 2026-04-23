@@ -1,0 +1,37 @@
+# Code repos (saját git repo-juk van)
+spaceos-kernel/
+spaceos-orchestrator/
+spaceos-modules-*/
+spaceos-nesting-algorithms/
+spaceos-freetier-api/
+spaceos-freetier-portal/
+spaceos-freetier/
+spaceos-doorstar-portal/
+spaceos-architect/
+spaceos-librarian/
+design-portal/
+e2e/
+infra/
+tester/
+
+# Docker / runtime
+docker-compose.yml
+keycloak/
+logs/
+
+# Secrets / env
+*.env
+.mcp.json
+
+# Build artifacts
+*.bak
+*.staged
+
+# Nginx configs (managed separately)
+nginx-*.conf
+
+# Agent tools (local only)
+agent_tools/
+
+# Claude local settings
+.claude/
