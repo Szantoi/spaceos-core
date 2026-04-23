@@ -33,5 +33,5 @@ nginx-*.conf
 # Agent tools (local only)
 agent_tools/
 
-# Claude local settings
-.claude/
+# Claude local settings (keep skills, ignore local cache)
+.claude/settings.local.json
