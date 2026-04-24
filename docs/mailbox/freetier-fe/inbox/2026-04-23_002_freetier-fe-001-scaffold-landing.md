@@ -4,7 +4,7 @@ from: root
 to: freetier-fe
 type: task
 priority: high
-status: UNREAD
+status: READ
 ref: SpaceOS_FreeTier_Portal_Architecture_v1.md
 created: 2026-04-23
 ---

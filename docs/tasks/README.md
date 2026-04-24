@@ -86,23 +86,26 @@
 - **Phase 2:** ✅ DONE — Strategy Pattern + yield (181 tests, MSG-CUTTING-027-DONE)
 - **Phase 3 (Planned):** Real order ingestion + geometry bin-packing (backlog)
 
-### 🎉 **FREETIER API (LIVE — 168 teszt)**
-- **FREETIER-001–009 ✅** — API komplett + portal delta · DEPLOYED
+### 🎉 **FREETIER API (176 teszt · valós FFDH/Guillotine)**
+- **FREETIER-001–012 ✅** — API komplett · valós nesting algoritmus · redeploy szükséges
 - **INFRA-047 ⏸️ BLOCKED** — RLS OWNER fix — Gábor manuális psql (superuser)
+
+### 🎉 **JOINERY Phase 3 (DEPLOYED — TESTER pending)**
+- **JOINERY-054 ✅** — MinIO PublicEndpoint · **ORCH-083 ✅** — 4 BFF route · **FE-012 ✅** — Portal gombok
+- **INFRA-055+057+058 ✅** — Joinery + Orch + Portal deploy · portal.joinerytech.hu LIVE
 
 ### ✅ **VPS INFRA — Runbook + CabinetBilder**
 - **INFRA-051 ✅** — `cabinetbilder-plugin` KC client LIVE + Port-mátrix validálva
 
-### 🟡 **VPS SECURITY HARDENING (Lynis 65 → ~72 · Batch 1 DONE)**
-- **INFRA-052 ✅** — Batch 1: PG 5432 + pgAdmin 5050 + Keycloak 8080 → 127.0.0.1 · SSH hardening ✅
-- ⏸️ **S4 apt upgrade** — Gábor root-ként kell futtassa: `apt update && apt upgrade -y`
-- Batch 2 (PG chmod, Redis, SSH password) + Batch 3 (auditd, AIDE) → következő session
+### ✅ **VPS SECURITY HARDENING (Lynis 65 → ~78 · Batch 1+2 DONE)**
+- **INFRA-052 ✅** — Batch 1: Docker bind + Keycloak loopback + SSH + apt upgrade
+- **INFRA-054 ✅** — Batch 2: PG chmod 600 + Redis CONFIG rename + protocol disable + fail2ban + umask 027
+- Batch 3 (auditd, AIDE, rkhunter) → backlog
 
-### 🔴 **FREETIER FRONTEND (ACTIVE — Growth Track)**
-- **Tervdok:** `docs/architecture/SpaceOS_FreeTier_Portal_Architecture_v1.md` ✅ APPROVED (1026 sor)
-- **Repo:** `spaceos-freetier-portal` · **Domain:** eszkozok.joinerytech.hu
-- **FREETIER-009 ✅ + INFRA-050 ✅** — Backend delta DEPLOYED: session + CORS + cookie domain + logout · 168 teszt
-- **FREETIER-FE-001 🔴** — Scaffold + Landing + Nesting kalkulátor (Nap 1–4) — **freetier-fe terminál**
+### 🎉 **FREETIER STACK (LIVE — VALIDATED ✅)**
+- **API:** FREETIER-001–011 ✅ · 173 teszt · `freetier.joinerytech.hu`
+- **Frontend:** FREETIER-FE-001–004 ✅ · 75 teszt · `eszkozok.joinerytech.hu`
+- **TESTER-041 ✅** — 5/5 PASS: SVG vizualizáció ✅ · stat cards ✅ · magic link 202 ✅ · Google Fonts ✅
 
 ### ✅ **JOINERY-PLANNING-V2 Phase 1 (DONE)**
 - **Commit:** 460fce9 · 344/344 teszt · QuestPDF L1/L2/L3/L4 + MinIO WORM + 4 endpoint

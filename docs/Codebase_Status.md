@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-04-23 — **SECURITY BATCH 1 ✅** (3 public port bezárva: PG 5432 + pgAdmin 5050 + KC 8080 → loopback · SSH hardened) · `cabinetbilder-plugin` KC LIVE · FREETIER-FE-001 aktív · **3494 teszt**
+**Utolsó frissítés:** 2026-04-24 — 🎉 **JOINERY Phase 3 COMPLETE** · FE-012 batch PDF+anyaglista gombok (99 teszt) · ORCH-083 BFF (224) · FREETIER-012 valós FFDH (176) · Security Batch 2 ✅ · **~3600 teszt**
 **Tesztelő:** Gabor
 **Környezet:** VPS prod (109.122.222.198) — nginx (HTTPS) → Orchestrator → Kernel
 **Domainek:** joinerytech.hu · asztalostech.hu (Let's Encrypt SAN cert)
@@ -55,10 +55,10 @@ LLM Provider           (OpenAI-compatible · Gemini 2.0 Flash · Mock)
 | **SpaceOS.Modules.Inventory** | L2 Module | .NET 8 · 5004 | `DEPLOYED` | **164 pass** · **INVENTORY-014 ✅** + **INVENTORY-015 ✅** (459aaef) · `POST /api/inventory/offcuts/batch` idempotency + `OffcutBatches` tábla · Reservation endpoints live | 0 error, 0 warning |
 | **SpaceOS.Modules.Cutting** | L2 Module | .NET 8 · 5005 | `ACTIVE 🔴` | **284 pass** · 🎉 **SESSION B+C COMPLETE** · PanelReservation + AutoLock + IInventoryProvider + CuttingPlanFrozen event + PlanNestingSnapshot + RegisterOffcutsHandler (ADR-038 ✅) | 0 error, 0 warning |
 | **SpaceOS.Modules.Procurement** | L2 Module | .NET 8 · 5006 | `DEPLOYED` | **53 pass** · 71cd825 LIVE ✅ · BUG-006: Address field migration `20260418000006` ✅ · **PROCUREMENT-011 DONE** (EnableRetryOnFailure investigation: code clean) | 0 error, 0 warning |
-| **SpaceOS.FreeTier** | L2 Module | .NET 8 · 5010 | `LIVE ✅` | **168 pass** · **FREETIER-001–009 ✅** · DEPLOYED · session+CORS+cookie+logout · ⚠️ INFRA-047 OWNER pending | 0 error, 0 warning |
+| **SpaceOS.FreeTier** | L2 Module | .NET 8 · 5010 | `LIVE ✅` | **176 pass** · **FREETIER-001–012 ✅** · Valós FFDH nesting · DEPLOYED | 0 error, 0 warning |
 | **spaceos-doorstar-portal** | L4 FE Portal | React 18 · Vite · TS · TanStack Query · Tailwind | `DEPLOYED` | **306 pass** · PORTAL-013: @spaceos/api-client TS types · 55 endpoint · commit 358a6be · portal.joinerytech.hu ✅ | 0 TS error |
 
-**Összesített tesztszám: 3494 pass** (1138 Kernel + 219 Orchestrator + 323 Portal + 306 Doorstar Portal + **387 Joinery** + 81 Abstractions + **284 Modules.Cutting** + **164 Inventory** + 53 Procurement + **52 Modules.Contracts** + **32 Nesting.Algorithms** + 21 Reservation Contracts + 266 E2E + **168 FreeTier** ✅)
+**Összesített tesztszám: 3565 pass** (1138 Kernel + 219 Orchestrator + 323 Portal + 306 Doorstar Portal + **387 Joinery** + 81 Abstractions + **284 Modules.Cutting** + **164 Inventory** + 53 Procurement + **52 Modules.Contracts** + **32 Nesting.Algorithms** + 21 Reservation Contracts + 266 E2E + **168 FreeTier API** + **71 FreeTier Portal** ✅)
 
 **Tudásbázis:** `docs/knowledge/` — 18 fájl · **LIB-002 DONE** (2026-04-20) · Context fájlok naprakészek · ADR-031..037 felvéve · Contracts 1.3.0 + Nesting NuGet dokumentálva · GOTCHA-016..018 hozzáadva
 

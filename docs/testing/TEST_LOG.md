@@ -279,3 +279,53 @@ Bug esetén: jelezd a Root terminálnak (vagy írd be a bug leírást ide), majd
 | 11:53 | 11. GET https://freetier.joinerytech.hu/healthz | ✅ PASS | 200 TLS OK, nginx proxy működik |
 | 11:53 | 12. systemctl status spaceos-freetier | ✅ PASS | active (running), uptime ~3 min, 35.9 MB mem |
 | 11:53 | ÖSSZESÍTÉS | **10/12 PASS** | 2 infra config hiba (Redis auth + DB) |
+
+---
+
+## 2026-04-24 — TESTER-039: FreeTier Portal Smoke Validáció (eszkozok.joinerytech.hu)
+
+| Időbélyeg | Teszt | Eredmény | Megjegyzés |
+|---|---|---|---|
+| 11:28 | 1. Landing page betölt | ✅ PASS | Title: "Ingyenes szabászat-optimalizáló \| JoineryTech Eszközök", nem refreshel |
+| 11:28 | 2. Hero + feature cards | ✅ PASS | 3 card: Automatikus optimalizálás, Vizuális eredmény, Mentés és megosztás |
+| 11:28 | 3. CTA → /kalkulator | ✅ PASS | "Kipróbálom ingyen" → navigál /kalkulator-ra |
+| 11:28 | 4. Sheet presets | ✅ PASS | 2800x2070, 2440x1220, 2800x1300 — klikk frissíti az input mezőket |
+| 11:28 | 5. Alkatrész hozzáadás | ✅ PASS | Név + szélesség + magasság + mennyiség + erezetés form megjelenik, "Alkatrészek (1/500)" |
+| 11:28 | 6. Számolás → API → eredmény | ❌ FAIL | **BUG-FT-003** FE snake_case payload + hiányzó input wrapper → API 400 |
+| 11:28 | 7. SVG vizualizáció | ⏭️ SKIP | Teszt 6 blokkol (API 400) |
+| 11:28 | 8. Stat cards | ⏭️ SKIP | Teszt 6 blokkol (API 400) |
+| 11:28 | 9. SEC-08: 500+ alkatrész | ✅ PASS | FE "1/500" számláló + API szintű 400 (TESTER-038 #4 igazolva) |
+| 11:28 | 10. 0/negatív méret validáció | ✅ PASS | HTML5 min="1" max="10000", validity:false → FE blokkolja küldést |
+| 11:28 | 11. Magic link email form | ❌ FAIL | FE nem küld turnstileToken-t → API 400 (nem 500, de nem 202 sem) |
+| 11:28 | 12. Verify pending oldal | ✅ PASS | "Ellenőrizd az emailedet" + 15 perc érvényesség + újraküldés link |
+| 11:28 | 13. /munkaterletek → redirect | ✅ PASS | Redirect /auth/belepes-re |
+| 11:28 | 14. /upgrade → redirect | ✅ PASS | Redirect /auth/belepes-re |
+| 11:28 | 15. Responsive (375px) | ✅ PASS | Landing + kalkulátor mobilon rendben, hamburger menü, form nem törik |
+| 11:28 | ÖSSZESÍTÉS | **11/15 PASS** (2 FAIL, 2 SKIP) | BUG-FT-003 (payload mismatch) a fő blokkoló |
+
+---
+
+## 2026-04-24 — TESTER-040: FreeTier Portal Reteszt (BUG-FT-003 + BUG-FT-004 fix)
+
+| Időbélyeg | Teszt | Eredmény | Megjegyzés |
+|---|---|---|---|
+| 11:36 | 1. Számolás → API → eredmény | ⚠️ RÉSZLEGES | API 200 OK (BUG-FT-003 FIX ✅), de eredmény oldal "Nincs megjeleníthető eredmény" |
+| 11:36 | — BUG-FT-003 request fix | ✅ CONFIRMED | FE küld camelCase + input wrapper → API 200 |
+| 11:36 | — BUG-FT-005: response mismatch | ❌ NEW BUG | API flat summary-t ad, FE sheets[] placement tömböt vár |
+| 11:36 | 2. SVG vizualizáció | ❌ FAIL | "Nincs megjeleníthető eredmény" — API nem ad placement koordinátákat |
+| 11:36 | 3. Stat cards | ❌ FAIL | Mind 0 — API: yieldPercent/wasteAreaMm2, FE vár: total_utilization_percent/sheets_used |
+| 11:36 | 4. Magic link küldés | ✅ **PASS** | 202! FE küld turnstileToken:"dev", redirect /auth/ellenorzes, email maszkolt (te****@example.com) |
+| 11:36 | 5. Google Fonts CSP (bonus) | ❌ FAIL | nginx CSP style-src nem tartalmazza fonts.googleapis.com |
+
+---
+
+## 2026-04-24 — TESTER-041: FreeTier Portal FINAL Reteszt
+
+| Időbélyeg | Teszt | Eredmény | Megjegyzés |
+|---|---|---|---|
+| 11:45 | 1. Számolás → eredmény | ✅ **PASS** | API 200, /kalkulator/eredmeny betölt, NEM üres |
+| 11:45 | 2. SVG vizualizáció | ✅ **PASS** | 2 téglalap (zöld+kék), "Alkatrész 1 500x720" címkékkel |
+| 11:45 | 3. Stat cards | ✅ **PASS** | Kihasználtság 12.4%, Hulladék 5 076 000 mm², Lemezek 1/1, Alkatrészek 2/2 |
+| 11:45 | 4. Magic link | ✅ **PASS** | 202, turnstileToken:"dev", redirect /auth/ellenorzes, email maszkolt |
+| 11:45 | 5. Google Fonts | ✅ **PASS** | Inter font loaded, h1 fontFamily: "Inter, system-ui, sans-serif" |
+| 11:45 | ÖSSZESÍTÉS | **5/5 PASS** | BUG-FT-003+004+005 mind JAVÍTVA, CSP OK |
