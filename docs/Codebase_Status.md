@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-04-25 — 🎉 **CABINET 0.1 COMPLETE** (301 teszt · 7 NuGet) · **Cutting Phase 3 DEPLOYED** (303) · **Joinery Phase 3 VALIDATED** (6 bug fixed) · Security Batch 1+2+3 ✅ · **~3900+ teszt**
+**Utolsó frissítés:** 2026-04-25 — 🎉 **E2E 277/277** · **Cabinet 0.1** (301) · **Cutting Phase 3** (303) · **Contracts v4.2** (57) · **Nesting NuGet** ✅ · **~4000+ teszt**
 **Tesztelő:** Gabor
 **Környezet:** VPS prod (109.122.222.198) — nginx (HTTPS) → Orchestrator → Kernel
 **Domainek:** joinerytech.hu · asztalostech.hu · portal.joinerytech.hu · eszkozok.joinerytech.hu · freetier.joinerytech.hu (Let's Encrypt SAN cert)
