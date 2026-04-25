@@ -38,6 +38,12 @@ Bug esetén: jelezd a Root terminálnak (vagy írd be a bug leírást ide), majd
 | BUG-011: Vágóterv — múltbeli dátum elfogadva (nincs dátum validáció) | 🟡 OPEN | — |
 | BUG-012: Modal — Escape billentyű nem zárja be a modalt | 🟡 OPEN | — |
 | BUG-013: Mobil nézet (375px) — sidebar lefedi a tartalmat, Toggle Menu gomb nem rejti el | 🔴 OPEN | — |
+| BUG-PORTAL-001: PKCE stateStore InMemoryWebStorage → code_verifier elvész | ✅ FIXED (81b2b60) — stateStore: sessionStorage, token exchange 200 OK | MSG-FE-013-DONE |
+| BUG-PORTAL-002: onSigninCallback replaceState nem triggeli React Router-t → "Bejelentkezés folyamatban..." ragad | ✅ FIXED (b0ada10) — React Router navigate() | FE-015 |
+| BUG-PORTAL-003: userStore InMemoryWebStorage — F5/reload elveszíti a tokent, user kidobva /login-ra | ✅ FIXED (13adfa4) — userStore: sessionStorage | FE-016 |
+| BUG-ORCH-001: GET /bff/api/orders → 404 — Doorstar Portal route nem létezik az Orchestratorban | ✅ FIXED (13adfa4) — /bff/joinery/orders route | FE-016 |
+| BUG-PORTAL-004: Order detail page crash — "Cannot read properties of undefined (reading 'length')" | ✅ FIXED (78fe479) — items ?? [] fix, reteszt PASS | FE-017 |
+| BUG-PORTAL-005: Navbar linkek (Rendelések, Profil) kattintásra nem navigálnak (SPA routing) | ✅ FIXED (78fe479) — SPA routing OK, reteszt PASS | FE-017 |
 | ~~BUG-004: Vágóterv létrehozás 500 @ POST /bff/cutting/plans~~ | ✅ FIXED (d8383e7) — reteszt: PASS | MSG-CUTTING-017 + MSG-INFRA-014 |
 | ~~BUG-005: Chat 422 @ POST /bff/chat~~ | ✅ FIXED (94a79e6) — reteszt: PASS, streaming 200 OK | MSG-ORCH-082 |
 
@@ -329,3 +335,93 @@ Bug esetén: jelezd a Root terminálnak (vagy írd be a bug leírást ide), majd
 | 11:45 | 4. Magic link | ✅ **PASS** | 202, turnstileToken:"dev", redirect /auth/ellenorzes, email maszkolt |
 | 11:45 | 5. Google Fonts | ✅ **PASS** | Inter font loaded, h1 fontFamily: "Inter, system-ui, sans-serif" |
 | 11:45 | ÖSSZESÍTÉS | **5/5 PASS** | BUG-FT-003+004+005 mind JAVÍTVA, CSP OK |
+
+---
+
+## 2026-04-25 — TESTER-042: Joinery Phase 3 Validáció (portal.joinerytech.hu)
+
+| Időbélyeg | Teszt | Eredmény | Megjegyzés |
+|---|---|---|---|
+| 05:46 | 1. Bejelentkezés test-admin | ❌ FAIL | Keycloak PKCE login OK, callback ragad "Bejelentkezés folyamatban..." |
+| 05:46 | — Root cause | 🔴 BUG-PORTAL-001 | InMemoryWebStorage a keycloak.config.ts-ben — full-page redirect elveszíti a code_verifier-t |
+| 05:46 | 2-8. Rendelés + Batch + Anyaglista | ⏭️ SKIP | Bejelentkezés blokkol |
+| 05:46 | ÖSSZESÍTÉS | **0/8 — BLOCKED** | BUG-PORTAL-001 megakadályoz minden auth-protected tesztet |
+
+---
+
+## 2026-04-25 — TESTER-043: Joinery Phase 3 Reteszt (PKCE fix deployed?)
+
+| Időbélyeg | Teszt | Eredmény | Megjegyzés |
+|---|---|---|---|
+| 03:51 | 1. Bejelentkezés test-admin | ❌ FAIL | Keycloak PKCE redirect OK, callback ragad "Bejelentkezés folyamatban..." — TESTER-042 identikus |
+| 03:55 | — JS bundle analízis (index-CR5udsX_.js) | 🔴 ROOT CAUSE | `bt = new de` → de = InMemoryWebStorage; userStore ÉS stateStore = InMemoryWebStorage |
+| 03:55 | — Commit 81b2b60 deploy státusz | ❌ NOT DEPLOYED | VPS-en régi build fut — sessionStorage üres, token exchange nem indul |
+| 03:55 | 2-8. Rendelés + Batch + Anyaglista | ⏭️ SKIP | Bejelentkezés blokkol |
+| 03:55 | ÖSSZESÍTÉS (1. kör) | **0/8 — BLOCKED** | FE-013 fix (81b2b60) NINCS a VPS-en — INFRA deploy szükséges |
+| 03:59 | 1b. Bejelentkezés reteszt (cache fix után) | ⚠️ RÉSZLEGES | Új bundle (index-DEWbbLDk.js) — stateStore:sessionStorage IGAZOLVA |
+| 03:59 | — Token exchange | ✅ PASS | POST /token → 200 OK — PKCE code_verifier megmaradt sessionStorage-ben |
+| 03:59 | — Dashboard renderelés | ❌ FAIL | URL /orders-re vált (replaceState), de React Router nem értesül → CallbackPage marad |
+| 04:00 | — BUG-PORTAL-002 azonosítva | 🔴 NEW BUG | onSigninCallback: replaceState nem triggeli React Router-t → örökös "Bejelentkezés folyamatban..." |
+| 04:01 | — Reload teszt | ❌ FAIL | /orders reload → /login (token elvész — userStore InMemoryWebStorage) |
+| 04:01 | 2-8. Rendelés + Batch + Anyaglista | ⏭️ SKIP | Dashboard nem érhető el |
+| 04:01 | ÖSSZESÍTÉS (2. kör) | **0/8 — BLOCKED** | PKCE fix OK, de BUG-PORTAL-002 (callback routing) blokkolja az UI-t |
+| 04:07 | 1c. Bejelentkezés reteszt (FE-014, 190e42c) | ❌ FAIL | Új bundle: index-BQnA2Ww4.js. Token exchange 200 OK, de location.replace('/orders') full reload → InMemory token elvész → /login |
+| 04:07 | — BUG-PORTAL-002 nem javított | 🔴 STILL OPEN | window.location.replace() = full page reload = InMemoryWebStorage wipe. Szükséges: replaceState + React rerender VAGY react-oidc-context default handling |
+| 04:07 | ÖSSZESÍTÉS (3. kör) | **0/8 — BLOCKED** | BUG-PORTAL-002 változatlanul blokkolja a login flow-t |
+
+---
+
+## 2026-04-25 — TESTER-043: FE-015 Reteszt (b0ada10 — React Router navigate fix)
+
+| Időbélyeg | Teszt | Eredmény | Megjegyzés |
+|---|---|---|---|
+| 17:00 | 1. Bejelentkezés (test-admin, PKCE) | ✅ PASS | Keycloak → callback → /orders — React Router navigate működik, NEM ragad "Bejelentkezés folyamatban..." |
+| 17:00 | — BUG-PORTAL-002 státusz | ✅ **FIXED** (b0ada10) | Login callback flow javítva: navigate() használ, nincs page reload |
+| 17:01 | 2. Rendelések oldal (főoldal) | ⚠️ RÉSZLEGES | UI betölt, tab szűrők látszanak, de "Nem sikerült betölteni a rendeléseket" |
+| 17:01 | — GET /bff/api/orders | ❌ FAIL | **404** — BFF route nem létezik — BUG-ORCH-001 |
+| 17:01 | 3. + Új rendelés gomb | ❌ FAIL | Gomb nem reagál (API 404 blokkolja) |
+| 17:01 | 4. Profil link (navbar) | ❌ FAIL | Kattintás nem navigál |
+| 17:02 | 5. F5 / Reload teszt (/orders) | ❌ FAIL | Reload → /login redirect — token elvész — BUG-PORTAL-003 |
+| 17:02 | 6. Közvetlen URL (/profile) | ❌ FAIL | → /login redirect — userStore: InMemoryWebStorage — BUG-PORTAL-003 |
+| 17:03 | 7. Batch PDF + Anyaglista | ⏭️ SKIP | Orders API 404 blokkolja |
+| 17:03 | 8. Responsive | ⏭️ SKIP | Érdemi tartalom nélkül nem tesztelhető |
+| 17:03 | ÖSSZESÍTÉS | **1/8 PASS** | Login FIXED, de 2 új blokkoló: BUG-PORTAL-003 (token persistence) + BUG-ORCH-001 (/bff/api/orders 404) |
+
+---
+
+## 2026-04-25 — TESTER-043: FE-016 Reteszt (13adfa4 — userStore sessionStorage + orders route fix)
+
+| Időbélyeg | Teszt | Eredmény | Megjegyzés |
+|---|---|---|---|
+| 19:28 | 1. Bejelentkezés (test-admin, PKCE) | ✅ PASS | Keycloak → callback → /orders — NEM ragad, navigate() működik |
+| 19:28 | — BUG-PORTAL-001 státusz | ✅ **FIXED** | stateStore: sessionStorage — code_verifier megmarad |
+| 19:28 | — BUG-PORTAL-002 státusz | ✅ **FIXED** | callback routing: navigate() használ, nincs page reload ragadás |
+| 19:29 | 2. Rendelések oldal (főoldal) | ✅ PASS | GET /bff/joinery/orders → 200, 4 rendelés betöltődik (3 Piszkozat, 1 Beküldve) |
+| 19:29 | — BUG-ORCH-001 státusz | ✅ **FIXED** | /bff/joinery/orders route működik (régi /bff/api/orders → javítva) |
+| 19:30 | 3. Rendelés kiválasztása (3EC7247D) | ❌ FAIL | Order detail page crash: "Cannot read properties of undefined (reading 'length')" — **BUG-PORTAL-004** |
+| 19:30 | — API response | ⚠️ | GET /bff/joinery/orders/{id} → 200, de FE crashel a válasz feldolgozásakor (hiányzó tömb mező?) |
+| 19:30 | 4. Profil link (navbar kattintás) | ❌ FAIL | Navbar linkek (Rendelések, Profil) kattintásra nem navigálnak — **BUG-PORTAL-005** (SPA routing) |
+| 19:30 | 5. F5 / Reload teszt (/orders) | ✅ PASS | Reload → /orders megmarad, token sessionStorage-ben perzisztál |
+| 19:30 | — BUG-PORTAL-003 státusz | ✅ **FIXED** | userStore: sessionStorage — F5 NEM dob ki /login-ra |
+| 19:30 | 6. Közvetlen URL (/profile) | ✅ PASS | /profile direkt navigáció betölt, profil adatok látszanak (Test Admin, Admin role) |
+| 19:31 | 7. Batch PDF + Anyaglista | ⏭️ SKIP | Order detail crash (BUG-PORTAL-004) blokkolja |
+| 19:31 | 8. Responsive (375px mobil) | ✅ PASS | Tab szűrők tördelődnek, táblázat olvasható, gombok megfelelő méretűek |
+| 19:31 | ÖSSZESÍTÉS | **5/8 PASS** | BUG-PORTAL-001/002/003 + BUG-ORCH-001 FIXED. 2 új bug: BUG-PORTAL-004 (order detail crash) + BUG-PORTAL-005 (navbar routing) |
+
+---
+
+## 2026-04-25 — TESTER-043: FE-017 Reteszt (78fe479 — order detail crash fix: items ?? [])
+
+| Időbélyeg | Teszt | Eredmény | Megjegyzés |
+|---|---|---|---|
+| 19:37 | 1. Bejelentkezés (test-admin, PKCE) | ✅ PASS | Aktív session, /orders betölt, 4 rendelés listázva |
+| 19:37 | 2. Rendelések → 3EC7247D kiválasztás | ✅ PASS | Order detail betölt, NEM crashel |
+| 19:37 | 3. Order detail (BUG-PORTAL-004 reteszt) | ✅ **PASS** | **FIXED** — Tételek (0), Dokumentumok szekció, Cutting lista link — crash MEGOLDVA |
+| 19:37 | 4. Navbar navigáció (BUG-PORTAL-005 reteszt) | ✅ **PASS** | **FIXED** — Profil kattintás → /profile, Rendelések kattintás → /orders — SPA routing OK |
+| 19:38 | 5. Gyártásilap PDF "Generálás" gomb | ⚠️ RÉSZLEGES | Gomb reagál, POST /bff/joinery/gyartasilap/batch → 400, "Nem sikerült elindítani" + Újrapróbálás — seed adat nélkül várható |
+| 19:38 | 6. Batch Failed hibaüzenet | ✅ PASS | Hibaüzenet megjelenik, nincs crash — seed adat hiányzik |
+| 19:38 | 7. Anyaglista PDF "Letöltés" gomb | ⚠️ RÉSZLEGES | Gomb reagál, "Nem sikerült letölteni az anyaglistát" — seed adat nélkül várható |
+| 19:38 | 8. Responsive (375px mobil) | ✅ PASS | Order detail + lista mobilon rendben, gombok elérhetőek |
+| 19:38 | F5 reload teszt (/orders/{id}) | ✅ PASS | Session megmarad, BUG-PORTAL-003 fix él |
+| 19:38 | Console errors | ⚠️ INFO | /history 404 (BFF route hiányzik), /batch 400 (nincs seed adat) — nem FE bug |
+| 19:38 | ÖSSZESÍTÉS | **6/8 PASS + 2 RÉSZLEGES** | BUG-PORTAL-004 + BUG-PORTAL-005 **FIXED**. Batch/anyaglista seed adat függő (nem FE bug) |

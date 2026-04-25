@@ -58,6 +58,7 @@ declare -A TERMINALS=(
     [architect]="spaceos-architect:/opt/spaceos/spaceos-architect"
     [freetier]="spaceos-freetier:/opt/spaceos/spaceos-freetier"
     [freetier-fe]="spaceos-freetier-fe:/opt/spaceos/spaceos-freetier-portal"
+    [cabinet]="spaceos-cabinet:/opt/spaceos/spaceos-modules-cabinet"
 )
 
 # Persistent terminálok — mindig futnak

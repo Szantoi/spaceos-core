@@ -87,20 +87,32 @@
 - **Phase 3 (Planned):** Real order ingestion + geometry bin-packing (backlog)
 
 ### 🎉 **FREETIER API (176 teszt · valós FFDH/Guillotine)**
-- **FREETIER-001–012 ✅** — API komplett · valós nesting algoritmus · redeploy szükséges
-- **INFRA-047 ⏸️ BLOCKED** — RLS OWNER fix — Gábor manuális psql (superuser)
+- **FREETIER-001–012 ✅** — API komplett · valós nesting algoritmus · DEPLOYED
+- **INFRA-047 ✅** — RLS OWNER fix (spaceos_schema_owner) — 2026-04-24 DONE
 
-### 🎉 **JOINERY Phase 3 (DEPLOYED — TESTER pending)**
-- **JOINERY-054 ✅** — MinIO PublicEndpoint · **ORCH-083 ✅** — 4 BFF route · **FE-012 ✅** — Portal gombok
-- **INFRA-055+057+058 ✅** — Joinery + Orch + Portal deploy · portal.joinerytech.hu LIVE
+### 🟡 **JOINERY Phase 3 (DEPLOYED — PKCE fix deployed, TESTER reteszt)**
+- **FE-013 ✅** — PKCE stateStore fix (81b2b60) · 99 teszt · DEPLOYED
+- **TESTER-043 🔴** — Reteszt folyamatban (index.html no-cache fix is applied)
+
+### ✅ **CUTTING Phase 3 (DEPLOYED — 303 teszt · /healthz 200)**
+- **CUTTING-043–047 ✅** — Order Ingestion + Nesting + Publish + DI fix + UUID fix + /healthz
+- Service active, migration 12/12 applied
+
+### 🎉 **CABINET 0.1 (COMPLETE — 301 teszt · 7 NuGet csomag)**
+- **CABINET-001 ✅** — Geometry · 76 teszt
+- **CABINET-002 ✅** — Abstractions + Domain · 194 teszt
+- **CABINET-003 ✅** — Machining + Construction · 268 teszt
+- **CABINET-004 ✅** — Semantics + Cross-cutting · **301 teszt** · commit 9748a32
+- 7 NuGet csomag KOMPLETT · net8.0 + net10.0 · 85 fájl · 9 security finding implementálva
+- **Repo:** https://github.com/Szantoi/spaceos-modules-cabinet
 
 ### ✅ **VPS INFRA — Runbook + CabinetBilder**
 - **INFRA-051 ✅** — `cabinetbilder-plugin` KC client LIVE + Port-mátrix validálva
 
-### ✅ **VPS SECURITY HARDENING (Lynis 65 → ~78 · Batch 1+2 DONE)**
+### ✅ **VPS SECURITY HARDENING (Lynis 65 → ~85 · Batch 1+2+3 DONE)**
 - **INFRA-052 ✅** — Batch 1: Docker bind + Keycloak loopback + SSH + apt upgrade
-- **INFRA-054 ✅** — Batch 2: PG chmod 600 + Redis CONFIG rename + protocol disable + fail2ban + umask 027
-- Batch 3 (auditd, AIDE, rkhunter) → backlog
+- **INFRA-054 ✅** — Batch 2: PG chmod + Redis CONFIG + protocol disable + fail2ban + umask
+- **INFRA-059 ✅** — Batch 3: auditd + needrestart + rkhunter + sysstat
 
 ### 🎉 **FREETIER STACK (LIVE — VALIDATED ✅)**
 - **API:** FREETIER-001–011 ✅ · 173 teszt · `freetier.joinerytech.hu`
