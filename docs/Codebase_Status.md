@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-04-25 — 🎉 **E2E 277/277** · **Cabinet 0.1** (301) · **Cutting Phase 3** (303) · **Contracts v4.2** (57) · **Nesting NuGet** ✅ · **~4000+ teszt**
+**Utolsó frissítés:** 2026-04-26 — **~4023 teszt** · 5 LIVE domain · Lynis ~85 · Cabinet 0.1 COMPLETE · Cutting Phase 3 DEPLOYED · Joinery Phase 3 VALIDATED · FreeTier LIVE · E2E 277/277
 **Tesztelő:** Gabor
 **Környezet:** VPS prod (109.122.222.198) — nginx (HTTPS) → Orchestrator → Kernel
 **Domainek:** joinerytech.hu · asztalostech.hu · portal.joinerytech.hu · eszkozok.joinerytech.hu · freetier.joinerytech.hu (Let's Encrypt SAN cert)
@@ -43,43 +43,44 @@ LLM Provider           (OpenAI-compatible · Gemini 2.0 Flash · Mock)
 
 | Projekt | Réteg | Stack | Státusz | Tesztek | Build |
 |---|---|---|---|---|---|
-| **SpaceOS.Kernel** | L2 Backend | .NET 8, EF Core 8, PostgreSQL | `DEPLOYED` | **1138 pass** · 46d64b5 LIVE ✅ · KERNEL-093: EnableRetryOnFailure removed AppDbContext+AuditDbContext · POST /api/tenants → 201 ✅ | **0 error, 0 warning** |
-| **SpaceOS.Orchestrator** | L3 BFF | Node.js 22, TypeScript 5, Express 4 | `DEPLOYED` | **224 pass** · ORCH-083: Joinery Phase 3 BFF routes (batch+anyaglista) · commit 0857440 · VPS LIVE ✅ | 0 TS error |
-| **SpaceOS.DesignPortal** | L4 Frontend | React 18 + Turborepo monorepo, TypeScript 5, Vite | `DEPLOYED` | **323 pass** · **PORTAL-011 ✅ DONE** (fd340bf regression reverted: logout parameter corrected) · **BUG-015 ✅ DONE** (localStorage auth persistence + popstate) · **BUG-016 ✅ DEPLOYED** (logout parameter fix) · **PORTAL-012 ✅ DONE** (BUG-017 nesting panel UX: loading spinner + error messages) · **BUG-013 ✅ DONE** (mobile sidebar 375px: fixed position overlay + responsive classes) · **PORTAL-010 ✅ DONE** (Inventory UI: material + thickness separation, auto m², date validation) · BUG-014 pending (404 UX) | 0 TS error · turbo build OK |
-| **E2E** | Full stack | Vitest + fetch | `DONE ✅` | 🎉 **266/266** (+21 új teszt) · 56 fájl · Inventory/Cutting/Joinery/LLM-tools coverage · probe-skip: 50/52/20/33 (feature gap-ek) | — |
-| **Keycloak** | IdP | Keycloak 24.0, PostgreSQL backend | `DEPLOYED` | — | hostname + Script Mapper + realm roles live |
-| **SpaceOS.Modules.Joinery** | L2 Module | .NET 8, EF Core 8, PostgreSQL `spaceos_joinery` | `DEPLOYED` | **389 pass** · **Phase 1+2+3 ✅** · JOINERY-054: MinIO PublicEndpoint fix · Batch+Anyaglista+MinIO WORM · Portal gombok LIVE | 0 error, 0 warning |
-| **SpaceOS.Modules.Abstractions** | L2 Module | .NET 8, EF Core 8, PostgreSQL `spaceos_abstractions` | `DEPLOYED` | **81 pass** / 0 fail · write-time BFS cycle detection · R-18 RESOLVED | 0 error, 0 warning |
-| **SpaceOS.Modules.Contracts** | NuGet | .NET 8 · standalone | `DONE ✅` | **52 pass** (+11) · **v1.3.0**: SourceChannel, AnonymousSheetRequest, CuttingAnonymous flag, SubmitAnonymousSheetAsync DIM · ABSTRACTIONS-010 DONE | 0 error, 0 warning |
-| **SpaceOS.Nesting.Algorithms** | NuGet | .NET 8 · standalone | `DONE ✅` | **32 pass** · **v1.1.0** · WastePiece model + PanelAssignment.WastePieces · Guillotine + FFDH waste visszaadás · NESTING-001 DONE | 0 error, 0 warning |
-| **SpaceOS.Modules.Inventory** | L2 Module | .NET 8 · 5004 | `DEPLOYED` | **164 pass** · **INVENTORY-014 ✅** + **INVENTORY-015 ✅** (459aaef) · `POST /api/inventory/offcuts/batch` idempotency + `OffcutBatches` tábla · Reservation endpoints live | 0 error, 0 warning |
-| **SpaceOS.Modules.Cutting** | L2 Module | .NET 8 · 5005 | `ACTIVE 🔴` | **284 pass** · 🎉 **SESSION B+C COMPLETE** · PanelReservation + AutoLock + IInventoryProvider + CuttingPlanFrozen event + PlanNestingSnapshot + RegisterOffcutsHandler (ADR-038 ✅) | 0 error, 0 warning |
-| **SpaceOS.Modules.Procurement** | L2 Module | .NET 8 · 5006 | `DEPLOYED` | **53 pass** · 71cd825 LIVE ✅ · BUG-006: Address field migration `20260418000006` ✅ · **PROCUREMENT-011 DONE** (EnableRetryOnFailure investigation: code clean) | 0 error, 0 warning |
-| **SpaceOS.FreeTier** | L2 Module | .NET 8 · 5010 | `LIVE ✅` | **176 pass** · **FREETIER-001–012 ✅** · Valós FFDH nesting · DEPLOYED | 0 error, 0 warning |
-| **spaceos-doorstar-portal** | L4 FE Portal | React 18 · Vite · TS · TanStack Query · Tailwind | `DEPLOYED` | **99 pass** · FE-012: Joinery Phase 3 batch PDF+anyaglista gombok · commit f153e46 · portal.joinerytech.hu ✅ | 0 TS error |
-| **spaceos-freetier-portal** | L4 FE Portal | React 19 · Vite · TS · Tailwind · React Query v5 | `LIVE ✅` | **75 pass** · FE-001–004: nesting kalkulátor + workspace + share + auth · eszkozok.joinerytech.hu ✅ | 0 TS error |
+| **SpaceOS.Kernel** | L2 Backend | .NET 8, EF Core 8, PostgreSQL | `DEPLOYED` | **1138 pass** | 0 error, 0 warning |
+| **SpaceOS.Orchestrator** | L3 BFF | Node.js 22, TypeScript 5, Express 4 | `DEPLOYED` | **227 pass** · ORCH-083+084: Joinery+Cutting Phase 3 BFF routes | 0 TS error |
+| **SpaceOS.DesignPortal** | L4 Frontend | React 18 + Turborepo monorepo | `DEPLOYED` | **323 pass** | 0 TS error |
+| **E2E** | Full stack | Vitest + fetch | `DONE ✅` | 🎉 **277/277** · 59 fájl · Joinery batch+anyaglista + Cutting ingest coverage | — |
+| **Keycloak** | IdP | Keycloak 24.0 (systemd) | `DEPLOYED` | `cabinetbilder-plugin` Device Code Flow ✅ | 6 mapper |
+| **SpaceOS.Modules.Joinery** | L2 Module | .NET 8 · 5002 | `DEPLOYED` | **389 pass** · Phase 1+2+3 ✅ · MinIO PublicEndpoint · Batch+Anyaglista WORM | 0 error |
+| **SpaceOS.Modules.Abstractions** | L2 Module | .NET 8 · 5003 | `DEPLOYED` | **81 pass** · BFS cycle detection | 0 error |
+| **SpaceOS.Modules.Contracts** | NuGet | .NET 8 | `DONE ✅` | **57 pass** · **v1.3.0** + v4.2 FreeTier extensions | 0 error |
+| **SpaceOS.Nesting.Algorithms** | NuGet | .NET 8 | `DONE ✅` | **32 pass** · **v1.1.0** · FFDH + Guillotine · NuGet packed | 0 error |
+| **SpaceOS.Modules.Inventory** | L2 Module | .NET 8 · 5004 | `DEPLOYED` | **164 pass** · Reservation + Offcut batch | 0 error |
+| **SpaceOS.Modules.Cutting** | L2 Module | .NET 8 · 5005 | `DEPLOYED` | **303 pass** · **Phase 3 ✅** · Order Ingestion + Nesting Publish + /healthz | 0 error |
+| **SpaceOS.Modules.Procurement** | L2 Module | .NET 8 · 5006 | `DEPLOYED` | **53 pass** | 0 error |
+| **SpaceOS.FreeTier** | L2 Module | .NET 8 · 5010 | `LIVE ✅` | **176 pass** · FREETIER-001–013 ✅ · Valós FFDH · NuGet PackageRef | 0 error |
+| **spaceos-doorstar-portal** | L4 FE Portal | React 18 · Vite · TS · Tailwind | `DEPLOYED` | **99 pass** · FE-012–017: Phase 3 gombok + 6 bugfix (PKCE, callback, orders) | 0 TS error |
+| **spaceos-freetier-portal** | L4 FE Portal | React 19 · Vite · TS · Tailwind | `LIVE ✅` | **75 pass** · Nesting kalkulátor + workspace + share + auth | 0 TS error |
+| **SpaceOS.Cabinet** | NuGet Library | .NET 8+10 · 7 csomag | `DONE ✅` | **301 pass** · Cabinet 0.1 Core Foundation · Geometry→Semantics | 0 error |
 
-**Összesített tesztszám: ~3604 pass** (1138 Kernel + **224 Orchestrator** + 323 Portal + **99 Doorstar Portal** + **389 Joinery** + 81 Abstractions + **284 Modules.Cutting** + **164 Inventory** + 53 Procurement + **52 Modules.Contracts** + **32 Nesting.Algorithms** + 21 Reservation Contracts + 266 E2E + **176 FreeTier API** + **75 FreeTier Portal** ✅)
+**Összesített tesztszám: ~4023 pass** (1138 Kernel + 227 Orchestrator + 323 Portal + 99 Doorstar Portal + 389 Joinery + 81 Abstractions + 303 Cutting + 164 Inventory + 53 Procurement + 57 Contracts + 32 Nesting + 21 Reservation + 277 E2E + 176 FreeTier API + 75 FreeTier Portal + 301 Cabinet + ~6 misc)
 
 ### LIVE domainek
 
 | Domain | Termék | Státusz |
 |---|---|---|
 | **joinerytech.hu** | Design Portal (Turborepo) | LIVE ✅ |
-| **portal.joinerytech.hu** | Doorstar Portal + Joinery Phase 3 gombok | LIVE ✅ |
+| **portal.joinerytech.hu** | Doorstar Portal (batch PDF + anyaglista + orders) | LIVE ✅ |
 | **asztalostech.hu** | Design Portal (HU brand) | LIVE ✅ |
 | **eszkozok.joinerytech.hu** | FreeTier nesting kalkulátor (valós FFDH) | LIVE ✅ |
-| **freetier.joinerytech.hu** | FreeTier API (168 teszt) | LIVE ✅ |
+| **freetier.joinerytech.hu** | FreeTier API | LIVE ✅ |
 
-### VPS Security
+### VPS Security (Lynis ~85)
 
-| Metrika | Érték |
-|---|---|
-| Lynis Hardening Index | **~78/100** (volt: 65) |
-| Batch 1 | ✅ Docker bind fix + Keycloak loopback + SSH hardening + apt upgrade |
-| Batch 2 | ✅ PG chmod 600 + Redis CONFIG rename + protocol disable + fail2ban + umask 027 |
-| Batch 3 | Backlog (auditd, AIDE, rkhunter) |
-| CabinetBilder KC client | ✅ Device Code Flow, 6 mapper |
+| Batch | Tartalom | Státusz |
+|---|---|---|
+| Batch 1 | Docker bind fix + Keycloak loopback + SSH hardening + apt upgrade | ✅ |
+| Batch 2 | PG chmod 600 + Redis CONFIG rename + protocol disable + fail2ban + umask 027 | ✅ |
+| Batch 3 | auditd + needrestart + rkhunter + sysstat | ✅ |
+| CabinetBilder | Keycloak client (Device Code Flow, 6 mapper) | ✅ |
+| spaceos_schema_owner | FreeTier RLS FORCE fix (INFRA-047) | ✅ |
 
 **Tudásbázis:** `docs/knowledge/` — 18 fájl · **LIB-002 DONE** (2026-04-20) · Context fájlok naprakészek · ADR-031..037 felvéve · Contracts 1.3.0 + Nesting NuGet dokumentálva · GOTCHA-016..018 hozzáadva
 
