@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-04-27 — **~4472 teszt** · 5 LIVE domain · Lynis ~85 · Cabinet 0.2 COMPLETE · Cutting Phase 3 DEPLOYED · Joinery Phase 3 VALIDATED · FreeTier LIVE · E2E 277/277 · **PartnerTier MVP COMPLETE** 🎉
+**Utolsó frissítés:** 2026-04-27 — **~4688 teszt** · 6 LIVE service · Lynis ~85 · Growth Strategy v1 100% COMPLETE · Cutting Phase 4 (496) · Kernel Outbox (1161) · PartnerTier DEPLOYED · Cabinet 0.2 (518)
 **Tesztelő:** Gabor
 **Környezet:** VPS prod (109.122.222.198) — nginx (HTTPS) → Orchestrator → Kernel
 **Domainek:** joinerytech.hu · asztalostech.hu · portal.joinerytech.hu · eszkozok.joinerytech.hu · freetier.joinerytech.hu (Let's Encrypt SAN cert)
@@ -43,7 +43,7 @@ LLM Provider           (OpenAI-compatible · Gemini 2.0 Flash · Mock)
 
 | Projekt | Réteg | Stack | Státusz | Tesztek | Build |
 |---|---|---|---|---|---|
-| **SpaceOS.Kernel** | L2 Backend | .NET 8, EF Core 8, PostgreSQL | `DEPLOYED` | **1138 pass** | 0 error, 0 warning |
+| **SpaceOS.Kernel** | L2 Backend | .NET 8, EF Core 8, PostgreSQL | `DEPLOYED` | **1161 pass** · KERNEL-103 Outbox Extension + KERNEL-104 email-hash lookup | 0 error, 0 warning |
 | **SpaceOS.Orchestrator** | L3 BFF | Node.js 22, TypeScript 5, Express 4 | `DEPLOYED` | **227 pass** · ORCH-083+084: Joinery+Cutting Phase 3 BFF routes | 0 TS error |
 | **SpaceOS.DesignPortal** | L4 Frontend | React 18 + Turborepo monorepo | `DEPLOYED` | **323 pass** | 0 TS error |
 | **E2E** | Full stack | Vitest + fetch | `DONE ✅` | 🎉 **277/277** · 59 fájl · Joinery batch+anyaglista + Cutting ingest coverage | — |
@@ -53,15 +53,15 @@ LLM Provider           (OpenAI-compatible · Gemini 2.0 Flash · Mock)
 | **SpaceOS.Modules.Contracts** | NuGet | .NET 8 | `DONE ✅` | **57 pass** · **v1.3.0** + v4.2 FreeTier extensions | 0 error |
 | **SpaceOS.Nesting.Algorithms** | NuGet | .NET 8 | `DONE ✅` | **32 pass** · **v1.1.0** · FFDH + Guillotine · NuGet packed | 0 error |
 | **SpaceOS.Modules.Inventory** | L2 Module | .NET 8 · 5004 | `DEPLOYED` | **164 pass** · Reservation + Offcut batch | 0 error |
-| **SpaceOS.Modules.Cutting** | L2 Module | .NET 8 · 5005 | `DEPLOYED` | **303 pass** · **Phase 3 ✅** · Order Ingestion + Nesting Publish + /healthz | 0 error |
+| **SpaceOS.Modules.Cutting** | L2 Module | .NET 8 · 5005 | `DEPLOYED` | **496 pass** · **Phase 3+4 ✅** · Execution FSM + Crypto + SignalR + 14 endpoint | 0 error |
 | **SpaceOS.Modules.Procurement** | L2 Module | .NET 8 · 5006 | `DEPLOYED` | **53 pass** | 0 error |
-| **SpaceOS.FreeTier** | L2 Module | .NET 8 · 5010 | `LIVE ✅` | **176 pass** · FREETIER-001–013 ✅ · Valós FFDH · NuGet PackageRef | 0 error |
-| **SpaceOS.PartnerTier** | L2 Module | .NET 8 · 5011 | `MVP COMPLETE ✅` | **232 pass** · PARTNER-001–004 ✅ · EF migration P_0001 + RLS + trigger + indexes · ApiKeyExpiryWorker · CORS allowlist · appsettings.Production.json · publish ✓ | 0 error |
+| **SpaceOS.FreeTier** | L2 Module | .NET 8 · 5010 | `LIVE ✅` | **179 pass** · FREETIER-001–014 ✅ · Valós FFDH · Brevo+Turnstile production-ready | 0 error |
+| **SpaceOS.PartnerTier** | L2 Module | .NET 8 · 5011 | `DEPLOYED ✅` | **232 pass** · PARTNER-001–004 ✅ · INFRA-060 deployed · /healthz 200 · systemd active | 0 error |
 | **spaceos-doorstar-portal** | L4 FE Portal | React 18 · Vite · TS · Tailwind | `DEPLOYED` | **99 pass** · FE-012–017: Phase 3 gombok + 6 bugfix (PKCE, callback, orders) | 0 TS error |
 | **spaceos-freetier-portal** | L4 FE Portal | React 19 · Vite · TS · Tailwind | `LIVE ✅` | **75 pass** · Nesting kalkulátor + workspace + share + auth | 0 TS error |
 | **SpaceOS.Cabinet** | NuGet Library | .NET 8+10 · 10 csomag | `DONE ✅` | **518 pass** · Cabinet 0.2 COMPLETE · Catalog+Assembly+Application · git: `3098a60` | 0 error |
 
-**Összesített tesztszám: ~4472 pass** (1138 Kernel + 227 Orchestrator + 323 Portal + 99 Doorstar Portal + 389 Joinery + 81 Abstractions + 303 Cutting + 164 Inventory + 53 Procurement + 57 Contracts + 32 Nesting + 21 Reservation + 277 E2E + 176 FreeTier API + 75 FreeTier Portal + 518 Cabinet + 232 PartnerTier + ~6 misc)
+**Összesített tesztszám: ~4688 pass** (1161 Kernel + 227 Orchestrator + 323 Portal + 99 Doorstar Portal + 389 Joinery + 81 Abstractions + 496 Cutting + 164 Inventory + 53 Procurement + 57 Contracts + 32 Nesting + 21 Reservation + 277 E2E + 179 FreeTier API + 75 FreeTier Portal + 518 Cabinet + 232 PartnerTier)
 
 ### LIVE domainek
 
