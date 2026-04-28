@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-04-28 — **~4688 teszt** · 6 LIVE service · 5 domain · Lynis ~85
+**Utolsó frissítés:** 2026-04-28 — **~4585 teszt** · 6 LIVE service · 5 domain · Lynis ~85 · Cabinet 0.3 COMPLETE (719)
 **Környezet:** VPS prod (109.122.222.198) — nginx (HTTPS) → Orchestrator → Kernel
 **Archívum:** Korábbi részletes sprint-napló → [`docs/codebase-history/`](codebase-history/)
 
@@ -56,7 +56,7 @@ External        Keycloak 24.0 (IdP) · Nesting.Algorithms (NuGet) · Cabinet (Nu
 
 | Csomag | Tesztek | Verzió | Leírás |
 |---|---|---|---|
-| **Cabinet** (9 csomag) | **518** | 0.2.0 | Asztalosipari domain motor (Geometry→Semantics→Catalog→Assembly) |
+| **Cabinet** (10 csomag) | **719** | 0.3.0 | Asztalosipari domain motor — Federation + TenantStandard + Channel<T> RuleEngine |
 | **Contracts** | **57** | 1.3.0 | Modul-közi interfészek + DTO-k |
 | **Nesting.Algorithms** | **32** | 1.1.0 | FFDH + Guillotine nesting |
 
@@ -69,7 +69,7 @@ External        Keycloak 24.0 (IdP) · Nesting.Algorithms (NuGet) · Cabinet (Nu
 
 ---
 
-## Összesített tesztszám: ~4688
+## Összesített tesztszám: ~4585
 
 ```
 Kernel 1161 + Orchestrator 227 + Portal 323 + Doorstar 99 + Joinery 389 +
