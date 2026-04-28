@@ -4,7 +4,7 @@ from: root
 to: manufacturing
 type: task
 priority: high
-status: UNREAD
+status: READ
 ref: MSG-MFG-OUT-001
 created: 2026-04-28
 ---
