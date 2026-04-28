@@ -5,7 +5,7 @@
 **Archívum:** Korábbi részletes sprint-napló → [`docs/codebase-history/`](codebase-history/)
 
 ---
-
+s
 ## Rendszer architektúra
 
 ```
