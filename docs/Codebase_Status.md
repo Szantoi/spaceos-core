@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-04-28 — **~4585 teszt** · 6 LIVE service · 5 domain · Lynis ~85 · Cabinet 0.3 COMPLETE (719)
+**Utolsó frissítés:** 2026-04-28 — **~4786 teszt** · 6 LIVE service · 5 domain · Lynis ~85 · Cabinet 0.3 COMPLETE (719) · Cutting Phase 5 tervezés alatt
 **Környezet:** VPS prod (109.122.222.198) — nginx (HTTPS) → Orchestrator → Kernel
 **Archívum:** Korábbi részletes sprint-napló → [`docs/codebase-history/`](codebase-history/)
 
@@ -69,13 +69,13 @@ External        Keycloak 24.0 (IdP) · Nesting.Algorithms (NuGet) · Cabinet (Nu
 
 ---
 
-## Összesített tesztszám: ~4585
+## Összesített tesztszám: ~4786
 
 ```
 Kernel 1161 + Orchestrator 227 + Portal 323 + Doorstar 99 + Joinery 389 +
 Abstractions 81 + Cutting 496 + Inventory 164 + Procurement 53 + Contracts 57 +
 Nesting 32 + Reservation 21 + E2E 277 + FreeTier API 179 + FreeTier Portal 75 +
-Cabinet 518 + PartnerTier 232 = ~4688
+Cabinet 719 + PartnerTier 232 = 4786
 ```
 
 ---
@@ -102,7 +102,9 @@ Cabinet 518 + PartnerTier 232 = ~4688
 | Cabinet 0.1 COMPLETE | 2026-04-25 | 301 |
 | Cutting Phase 4 Execution | 2026-04-27 | 496 |
 | Cabinet 0.2 COMPLETE | 2026-04-26 | 518 |
-| **Growth Strategy v1 — 100% COMPLETE** | **2026-04-27** | **~4688** |
+| Growth Strategy v1 — 100% COMPLETE | 2026-04-27 | ~4688 |
+| PartnerTier DEPLOYED | 2026-04-27 | 232 |
+| **Cabinet 0.3 COMPLETE** | **2026-04-28** | **719** |
 
 ---
 
