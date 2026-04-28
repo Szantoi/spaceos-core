@@ -9,6 +9,8 @@ spaceos-freetier/
 spaceos-doorstar-portal/
 spaceos-architect/
 spaceos-librarian/
+spaceos-partner-api/
+spaceos-workers-identity/
 design-portal/
 e2e/
 infra/
@@ -30,8 +32,9 @@ logs/
 # Nginx configs (managed separately)
 nginx-*.conf
 
-# Agent tools (local only)
+# Agent tools / local NuGet
 agent_tools/
+local-nuget/
 
 # Claude local settings (keep skills, ignore local cache)
 .claude/settings.local.json
