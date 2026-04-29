@@ -4,7 +4,7 @@ from: root
 to: fe
 type: task
 priority: high
-status: UNREAD
+status: READ
 ref: MSG-FE-019-DONE
 created: 2026-04-29
 ---

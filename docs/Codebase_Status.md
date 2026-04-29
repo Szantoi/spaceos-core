@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-04-29 — **~5471 teszt** · 6 LIVE service · 5 domain · Cutting Phase 6 (931) · Manufacturing Phase 1 (250) · Cabinet 0.3 (719) · Kernel (1178)
+**Utolsó frissítés:** 2026-04-29 — **~5700 teszt** · 6 LIVE service · 5 domain · Portal World COMPLETE (251) · Orch BFF (254) · Cutting Phase 6 (931) · Manufacturing (250) · Cabinet 0.3 (719)
 **Környezet:** VPS prod (109.122.222.198) — nginx (HTTPS) → Orchestrator → Kernel
 **Archívum:** Korábbi részletes sprint-napló → [`docs/codebase-history/`](codebase-history/)
 
@@ -33,7 +33,7 @@ External        Keycloak 24.0 (IdP) · Nesting.Algorithms (NuGet) · Cabinet (Nu
 | Service | Port | Tesztek | Státusz | Utolsó változás |
 |---|---|---|---|---|
 | **Kernel** | 5000 | **1178** | DEPLOYED | KERNEL-105 Outbox cross-module fan-out |
-| **Orchestrator** | 3000 | **227** | DEPLOYED | ORCH-084 Cutting ingest route |
+| **Orchestrator** | 3000 | **254** | DEPLOYED | ORCH-085 Portal World BFF (16 route, opossum circuit breaker) |
 | **Joinery** | 5002 | **389** | DEPLOYED | Phase 3 MinIO PublicEndpoint |
 | **Abstractions** | 5003 | **81** | DEPLOYED | BFS cycle detection |
 | **Inventory** | 5004 | **164** | DEPLOYED | Reservation + Offcut batch |
@@ -48,7 +48,7 @@ External        Keycloak 24.0 (IdP) · Nesting.Algorithms (NuGet) · Cabinet (Nu
 | Domain | App | Tesztek | Repo |
 |---|---|---|---|
 | **joinerytech.hu** | Design Portal (Turborepo) | **323** | `design-portal` |
-| **portal.joinerytech.hu** | Doorstar Portal | **99** | `spaceos-doorstar-portal` |
+| **portal.joinerytech.hu** | Doorstar Portal World (5 world, Shop Floor kiosk) | **251** | `spaceos-doorstar-portal` |
 | **asztalostech.hu** | Design Portal (HU brand) | = joinerytech.hu | = |
 | **eszkozok.joinerytech.hu** | FreeTier nesting kalkulátor | **75** | `spaceos-freetier-portal` |
 | **freetier.joinerytech.hu** | FreeTier API | (API, no UI) | `spaceos-freetier-api` |
@@ -70,13 +70,13 @@ External        Keycloak 24.0 (IdP) · Nesting.Algorithms (NuGet) · Cabinet (Nu
 
 ---
 
-## Összesített tesztszám: ~5471
+## Összesített tesztszám: ~5700
 
 ```
-Kernel 1178 + Orchestrator 227 + Portal 323 + Doorstar 99 + Joinery 389 +
+Kernel 1178 + Orchestrator 254 + Portal 323 + Doorstar 251 + Joinery 389 +
 Abstractions 81 + Cutting 931 + Inventory 164 + Procurement 53 + Contracts 57 +
 Nesting 32 + Reservation 21 + E2E 277 + FreeTier API 179 + FreeTier Portal 75 +
-Cabinet 719 + PartnerTier 232 + Manufacturing 250 = 5471
+Cabinet 719 + PartnerTier 232 + Manufacturing 250 = ~5700
 ```
 
 ---
@@ -109,7 +109,8 @@ Cabinet 719 + PartnerTier 232 + Manufacturing 250 = 5471
 | Cutting Phase 5 Analytics COMPLETE | 2026-04-28 | 719 (Cutting total) |
 | Cutting Phase 6 Adapters COMPLETE | 2026-04-29 | 931 (Cutting total) |
 | Manufacturing Phase 1 COMPLETE | 2026-04-28 | 250 |
-| **Kernel Outbox cross-module fan-out** | **2026-04-28** | **1178 (Kernel total)** |
+| Kernel Outbox cross-module fan-out | 2026-04-28 | 1178 (Kernel total) |
+| **Portal World COMPLETE** | **2026-04-29** | **251 (Doorstar Portal) + 254 (Orchestrator BFF)** |
 
 ---
 
