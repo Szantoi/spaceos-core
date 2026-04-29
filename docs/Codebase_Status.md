@@ -5,7 +5,7 @@
 **Archívum:** Korábbi részletes sprint-napló → [`docs/codebase-history/`](codebase-history/)
 
 ---
-s
+
 ## Rendszer architektúra
 
 ```
@@ -32,7 +32,7 @@ External        Keycloak 24.0 (IdP) · Nesting.Algorithms (NuGet) · Cabinet (Nu
 
 | Service | Port | Tesztek | Státusz | Utolsó változás |
 |---|---|---|---|---|
-| **Kernel** | 5000 | **1161** | DEPLOYED | KERNEL-104 email-hash lookup |
+| **Kernel** | 5000 | **1178** | DEPLOYED | KERNEL-105 Outbox cross-module fan-out |
 | **Orchestrator** | 3000 | **227** | DEPLOYED | ORCH-084 Cutting ingest route |
 | **Joinery** | 5002 | **389** | DEPLOYED | Phase 3 MinIO PublicEndpoint |
 | **Abstractions** | 5003 | **81** | DEPLOYED | BFS cycle detection |
@@ -41,6 +41,7 @@ External        Keycloak 24.0 (IdP) · Nesting.Algorithms (NuGet) · Cabinet (Nu
 | **Procurement** | 5006 | **53** | DEPLOYED | Address field migration |
 | **FreeTier** | 5010 | **179** | LIVE | Brevo+Turnstile production-ready |
 | **PartnerTier** | 5011 | **232** | DEPLOYED | MVP: embed + lead + commission + GDPR |
+| **Manufacturing** | 5007 | **250** | DEV COMPLETE | Phase 1: EdgeBanding + CNC + Order saga + Inbox HMAC |
 
 ## Portals
 
@@ -105,7 +106,10 @@ Cabinet 719 + PartnerTier 232 + Manufacturing 250 = 5471
 | Growth Strategy v1 — 100% COMPLETE | 2026-04-27 | ~4688 |
 | PartnerTier DEPLOYED | 2026-04-27 | 232 |
 | Cabinet 0.3 COMPLETE | 2026-04-28 | 719 |
-| **Cutting Phase 5 Analytics COMPLETE** | **2026-04-28** | **719 (Cutting total)** |
+| Cutting Phase 5 Analytics COMPLETE | 2026-04-28 | 719 (Cutting total) |
+| Cutting Phase 6 Adapters COMPLETE | 2026-04-29 | 931 (Cutting total) |
+| Manufacturing Phase 1 COMPLETE | 2026-04-28 | 250 |
+| **Kernel Outbox cross-module fan-out** | **2026-04-28** | **1178 (Kernel total)** |
 
 ---
 
