@@ -107,7 +107,7 @@ Backend services          (loopback only, systemd)
 
 | Csomag | Tesztek | Path |
 |---|---|---|
-| **Cabinet** (10 csomag) | **750** | `backend/spaceos-modules-cabinet/` |
+| **Cabinet** (10 csomag) | **755** | `backend/spaceos-modules-cabinet/` |
 | **Contracts** | **57** | `backend/spaceos-modules-contracts/` |
 | **Nesting.Algorithms** | **32** | `backend/spaceos-nesting-algorithms/` |
 
@@ -115,20 +115,21 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ SCAFFOLD KÉSZ (179 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ AUTH + API KÉSZ (189 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
 
-**FE scaffold kész** (2026-04-30, commit `3b95802`):
-- Vite + React 18 + TypeScript + Tailwind v4
-- 13 oldal implementálva (Dashboard, Sales, Orders, Design, Flow, Production, Workflow, ShopFloor, Settings, Inventory, Analytics, Procurement)
-- 179/179 teszt pass, pnpm build 0 error, pnpm lint 0 error
-- Következő: BFF API integrálás, Keycloak auth
+**FE auth + API kész** (2026-04-30, commit `7e4c58b`):
+- Keycloak OIDC PKCE flow (`oidc-client-ts`, `InMemoryWebStorage`)
+- `RequireAuth` route guard — `/w/*` védett, `/` anonymous
+- `useApi` hook — Bearer token, typed generics, fallback mock
+- `TenantInfoBar` — valódi API adat megjelenítése
+- 189/189 teszt pass, pnpm build 0 error, pnpm lint 0 error
 
-## Backend tesztek összesen: ~3889
+## Backend tesztek összesen: ~3894
 
 ```
 Kernel 1178 + Orchestrator 254 + Joinery 389 + Abstractions 81 +
 Inventory 164 + Cutting 931 + Procurement 53 + Contracts 57 +
-Nesting 32 + Cabinet 719 = 3858
+Nesting 32 + Cabinet 755 = 3894
 ```
 
 ---
