@@ -41,31 +41,24 @@ DRY_RUN=false
 DAEMON_MODE=false
 
 # Terminálok: [mailbox_név]="tmux_session:repo_path"
+# 2026-04-30: Restructured — backend/, frontend/, törölt terminálok eltávolítva
 declare -A TERMINALS=(
-    [kernel]="spaceos-kernel:/opt/spaceos/spaceos-kernel"
-    [orchestrator]="spaceos-orch:/opt/spaceos/spaceos-orchestrator"
-    [portal]="spaceos-portal:/opt/spaceos/design-portal"
-    [joinery]="spaceos-joinery:/opt/spaceos/spaceos-modules-joinery"
-    [abstractions]="spaceos-abstractions:/opt/spaceos/spaceos-modules-abstractions"
-    [infra]="spaceos-infra:/opt/spaceos/infra"
-    [e2e]="spaceos-e2e:/opt/spaceos/e2e"
-    [cutting]="spaceos-cutting:/opt/spaceos/spaceos-modules-cutting"
-    [inventory]="spaceos-inventory:/opt/spaceos/spaceos-modules-inventory"
-    [procurement]="spaceos-procurement:/opt/spaceos/spaceos-modules-procurement"
-    [fe]="spaceos-fe:/opt/spaceos/spaceos-doorstar-portal"
-    [tester]="spaceos-tester:/opt/spaceos/tester"
-    [librarian]="spaceos-librarian:/opt/spaceos/spaceos-librarian"
-    [architect]="spaceos-architect:/opt/spaceos/spaceos-architect"
-    [freetier]="spaceos-freetier:/opt/spaceos/spaceos-freetier"
-    [freetier-fe]="spaceos-freetier-fe:/opt/spaceos/spaceos-freetier-portal"
-    [cabinet]="spaceos-cabinet:/opt/spaceos/spaceos-modules-cabinet"
-    [partner]="spaceos-partner:/opt/spaceos/spaceos-partner-api"
-    [manufacturing]="spaceos-manufacturing:/opt/spaceos/spaceos-modules-manufacturing"
-    [workers-identity]="spaceos-workers-identity:/opt/spaceos/spaceos-workers-identity"
+    # Backend services
+    [kernel]="spaceos-kernel:/opt/spaceos/backend/spaceos-kernel"
+    [orchestrator]="spaceos-orch:/opt/spaceos/backend/spaceos-orchestrator"
+    [joinery]="spaceos-joinery:/opt/spaceos/backend/spaceos-modules-joinery"
+    [abstractions]="spaceos-abstractions:/opt/spaceos/backend/spaceos-modules-abstractions"
+    [inventory]="spaceos-inventory:/opt/spaceos/backend/spaceos-modules-inventory"
+    [cutting]="spaceos-cutting:/opt/spaceos/backend/spaceos-modules-cutting"
+    [procurement]="spaceos-procurement:/opt/spaceos/backend/spaceos-modules-procurement"
+    # NuGet libraries
+    [cabinet]="spaceos-cabinet:/opt/spaceos/backend/spaceos-modules-cabinet"
+    # Frontend
+    [fe]="spaceos-fe:/opt/spaceos/frontend/joinerytech-portal"
 )
 
-# Persistent terminálok — mindig futnak
-PERSISTENT=(architect)
+# Persistent terminálok — nincs (on-demand only, 8GB VPS)
+PERSISTENT=()
 
 # Root koordinátor session
 ROOT_SESSION="spaceos-root"
