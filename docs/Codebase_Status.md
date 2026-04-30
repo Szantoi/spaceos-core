@@ -115,14 +115,13 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ AUTH + API KÉSZ (189 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ LANDING + ROUTE KÉSZ (195 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
 
-**FE auth + API kész** (2026-04-30, commit `7e4c58b`):
-- Keycloak OIDC PKCE flow (`oidc-client-ts`, `InMemoryWebStorage`)
-- `RequireAuth` route guard — `/w/*` védett, `/` anonymous
-- `useApi` hook — Bearer token, typed generics, fallback mock
-- `TenantInfoBar` — valódi API adat megjelenítése
-- 189/189 teszt pass, pnpm build 0 error, pnpm lint 0 error
+**FE landing page kész** (2026-04-30, commit `3d4b8cc`):
+- `LandingPage` — publikus dark hero, 4 feature blokk, Keycloak login CTA
+- `/` → LandingPage, `/w` → HomeScreen (RequireAuth), `/callback` → `/w`
+- Keycloak OIDC PKCE, `useApi` Bearer token, `RequireAuth` route guard
+- 195/195 teszt pass, pnpm build 0 error, pnpm lint 0 error
 
 ## Backend tesztek összesen: ~3894
 
