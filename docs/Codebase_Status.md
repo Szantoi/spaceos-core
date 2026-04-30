@@ -1,134 +1,136 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-04-29 — **~5700 teszt** · 6 LIVE service · 5 domain · Portal World COMPLETE (251) · Orch BFF (254) · Cutting Phase 6 (931) · Manufacturing (250) · Cabinet 0.3 (719)
-**Környezet:** VPS prod (109.122.222.198) — nginx (HTTPS) → Orchestrator → Kernel
-**Archívum:** Korábbi részletes sprint-napló → [`docs/codebase-history/`](codebase-history/)
+**Utolsó frissítés:** 2026-04-30 — **NAGY ÁTALAKÍTÁS** · Mappa restructure · Frontend reset · Orchestrator = AI gateway
+**Környezet:** VPS prod (109.122.222.198)
+**Archívum:** [`docs/codebase-history/`](codebase-history/)
 
 ---
 
-## Rendszer architektúra
+## ⚠️ 2026-04-30 Átalakítás
+
+### Mappa restructure
 
 ```
-Browser  https://joinerytech.hu / portal.joinerytech.hu / eszkozok.joinerytech.hu
+/opt/spaceos/
+  backend/                          ← MINDEN backend ide került
+    spaceos-kernel/         (5000)
+    spaceos-orchestrator/   (3000)  ← AI gateway (LLM only, NEM proxy)
+    spaceos-modules-joinery/        (5002)
+    spaceos-modules-abstractions/   (5003)
+    spaceos-modules-inventory/      (5004)
+    spaceos-modules-cutting/        (5005)
+    spaceos-modules-procurement/    (5006)
+    spaceos-modules-cabinet/        (NuGet lib)
+    spaceos-modules-contracts/      (NuGet lib)
+    spaceos-nesting-algorithms/     (NuGet lib)
+    local-nuget/
+  frontend/
+    joinerytech-portal/             ← EGYETLEN frontend (újraépítés alatt)
+  docs/                             ← dokumentáció (érintetlen)
+  keycloak/                         ← IdP config
+  tools/                            ← dispatcher
+```
+
+### Törölt mappák/service-ek
+
+| Törölt | Ok |
+|---|---|
+| `design-portal/` | Frontend reset — újraépül |
+| `spaceos-doorstar-portal/` | Frontend reset — beolvad joinerytech-portal-ba |
+| `spaceos-freetier-portal/` | Frontend reset — beolvad joinerytech-portal-ba |
+| `spaceos-freetier-api/` (5010) | Nesting → beépül a fő portálba |
+| `spaceos-partner-api/` (5011) | PartnerTier — későbbre halasztva |
+| `spaceos-modules-manufacturing/` (5007) | DEV COMPLETE — nem deployed, későbbre halasztva |
+| `spaceos-workers-identity/` (5008) | Üres — későbbre halasztva |
+| `e2e/`, `epics/`, `infra/`, `tester/`, `architect/`, `librarian/` | Terminál config-ok — nem kód |
+| `agent_tools/`, `vision/`, `logs/` | Elavult |
+
+### Architektúra változás
+
+**VOLT:**
+```
+Frontend → Orchestrator (BFF proxy) → Backend service-ek
+```
+
+**LETT:**
+```
+Frontend → nginx (proxy) → Backend service-ek     (direkt API hívások)
+Frontend → Orchestrator                            (csak LLM/AI hívások)
+```
+
+Az Orchestrator NEM proxy többé — **AI gateway** (LLM Tool Calling, chat). Az API proxy-zást nginx végzi.
+
+### Frontend döntés (Manifesztum alapú)
+
+- **Egy app:** `joinerytech.hu`
+- **Minden ingyenes:** bejelentkezés = teljes hozzáférés
+- **Nincs FreeTier/paid tier szétválasztás**
+- **Támogatási formák** (donation) nem oldanak fel funkciót
+
+---
+
+## Rendszer architektúra (ÚJ)
+
+```
+Browser  https://joinerytech.hu
   │
   ▼
-L5  Nginx       (TLS 1.3 · HSTS · CSP · rate limit)         port 443
+Nginx       (TLS 1.3 · HSTS · CSP)                          port 443
+  │  /                    → frontend/joinerytech-portal/dist/  (SPA)
+  │  /api/*               → backend/spaceos-kernel (5000)
+  │  /joinery/*           → backend/spaceos-modules-joinery (5002)
+  │  /cutting/*           → backend/spaceos-modules-cutting (5005)
+  │  /inventory/*         → backend/spaceos-modules-inventory (5004)
+  │  /procurement/*       → backend/spaceos-modules-procurement (5006)
+  │  /abstractions/*      → backend/spaceos-modules-abstractions (5003)
+  │  /ai/*                → backend/spaceos-orchestrator (3000)   ← CSAK AI/LLM
+  │  /auth/*              → Keycloak (8080)
   ▼
-L4  Portals     Design Portal · Doorstar Portal · FreeTier    static (nginx)
-  ▼
-L3  Orchestrator (Node.js 22 · Express · TS)                  port 3000 (PM2)
-  │  /bff/api/* → Kernel · /bff/joinery/* → Joinery · /bff/cutting/* → Cutting
-  ▼
-L2  Modules     Kernel · Joinery · Cutting · Inventory · Procurement · FreeTier · PartnerTier
-  ▼
-L1  PostgreSQL 16 (port 5433) · Redis 7.4 · MinIO (WORM)
-  ▼
-External        Keycloak 24.0 (IdP) · Nesting.Algorithms (NuGet) · Cabinet (NuGet)
+Backend services          (loopback only, systemd)
 ```
 
 ---
 
 ## Service-ek
 
-| Service | Port | Tesztek | Státusz | Utolsó változás |
+| Service | Port | Tesztek | Státusz | Path |
 |---|---|---|---|---|
-| **Kernel** | 5000 | **1178** | DEPLOYED | KERNEL-105 Outbox cross-module fan-out |
-| **Orchestrator** | 3000 | **254** | DEPLOYED | ORCH-085 Portal World BFF (16 route, opossum circuit breaker) |
-| **Joinery** | 5002 | **389** | DEPLOYED | Phase 3 MinIO PublicEndpoint |
-| **Abstractions** | 5003 | **81** | DEPLOYED | BFS cycle detection |
-| **Inventory** | 5004 | **164** | DEPLOYED | Reservation + Offcut batch |
-| **Cutting** | 5005 | **931** | DEPLOYED | Phase 3-6 ✅ · Execution + Analytics + Adapters (OptiCut/CutRite/Manual) |
-| **Procurement** | 5006 | **53** | DEPLOYED | Address field migration |
-| **FreeTier** | 5010 | **179** | LIVE | Brevo+Turnstile production-ready |
-| **PartnerTier** | 5011 | **232** | DEPLOYED | MVP: embed + lead + commission + GDPR |
-| **Manufacturing** | 5007 | **250** | DEV COMPLETE | Phase 1: EdgeBanding + CNC + Order saga + Inbox HMAC |
-
-## Portals
-
-| Domain | App | Tesztek | Repo |
-|---|---|---|---|
-| **joinerytech.hu** | Design Portal (Turborepo) | **323** | `design-portal` |
-| **portal.joinerytech.hu** | Doorstar Portal World (5 world, Shop Floor kiosk) | **251** | `spaceos-doorstar-portal` |
-| **asztalostech.hu** | Design Portal (HU brand) | = joinerytech.hu | = |
-| **eszkozok.joinerytech.hu** | FreeTier nesting kalkulátor | **75** | `spaceos-freetier-portal` |
-| **freetier.joinerytech.hu** | FreeTier API | (API, no UI) | `spaceos-freetier-api` |
+| **Kernel** | 5000 | **1178** | ✅ RUNNING | `backend/spaceos-kernel/` |
+| **Orchestrator** | 3000 | **254** | ✅ RUNNING | `backend/spaceos-orchestrator/` |
+| **Joinery** | 5002 | **389** | ✅ RUNNING | `backend/spaceos-modules-joinery/` |
+| **Abstractions** | 5003 | **81** | ✅ RUNNING | `backend/spaceos-modules-abstractions/` |
+| **Inventory** | 5004 | **164** | ✅ RUNNING | `backend/spaceos-modules-inventory/` |
+| **Cutting** | 5005 | **931** | ✅ RUNNING | `backend/spaceos-modules-cutting/` |
+| **Procurement** | 5006 | **53** | ✅ RUNNING | `backend/spaceos-modules-procurement/` |
 
 ## NuGet Libraries
 
-| Csomag | Tesztek | Verzió | Leírás |
+| Csomag | Tesztek | Path |
+|---|---|---|
+| **Cabinet** (10 csomag) | **719** | `backend/spaceos-modules-cabinet/` |
+| **Contracts** | **57** | `backend/spaceos-modules-contracts/` |
+| **Nesting.Algorithms** | **32** | `backend/spaceos-nesting-algorithms/` |
+
+## Frontend
+
+| App | Domain | Státusz | Path |
 |---|---|---|---|
-| **Cabinet** (10 csomag) | **719** | 0.3.0 | Asztalosipari domain motor — Federation + TenantStandard + Channel<T> RuleEngine |
-| **Contracts** | **57** | 1.3.0 | Modul-közi interfészek + DTO-k |
-| **Nesting.Algorithms** | **32** | 1.1.0 | FFDH + Guillotine nesting |
+| **JoineryTech Portal** | joinerytech.hu | 🔴 ÚJRAÉPÍTÉS ALATT | `frontend/joinerytech-portal/` |
 
-## E2E + Egyéb
-
-| Komponens | Tesztek |
-|---|---|
-| **E2E** | **277** (59 fájl, Vitest) |
-| Reservation Contracts | 21 |
-
----
-
-## Összesített tesztszám: ~5700
+## Backend tesztek összesen: ~3858
 
 ```
-Kernel 1178 + Orchestrator 254 + Portal 323 + Doorstar 251 + Joinery 389 +
-Abstractions 81 + Cutting 931 + Inventory 164 + Procurement 53 + Contracts 57 +
-Nesting 32 + Reservation 21 + E2E 277 + FreeTier API 179 + FreeTier Portal 75 +
-Cabinet 719 + PartnerTier 232 + Manufacturing 250 = ~5700
+Kernel 1178 + Orchestrator 254 + Joinery 389 + Abstractions 81 +
+Inventory 164 + Cutting 931 + Procurement 53 + Contracts 57 +
+Nesting 32 + Cabinet 719 = 3858
 ```
-
----
-
-## VPS Security (Lynis ~85)
-
-| Batch | Tartalom | Státusz |
-|---|---|---|
-| Batch 1 | Docker bind fix + Keycloak loopback + SSH hardening + apt upgrade | ✅ |
-| Batch 2 | PG chmod + Redis CONFIG rename + protocol disable + fail2ban + umask | ✅ |
-| Batch 3 | auditd + needrestart + rkhunter + sysstat | ✅ |
-| spaceos_schema_owner | FreeTier RLS FORCE fix | ✅ |
-| CabinetBilder | Keycloak client (Device Code Flow, 6 mapper) | ✅ |
-
----
-
-## Lezárt nagy mérföldkövek
-
-| Mérföldkő | Dátum | Tesztek |
-|---|---|---|
-| Soft Launch GO (Doorstar Kft.) | 2026-04-20 | ~3028 |
-| FreeTier LIVE (eszkozok.joinerytech.hu) | 2026-04-23 | ~3565 |
-| Joinery Phase 3 VALIDATED | 2026-04-24 | ~3600 |
-| Cabinet 0.1 COMPLETE | 2026-04-25 | 301 |
-| Cutting Phase 4 Execution | 2026-04-27 | 496 |
-| Cabinet 0.2 COMPLETE | 2026-04-26 | 518 |
-| Growth Strategy v1 — 100% COMPLETE | 2026-04-27 | ~4688 |
-| PartnerTier DEPLOYED | 2026-04-27 | 232 |
-| Cabinet 0.3 COMPLETE | 2026-04-28 | 719 |
-| Cutting Phase 5 Analytics COMPLETE | 2026-04-28 | 719 (Cutting total) |
-| Cutting Phase 6 Adapters COMPLETE | 2026-04-29 | 931 (Cutting total) |
-| Manufacturing Phase 1 COMPLETE | 2026-04-28 | 250 |
-| Kernel Outbox cross-module fan-out | 2026-04-28 | 1178 (Kernel total) |
-| **Portal World COMPLETE** | **2026-04-29** | **251 (Doorstar Portal) + 254 (Orchestrator BFF)** |
 
 ---
 
 ## Operátori teendők
 
-| # | Feladat | Ki |
-|---|---|---|
-| Brevo API key regisztráció | Gábor | [brevo.com](https://brevo.com) → "Transactional" → API key |
-| Turnstile site key + secret | Gábor | [Cloudflare Turnstile](https://dash.cloudflare.com) |
-| PartnerTier nginx vhost | INFRA task (ha publikus domain kell) |
-
----
-
-## Archívum
-
-| Fájl | Tartalom |
+| # | Feladat |
 |---|---|
-| [`codebase-history/Codebase_Status_2026-04-27_full.md`](codebase-history/Codebase_Status_2026-04-27_full.md) | Teljes sprint-napló 2026-03-31 → 2026-04-27 (1476 sor) |
-| [`docs/tasks/archive/`](tasks/archive/) | Lezárt tervdokok és task fájlok |
-| [`docs/mailbox/`](mailbox/) | Teljes terminál kommunikáció (inbox/outbox/archive) |
-| [`docs/knowledge/`](knowledge/) | Szintetizált tudásbázis (18 fájl) |
+| nginx config: API proxy route-ok | Még nem konfigurálva — frontend rebuild-del együtt |
+| Brevo API key | Még nem regisztrálva |
+| Turnstile site key | Még nem regisztrálva |
