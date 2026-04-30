@@ -4,7 +4,7 @@ from: root
 to: fe
 type: task
 priority: critical
-status: UNREAD
+status: READ
 created: 2026-04-30
 ---
 

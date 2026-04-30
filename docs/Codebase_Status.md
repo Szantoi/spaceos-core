@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-04-30 — **NAGY ÁTALAKÍTÁS** · Mappa restructure · Frontend reset · Orchestrator = AI gateway
+**Utolsó frissítés:** 2026-04-30 — FE scaffold kész · 179 teszt · 0 build hiba · commit 3b95802
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -115,7 +115,13 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | 🟡 ÚJRAÉPÍTÉS ALATT (mock data kész, 242 teszt) | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ SCAFFOLD KÉSZ (179 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+
+**FE scaffold kész** (2026-04-30, commit `3b95802`):
+- Vite + React 18 + TypeScript + Tailwind v4
+- 13 oldal implementálva (Dashboard, Sales, Orders, Design, Flow, Production, Workflow, ShopFloor, Settings, Inventory, Analytics, Procurement)
+- 179/179 teszt pass, pnpm build 0 error, pnpm lint 0 error
+- Következő: BFF API integrálás, Keycloak auth
 
 ## Backend tesztek összesen: ~3889
 
