@@ -1,4 +1,40 @@
-# Code repos (saját git repo-juk van)
+# ============================================================================
+# SpaceOS Root repo (.gitignore) — 2026-04-30 restructured
+# Ez a repo CSAK a docs/ + tools/ + .claude/ mappákat tartalmazza.
+# A backend/ és frontend/ saját git repókkal rendelkeznek.
+# ============================================================================
+
+# Backend repos (saját git repo-juk van)
+backend/
+
+# Frontend repos (saját git repo-juk van)
+frontend/
+
+# Keycloak config
+keycloak/
+
+# Docker / runtime
+docker-compose.yml
+logs/
+
+# Secrets / env
+*.env
+.mcp.json
+
+# Build artifacts
+*.bak
+*.staged
+
+# Nginx configs (managed separately)
+nginx-*.conf
+
+# Local NuGet
+local-nuget/
+
+# Claude local settings
+.claude/settings.local.json
+
+# Régi mappák (ha még lennének)
 spaceos-kernel/
 spaceos-orchestrator/
 spaceos-modules-*/
@@ -15,26 +51,4 @@ design-portal/
 e2e/
 infra/
 tester/
-
-# Docker / runtime
-docker-compose.yml
-keycloak/
-logs/
-
-# Secrets / env
-*.env
-.mcp.json
-
-# Build artifacts
-*.bak
-*.staged
-
-# Nginx configs (managed separately)
-nginx-*.conf
-
-# Agent tools / local NuGet
 agent_tools/
-local-nuget/
-
-# Claude local settings (keep skills, ignore local cache)
-.claude/settings.local.json
