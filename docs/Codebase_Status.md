@@ -107,7 +107,7 @@ Backend services          (loopback only, systemd)
 
 | Csomag | Tesztek | Path |
 |---|---|---|
-| **Cabinet** (10 csomag) | **719** | `backend/spaceos-modules-cabinet/` |
+| **Cabinet** (10 csomag) | **750** | `backend/spaceos-modules-cabinet/` |
 | **Contracts** | **57** | `backend/spaceos-modules-contracts/` |
 | **Nesting.Algorithms** | **32** | `backend/spaceos-nesting-algorithms/` |
 
@@ -115,9 +115,9 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | 🔴 ÚJRAÉPÍTÉS ALATT | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | 🟡 ÚJRAÉPÍTÉS ALATT (mock data kész, 242 teszt) | `frontend/joinerytech-portal/` |
 
-## Backend tesztek összesen: ~3858
+## Backend tesztek összesen: ~3889
 
 ```
 Kernel 1178 + Orchestrator 254 + Joinery 389 + Abstractions 81 +

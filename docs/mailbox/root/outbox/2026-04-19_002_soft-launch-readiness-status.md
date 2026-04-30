@@ -3,7 +3,7 @@ id: MSG-ROOT-002
 from: root
 to: root
 type: report
-status: UNREAD
+status: READ
 ref: MSG-ROOT-001
 created: 2026-04-19
 ---

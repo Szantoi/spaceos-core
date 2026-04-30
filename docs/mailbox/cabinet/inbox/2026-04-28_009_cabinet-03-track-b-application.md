@@ -4,7 +4,7 @@ from: root
 to: cabinet
 type: task
 priority: high
-status: UNREAD
+status: READ
 ref: MSG-CABINET-008-DONE
 created: 2026-04-28
 ---
