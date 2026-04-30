@@ -34,9 +34,13 @@
 - PartnerTier MVP ✅ (232 teszt)
 - Manufacturing Phase 1 ✅ (250 teszt)
 - Portal World (5 world) + FE-026 mock data ✅ (242 teszt)
+- **FE-027 Portal Scaffold** ✅ — Vite + React 18 + TS + Tailwind v4 (179 teszt, commit 3b95802)
+- **FE-028 Auth + API** ✅ — Keycloak OIDC PKCE + API hook + route guard (189 teszt, commit 7e4c58b)
+- **FE-029 Landing page** ✅ — publikus bemutatkozó + route átszervezés (195 teszt, commit 3d4b8cc)
+- **Cabinet 0.3** ✅ — Track A+B+C lezárva, v0.3.0-alpha.1 (755 teszt)
 - **NAGY ÁTALAKÍTÁS** ✅ — mappa restructure, frontend reset, Orchestrator = AI gateway
 
-### Backend tesztek: ~3858
+### Backend tesztek: ~3894
 
 ### 🔵 Active
 

@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-04-30 — FE scaffold kész · 179 teszt · 0 build hiba · commit 3b95802
+**Utolsó frissítés:** 2026-04-30 — FE referencia oldalak · 229 teszt · 0 build hiba · commit 720e106
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -115,13 +115,16 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ LANDING + ROUTE KÉSZ (195 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ REFERENCIA OLDALAK KÉSZ (229 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
 
-**FE landing page kész** (2026-04-30, commit `3d4b8cc`):
-- `LandingPage` — publikus dark hero, 4 feature blokk, Keycloak login CTA
-- `/` → LandingPage, `/w` → HomeScreen (RequireAuth), `/callback` → `/w`
-- Keycloak OIDC PKCE, `useApi` Bearer token, `RequireAuth` route guard
-- 195/195 teszt pass, pnpm build 0 error, pnpm lint 0 error
+**FE referencia-alapú oldalak kész** (2026-04-30, commit `720e106`):
+- Landing page (világos téma, Keycloak CTA)
+- Keycloak OIDC PKCE login/logout (sessionStorage stateStore)
+- 13+ oldal teljes redesign a design reference alapján
+- WorkflowPage kanban, SalesPage funnel+KPI, DesignPage wizard, ShopFloor kiosk rewrite
+- Új komponensek: Avatar, SlideOver, ChatPanel, NewOrderDrawer, OffcutsPanel, stb.
+- Settings 10 fül: Cég, Felhasználók, Jogosultságok, Telephely, Géppark, Partnerek, stb.
+- 229/229 teszt pass, pnpm build 0 error
 
 ## Backend tesztek összesen: ~3894
 
