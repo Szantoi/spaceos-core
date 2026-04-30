@@ -4,7 +4,7 @@ from: fe
 to: root
 type: done
 priority: critical
-status: UNREAD
+status: READ
 ref: MSG-FE-027
 created: 2026-04-30
 ---

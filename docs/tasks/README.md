@@ -37,8 +37,10 @@
 - **FE-027 Portal Scaffold** ✅ — Vite + React 18 + TS + Tailwind v4 (179 teszt, commit 3b95802)
 - **FE-028 Auth + API** ✅ — Keycloak OIDC PKCE + API hook + route guard (189 teszt, commit 7e4c58b)
 - **FE-029 Landing page** ✅ — publikus bemutatkozó + route átszervezés (195 teszt, commit 3d4b8cc)
+- **FE referencia oldalak** ✅ — 13+ oldal teljes redesign, 229/229 teszt, 0 build hiba, commit `720e106`
 - **Cabinet 0.3** ✅ — Track A+B+C lezárva, v0.3.0-alpha.1 (755 teszt)
 - **NAGY ÁTALAKÍTÁS** ✅ — mappa restructure, frontend reset, Orchestrator = AI gateway
+- **Site live** ✅ — https://joinerytech.hu elérhető (2026-04-30)
 
 ### Backend tesztek: ~3894
 
@@ -54,8 +56,8 @@ Nincs new task.
 
 | # | Feladat | Leírás |
 |---|---|---|
-| 1 | Frontend rebuild | `frontend/joinerytech-portal/` — egyetlen React app, joinerytech.hu |
-| 2 | nginx API proxy | Direkt route-ok backend service-ekhez (nem Orchestrator-on át) |
-| 3 | Orchestrator cleanup | BFF proxy route-ok eltávolítása, csak AI/LLM marad |
+| 1 | nginx API proxy | Direkt route-ok backend service-ekhez (nem Orchestrator-on át) |
+| 2 | Orchestrator cleanup | BFF proxy route-ok eltávolítása, csak AI/LLM marad |
+| 3 | Backend API integráció (FE) | Valós API hívások mock helyett |
 | 4 | Brevo API key | Gábor regisztrálja (brevo.com) |
 | 5 | Turnstile site key | Gábor regisztrálja (Cloudflare) |
