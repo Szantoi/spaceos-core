@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-26 — FE API integrations COMPLETE (12 komponens live) · 247 teszt · 0 build hiba
+**Utolsó frissítés:** 2026-05-26 — Regression fix: NuGet.Config paths + kernel rebuild · minden teszt zöld
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -167,10 +167,10 @@ Backend services          (loopback only, systemd)
 - Settings 10 fül: Cég, Felhasználók, Jogosultságok, Telephely, Géppark, Partnerek, stb.
 - 229/229 teszt pass, pnpm build 0 error
 
-## Backend tesztek összesen: ~3894
+## Backend tesztek összesen: ~3884 (verifikált)
 
 ```
-Kernel 1178 + Orchestrator 254 + Joinery 389 + Abstractions 81 +
+Kernel 963+107+108=1178 (unit+API+IT) + Orchestrator 254 + Joinery 389 + Abstractions 81 +
 Inventory 164 + Cutting 931 + Procurement 53 + Contracts 57 +
 Nesting 32 + Cabinet 755 = 3894
 ```
@@ -181,6 +181,6 @@ Nesting 32 + Cabinet 755 = 3894
 
 | # | Feladat |
 |---|---|
-| nginx config: API proxy route-ok | Még nem konfigurálva — frontend rebuild-del együtt |
+| nginx config: API proxy route-ok | ✅ KÉSZ — minden route konfigurálva (2026-04-30 óta) |
 | Brevo API key | Még nem regisztrálva |
 | Turnstile site key | Még nem regisztrálva |
