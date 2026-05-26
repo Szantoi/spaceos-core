@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-26 — TS build fix (CuttingPlan displayId) · pnpm build clean · 247 teszt zöld · dist live
+**Utolsó frissítés:** 2026-05-27 — Orchestrator átmigráció: root PM2 → systemd spaceos user · health OK
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -96,7 +96,7 @@ Backend services          (loopback only, systemd)
 | Service | Port | Tesztek | Státusz | Path |
 |---|---|---|---|---|
 | **Kernel** | 5000 | **1178** | ✅ RUNNING | `backend/spaceos-kernel/` |
-| **Orchestrator** | 3000 | **254** | ✅ RUNNING | `backend/spaceos-orchestrator/` |
+| **Orchestrator** | 3000 | **254** | ✅ RUNNING (systemd, spaceos user) | `backend/spaceos-orchestrator/` |
 | **Joinery** | 5002 | **389** | ✅ RUNNING | `backend/spaceos-modules-joinery/` |
 | **Abstractions** | 5003 | **81** | ✅ RUNNING | `backend/spaceos-modules-abstractions/` |
 | **Inventory** | 5004 | **164** | ✅ RUNNING | `backend/spaceos-modules-inventory/` |
