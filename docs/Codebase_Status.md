@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-04-30 — FE referencia oldalak · 229 teszt · 0 build hiba · commit 720e106
+**Utolsó frissítés:** 2026-05-26 — FE-035 Raktár bugfix · 247 teszt · 0 build hiba
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -115,7 +115,34 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ REFERENCIA OLDALAK KÉSZ (229 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ FE-035 kész (247 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+
+**FE-035 Raktár bugfix** (2026-05-26):
+- MovementsPage: `embedded` prop — InventoryPage mozgások tabban nincs dupla padding, nincs redundáns summary card, filter bar azonnal látható
+- ProcurementPage: `w-full` az outer div-re — `/w/warehouse/procurement` helyesen renderel
+- App.test.tsx: 3 új warehouse route teszt (overview, procurement, movements)
+- 247/247 teszt pass
+
+**FE-034 Settings world URL-alapú navigáció** (2026-05-26):
+- SettingsWorldPage létrehozva, WorldPage wrapper törölve
+- SettingsPage: initialTab + onTabChange props, URL és belső tab szinkronban
+- Minden `/w/settings/:screen` URL helyesen navigál
+- 244/244 teszt pass
+
+**FE-033 ShopFloor design igazítás + orphaned route cleanup** (2026-05-26):
+- ShopFloor: bg-stone-900, header bg-stone-800, "Vissza a portálra" gomb, "Bejelentkezés" cím, "Töröl" gomb
+- App.tsx: `/w/orders`, `/w/workflow`, `/w/analytics` orphaned route-ok törölve
+- 244/244 teszt pass
+
+**FE-032 Warehouse world routing** (2026-05-26):
+- WarehouseWorldPage: dash/inventory → InventoryPage, procurement → ProcurementPage, movements → MovementsPage
+- `/w/procurement` orphaned route törölve
+- 243/243 teszt pass
+
+**FE-030 Sales world design impl kész** (2026-05-26, commit `8e1d1f1`):
+- Sales world: screen-alapú navigáció (`/w/sales/:screen`)
+- SalesOrders, SalesQuotes (rejected filter), SalesCustomers, SalesDashboard
+- 235/235 teszt pass, pnpm build 0 error
 
 **FE referencia-alapú oldalak kész** (2026-04-30, commit `720e106`):
 - Landing page (világos téma, Keycloak CTA)
