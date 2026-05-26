@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-26 — Regression fix: NuGet.Config paths + kernel rebuild · minden teszt zöld
+**Utolsó frissítés:** 2026-05-26 — TS build fix (CuttingPlan displayId) · pnpm build clean · 247 teszt zöld · dist live
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -115,7 +115,7 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ API integrations COMPLETE (12 komponens live, 247 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ API integrations COMPLETE (12 komponens live, 247 teszt, 0 build hiba, dist deployed) | `frontend/joinerytech-portal/` |
 
 **FE API integrations — Phase 8+9 (COMPLETE)** (2026-05-26):
 - MachineParkPanel: `GET /api/tools/workstations` — WS_STATUS_MAP, mock fallback
