@@ -138,6 +138,7 @@ export const API_BASE = {
 | MiniKanbanStrip | GET /api/facilities/{id}/flow-epics | PHASE_TO_STAGE count |
 | MachineParkPanel | GET /api/tools/workstations?pageSize=50 | WS_STATUS_MAP, mock fallback for rich fields |
 | DesignPage (dashboard) | GET /abstractions/api/modules/templates | template count stat; full editor stays mock |
+| DashboardPage (recent orders) | GET /joinery/api/orders?pageSize=5 | reuses ORDER_STATUS_MAP from OrdersPage |
 
 ## Abstractions Service Auth Fix (2026-05-26)
 The abstractions service (`/etc/spaceos/abstractions.env`) had wrong Keycloak authority path.
