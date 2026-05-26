@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-26 — FE-035 Raktár bugfix · 247 teszt · 0 build hiba
+**Utolsó frissítés:** 2026-05-26 — FE API integrations (MachinePark + DesignPage + abstractions auth fix) · 247 teszt · 0 build hiba
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -115,7 +115,14 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ FE-035 kész (247 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ API integrations (11 komponens live, 247 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+
+**FE API integrations — Phase 8** (2026-05-26):
+- MachineParkPanel: `GET /api/tools/workstations` — WS_STATUS_MAP, mock fallback
+- DesignPage dashboard: `GET /abstractions/api/modules/templates` — template count stat
+- Abstractions service JWT authority path fix (`/realms` → `/auth/realms`)
+- Skill dokumentáció frissítve: `fe-api-integration` (11 befejezett integráció)
+- 247/247 teszt pass
 
 **FE-035 Raktár bugfix** (2026-05-26):
 - MovementsPage: `embedded` prop — InventoryPage mozgások tabban nincs dupla padding, nincs redundáns summary card, filter bar azonnal látható

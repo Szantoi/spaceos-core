@@ -136,3 +136,12 @@ export const API_BASE = {
 | AuditPanel | GET /api/audit-events?pageSize=50 | hash prefix, ts format |
 | FacilitiesPanel | GET /api/tenants/{id}/facilities | E2E filter + mock-merge for rich fields |
 | MiniKanbanStrip | GET /api/facilities/{id}/flow-epics | PHASE_TO_STAGE count |
+| MachineParkPanel | GET /api/tools/workstations?pageSize=50 | WS_STATUS_MAP, mock fallback for rich fields |
+| DesignPage (dashboard) | GET /abstractions/api/modules/templates | template count stat; full editor stays mock |
+
+## Abstractions Service Auth Fix (2026-05-26)
+The abstractions service (`/etc/spaceos/abstractions.env`) had wrong Keycloak authority path.
+Wrong: `Jwt__Authority=http://127.0.0.1:8080/realms/spaceos` (missing `/auth/`)
+Fixed: `Jwt__Authority=http://127.0.0.1:8080/auth/realms/spaceos`
+This caused `invalid_token: The issuer '...' is invalid` on every request.
+All other services use the `/auth/realms/...` path — the abstractions service was the only outlier.
