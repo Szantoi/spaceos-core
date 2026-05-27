@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-27 — Identity Track C ✅ (58 teszt) · Track E kiadva · deploy prep new/-ban
+**Utolsó frissítés:** 2026-05-27 — Identity modul v1 IMPLEMENTÁCIÓ KÉSZ · 63 teszt · deploy P0-1 után
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -171,17 +171,18 @@ Backend services          (loopback only, systemd)
 
 | Service | Port | Tesztek | Státusz | Path |
 |---|---|---|---|---|
-| **Identity** | 5008 | — | 🔵 Track A folyamatban · GA blocker: P0-1 | `backend/spaceos-modules-identity/` |
+| **Identity** | 5008 | **63** | ⚠️ IMPLEMENTÁCIÓ KÉSZ · nem deployed · GA blocker: P0-1 (JWT RS256) | `backend/spaceos-modules-identity/` |
 
 **Implementációs track-ek:**
 - Track A (Domain): ✅ elfogadva — 21 teszt, commit `96e23f1`
 - Track B (Application): ✅ elfogadva — 41 teszt (20 Application + 21 Domain), commit `c6ad6f8`
 - Track C (Infrastructure/Persistence): ✅ elfogadva — 58 teszt, commit `012fef4` (kézi SQL migration, dotnet-ef v10 inkompatibilis)
 - Track D (KC client + Workers + Redis): ✅ elfogadva — 54 teszt, commit `689d610` (plain HttpClient, Keycloak.AuthServices.Sdk net8.0 inkompatibilis)
-- Track E (API + Program.cs): 🔵 folyamatban — MSG-IDENTITY-005
-- Deploy: `new/INFRA-IDENTITY-DEPLOY` — Track E után, P0-1 előfeltétel
+- Track E (API + Program.cs): ✅ elfogadva — 63 teszt, commit `1749ea0`
+- **Deploy: BLOKKOLT** — P0-1 (JWT RS256, Kernel scope) lezárása kötelező production GA előtt
+- Deploy task: `new/INFRA-IDENTITY-DEPLOY` — dotnet-ef 8.x, spaceos_identity DB, systemd, nginx, KC client
 
-## Backend tesztek összesen: ~3884 (verifikált)
+## Backend tesztek összesen: ~3947 (verifikált)
 
 ```
 Kernel 963+107+108=1178 (unit+API+IT) + Orchestrator 121 + Joinery 389 + Abstractions 81 +

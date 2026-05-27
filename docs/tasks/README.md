@@ -41,14 +41,13 @@
 - **Doorstar seed** ✅ — tenant, facility, 5 workstation, 5 template, 9 KC user (2026-05-27)
 - **Keycloak SMTP** ✅ — Brevo, noreply@joinerytech.hu, domain hitelesítve, reset password on (2026-05-27)
 - **Orchestrator → systemd** ✅ — PM2 root helyett spaceos user, AI gateway only (2026-05-27)
+- **Identity modul v1** ✅ — 63 teszt, 5 track, Clean Architecture + Outbox + Redis (2026-05-27)
 
 ### Backend tesztek: ~3761
 
 ### 🔵 Active
 
-| Task | Terminál | Státusz |
-|---|---|---|
-| `IDENTITY-V1_modules-identity.md` | IDENTITY | Track A ✅ elfogadva (21 teszt) · Track B+C+D kiadva párhuzamosan |
+Nincs aktív task.
 
 ### 🟡 New
 
@@ -63,6 +62,6 @@
 | Identity Track B | IDENTITY | Application layer — elfogadva, 41 teszt | ✅ DONE |
 | Identity Track C | IDENTITY | Infrastructure/Persistence — elfogadva, 58 teszt | ✅ DONE |
 | Identity Track D | IDENTITY | KC client + Workers + Redis — elfogadva, 54 teszt | ✅ DONE |
-| Identity Track E | IDENTITY | API controllers + Program.cs — kiadva MSG-IDENTITY-005 | ✅ kiadva |
+| Identity Track E | IDENTITY | API controllers + Program.cs — elfogadva, 63 teszt | ✅ DONE |
 | Identity Deploy | INFRA | systemd + nginx + dotnet-ef 8.x + KC client | P0-1 (JWT RS256) lezárva |
 | Turnstile | — | Later — csak ha publikus regisztrációs form lesz | — |
