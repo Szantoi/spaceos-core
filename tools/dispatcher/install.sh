@@ -22,7 +22,7 @@ command -v claude >/dev/null 2>&1 && echo "  ✅ claude" || { echo "  ❌ claude
 
 # Könyvtárak
 mkdir -p "$INSTALL_DIR" "$SPACEOS_ROOT/logs/dispatcher"
-for t in kernel orchestrator portal joinery abstractions e2e infra; do
+for t in kernel orchestrator portal joinery abstractions e2e infra identity; do
     mkdir -p "$SPACEOS_ROOT/docs/mailbox/$t/inbox" "$SPACEOS_ROOT/docs/mailbox/$t/outbox"
 done
 

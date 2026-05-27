@@ -51,6 +51,7 @@ declare -A TERMINALS=(
     [inventory]="spaceos-inventory:/opt/spaceos/backend/spaceos-modules-inventory"
     [cutting]="spaceos-cutting:/opt/spaceos/backend/spaceos-modules-cutting"
     [procurement]="spaceos-procurement:/opt/spaceos/backend/spaceos-modules-procurement"
+    [identity]="spaceos-identity:/opt/spaceos/backend/spaceos-modules-identity"
     # NuGet libraries
     [cabinet]="spaceos-cabinet:/opt/spaceos/backend/spaceos-modules-cabinet"
     # Frontend
