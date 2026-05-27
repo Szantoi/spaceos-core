@@ -10,13 +10,13 @@
 
 ---
 
-## Jelenlegi állapot (2026-05-27)
+## Jelenlegi állapot (2026-05-27 — Identity DEPLOYED)
 
 ### Architektúra
 
 ```
 /opt/spaceos/
-  backend/         ← 7 futó service + 3 NuGet lib + Orchestrator (AI gateway)
+  backend/         ← 8 futó service + 3 NuGet lib + Orchestrator (AI gateway)
   frontend/        ← joinerytech-portal (247 teszt, dist deployed)
   docs/            ← dokumentáció
   keycloak/        ← IdP (Doorstar userek konfigurálva)
@@ -43,20 +43,17 @@
 - **Orchestrator → systemd** ✅ — PM2 root helyett spaceos user, AI gateway only (2026-05-27)
 - **Identity modul v1** ✅ — 63 teszt, 5 track, Clean Architecture + Outbox + Redis (2026-05-27)
 - **P0-1 JWT RS256** ✅ — Cutting+Inventory+Procurement Authority+ValidateIssuer fix (2026-05-27)
+- **Identity DEPLOYED** ✅ — 5008, systemd, nginx `/identity/`, spaceos_identity DB, KC client (2026-05-27)
 
 ### Backend tesztek: ~3761
 
 ### 🔵 Active
 
-| Task | Terminál | Státusz |
-|---|---|---|
-| `INFRA-IDENTITY-DEPLOY_dotnet-ef-tool-install.md` | VPS Operator | Identity deploy + P0-1 env vars — lásd `mailbox/root/2026-05-27_001` |
+_(nincs aktív task)_
 
 ### 🟡 New
 
-| Task | Assignee | Leírás |
-|---|---|---|
-| `INFRA-IDENTITY-DEPLOY_dotnet-ef-tool-install.md` | VPS Operator | dotnet-ef 8.x + identity DB + systemd + nginx — Track E után |
+_(nincs új task)_
 
 ### Következő lépések (nem kiadva)
 

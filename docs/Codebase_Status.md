@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-27 — P0-1 ✅ lezárva · Identity deploy-ready · operator teendők mailbox/root/
+**Utolsó frissítés:** 2026-05-27 — Identity ✅ DEPLOYED (5008) · P0-1 env fix deployed · Cutting/Inventory/Procurement RS256 aktív
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -99,9 +99,9 @@ Backend services          (loopback only, systemd)
 | **Orchestrator** | 3000 | **121** | ✅ RUNNING (systemd, spaceos user, AI gateway only) | `backend/spaceos-orchestrator/` |
 | **Joinery** | 5002 | **389** | ✅ RUNNING | `backend/spaceos-modules-joinery/` |
 | **Abstractions** | 5003 | **81** | ✅ RUNNING | `backend/spaceos-modules-abstractions/` |
-| **Inventory** | 5004 | **164** | ✅ RUNNING · P0-1 fix deployed szükséges (`JWT_AUTHORITY` env) | `backend/spaceos-modules-inventory/` |
-| **Cutting** | 5005 | **931** | ✅ RUNNING · P0-1 fix deployed szükséges (`JWT_AUTHORITY` env) | `backend/spaceos-modules-cutting/` |
-| **Procurement** | 5006 | **53** | ✅ RUNNING · P0-1 fix deployed szükséges (`JWT_AUTHORITY` env) | `backend/spaceos-modules-procurement/` |
+| **Inventory** | 5004 | **164** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-inventory/` |
+| **Cutting** | 5005 | **931** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-cutting/` |
+| **Procurement** | 5006 | **53** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-procurement/` |
 
 ## NuGet Libraries
 
@@ -171,7 +171,7 @@ Backend services          (loopback only, systemd)
 
 | Service | Port | Tesztek | Státusz | Path |
 |---|---|---|---|---|
-| **Identity** | 5008 | **63** | ⚠️ IMPLEMENTÁCIÓ KÉSZ · nem deployed · GA blocker: P0-1 (JWT RS256) | `backend/spaceos-modules-identity/` |
+| **Identity** | 5008 | **63** | ✅ RUNNING · systemd · nginx `/identity/` · RS256 aktív | `backend/spaceos-modules-identity/` |
 
 **Implementációs track-ek:**
 - Track A (Domain): ✅ elfogadva — 21 teszt, commit `96e23f1`
@@ -179,8 +179,8 @@ Backend services          (loopback only, systemd)
 - Track C (Infrastructure/Persistence): ✅ elfogadva — 58 teszt, commit `012fef4` (kézi SQL migration, dotnet-ef v10 inkompatibilis)
 - Track D (KC client + Workers + Redis): ✅ elfogadva — 54 teszt, commit `689d610` (plain HttpClient, Keycloak.AuthServices.Sdk net8.0 inkompatibilis)
 - Track E (API + Program.cs): ✅ elfogadva — 63 teszt, commit `1749ea0`
-- **Deploy: BLOKKOLT** — P0-1 (JWT RS256, Kernel scope) lezárása kötelező production GA előtt
-- Deploy task: `new/INFRA-IDENTITY-DEPLOY` — dotnet-ef 8.x, spaceos_identity DB, systemd, nginx, KC client
+- **Deploy: ✅ KÉSZ** (2026-05-27) — spaceos_identity DB, kézi SQL migration, systemd, nginx `/identity/`, KC client `spaceos-identity-service`
+- Production fix: `616a89f` — EF Core ComplexProperty ctor, Port 5433 (natív PG)
 
 ## Backend tesztek összesen: ~3947 (verifikált)
 
