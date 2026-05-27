@@ -46,7 +46,9 @@
 
 ### 🔵 Active
 
-Nincs aktív task.
+| Task | Terminál | Státusz |
+|---|---|---|
+| `IDENTITY-V1_modules-identity.md` | IDENTITY | Track A (Domain) kiadva — MSG-IDENTITY-001 |
 
 ### 🟡 New
 
@@ -54,6 +56,11 @@ Nincs new task.
 
 ### Következő lépések (nem kiadva)
 
-| # | Feladat | Leírás |
-|---|---|---|
-| 1 | Turnstile | Later — csak ha publikus regisztrációs form lesz |
+| # | Feladat | Leírás | Előfeltétel |
+|---|---|---|---|
+| Identity Track B | IDENTITY | Application layer (CQRS handlers, specs, validators) | Track A DONE |
+| Identity Track C | IDENTITY | Infrastructure/Persistence (EF Core, Migration, RLS) | Track A DONE |
+| Identity Track D | IDENTITY | Keycloak client + Workers + Redis cache | Track A DONE |
+| Identity Track E | IDENTITY | API controllers + Program.cs | Track B+C DONE |
+| Identity Deploy | INFRA | systemd + nginx `/identity/*` → 5008 | P0-1 (JWT RS256) lezárva |
+| Turnstile | — | Later — csak ha publikus regisztrációs form lesz | — |

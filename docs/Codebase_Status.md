@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-27 — Soft Launch operátor teendők lezárva · Keycloak user profilok javítva · email pipeline live
+**Utolsó frissítés:** 2026-05-27 — Identity modul elindítva · Track A (Domain) kiadva · környezet + skills létrehozva
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -166,6 +166,19 @@ Backend services          (loopback only, systemd)
 - Új komponensek: Avatar, SlideOver, ChatPanel, NewOrderDrawer, OffcutsPanel, stb.
 - Settings 10 fül: Cég, Felhasználók, Jogosultságok, Telephely, Géppark, Partnerek, stb.
 - 229/229 teszt pass, pnpm build 0 error
+
+## Identity modul (új, 2026-05-27)
+
+| Service | Port | Tesztek | Státusz | Path |
+|---|---|---|---|---|
+| **Identity** | 5008 | — | 🔵 Track A folyamatban · GA blocker: P0-1 | `backend/spaceos-modules-identity/` |
+
+**Implementációs track-ek:**
+- Track A (Domain): kiadva — MSG-IDENTITY-001
+- Track B (Application): Track A után
+- Track C (Infrastructure/Persistence): Track A után
+- Track D (KC client + Workers + Redis): Track A után
+- Track E (API + deploy): Track B+C után, P0-1 előfeltétel
 
 ## Backend tesztek összesen: ~3884 (verifikált)
 
