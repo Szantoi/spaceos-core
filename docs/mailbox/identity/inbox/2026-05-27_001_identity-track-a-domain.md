@@ -4,7 +4,7 @@ from: root
 to: identity
 type: task
 priority: high
-status: UNREAD
+status: READ
 ref: SpaceOS_Modules_Identity_Architecture_v4
 created: 2026-05-27
 ---

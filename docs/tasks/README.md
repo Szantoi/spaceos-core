@@ -48,7 +48,7 @@
 
 | Task | Terminál | Státusz |
 |---|---|---|
-| `IDENTITY-V1_modules-identity.md` | IDENTITY | Track A (Domain) kiadva — MSG-IDENTITY-001 |
+| `IDENTITY-V1_modules-identity.md` | IDENTITY | Track A ✅ elfogadva (21 teszt) · Track B+C+D kiadva párhuzamosan |
 
 ### 🟡 New
 
@@ -58,9 +58,9 @@ Nincs new task.
 
 | # | Feladat | Leírás | Előfeltétel |
 |---|---|---|---|
-| Identity Track B | IDENTITY | Application layer (CQRS handlers, specs, validators) | Track A DONE |
-| Identity Track C | IDENTITY | Infrastructure/Persistence (EF Core, Migration, RLS) | Track A DONE |
-| Identity Track D | IDENTITY | Keycloak client + Workers + Redis cache | Track A DONE |
+| Identity Track B | IDENTITY | Application layer — kiadva MSG-IDENTITY-002 | ✅ kiadva |
+| Identity Track C | IDENTITY | Infrastructure/Persistence — kiadva MSG-IDENTITY-003 | ✅ kiadva |
+| Identity Track D | IDENTITY | KC client + Workers + Redis — kiadva MSG-IDENTITY-004 | ✅ kiadva |
 | Identity Track E | IDENTITY | API controllers + Program.cs | Track B+C DONE |
 | Identity Deploy | INFRA | systemd + nginx `/identity/*` → 5008 | P0-1 (JWT RS256) lezárva |
 | Turnstile | — | Later — csak ha publikus regisztrációs form lesz | — |
