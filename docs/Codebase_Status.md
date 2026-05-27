@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-27 — Identity modul v1 IMPLEMENTÁCIÓ KÉSZ · 63 teszt · deploy P0-1 után
+**Utolsó frissítés:** 2026-05-27 — P0-1 kiadva (Kernel) · Cutting+Inventory+Procurement JWT Authority fix
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 

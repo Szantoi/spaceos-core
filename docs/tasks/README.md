@@ -47,7 +47,9 @@
 
 ### 🔵 Active
 
-Nincs aktív task.
+| Task | Terminál | Státusz |
+|---|---|---|
+| `P0-1_jwt-rs256-authority-fix.md` | KERNEL | MSG-KERNEL-106 kiadva — Cutting+Inventory+Procurement JWT fix |
 
 ### 🟡 New
 
