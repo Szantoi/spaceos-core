@@ -52,15 +52,17 @@
 
 ### 🟡 New
 
-Nincs new task.
+| Task | Assignee | Leírás |
+|---|---|---|
+| `INFRA-IDENTITY-DEPLOY_dotnet-ef-tool-install.md` | VPS Operator | dotnet-ef 8.x + identity DB + systemd + nginx — Track E után |
 
 ### Következő lépések (nem kiadva)
 
 | # | Feladat | Leírás | Előfeltétel |
 |---|---|---|---|
 | Identity Track B | IDENTITY | Application layer — elfogadva, 41 teszt | ✅ DONE |
-| Identity Track C | IDENTITY | Infrastructure/Persistence — kiadva MSG-IDENTITY-003 | ✅ kiadva |
+| Identity Track C | IDENTITY | Infrastructure/Persistence — elfogadva, 58 teszt | ✅ DONE |
 | Identity Track D | IDENTITY | KC client + Workers + Redis — elfogadva, 54 teszt | ✅ DONE |
-| Identity Track E | IDENTITY | API controllers + Program.cs | Track B+C DONE |
-| Identity Deploy | INFRA | systemd + nginx `/identity/*` → 5008 | P0-1 (JWT RS256) lezárva |
+| Identity Track E | IDENTITY | API controllers + Program.cs — kiadva MSG-IDENTITY-005 | ✅ kiadva |
+| Identity Deploy | INFRA | systemd + nginx + dotnet-ef 8.x + KC client | P0-1 (JWT RS256) lezárva |
 | Turnstile | — | Later — csak ha publikus regisztrációs form lesz | — |
