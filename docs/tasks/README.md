@@ -60,7 +60,7 @@ Nincs new task.
 |---|---|---|---|
 | Identity Track B | IDENTITY | Application layer — elfogadva, 41 teszt | ✅ DONE |
 | Identity Track C | IDENTITY | Infrastructure/Persistence — kiadva MSG-IDENTITY-003 | ✅ kiadva |
-| Identity Track D | IDENTITY | KC client + Workers + Redis — kiadva MSG-IDENTITY-004 | ✅ kiadva |
+| Identity Track D | IDENTITY | KC client + Workers + Redis — elfogadva, 54 teszt | ✅ DONE |
 | Identity Track E | IDENTITY | API controllers + Program.cs | Track B+C DONE |
 | Identity Deploy | INFRA | systemd + nginx `/identity/*` → 5008 | P0-1 (JWT RS256) lezárva |
 | Turnstile | — | Later — csak ha publikus regisztrációs form lesz | — |

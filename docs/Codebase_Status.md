@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-27 — Identity Track B ✅ (41 teszt) · Track C+D folyamatban
+**Utolsó frissítés:** 2026-05-27 — Identity Track D ✅ (54 teszt) · Track C folyamatban · Track E várakozik C-re
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -177,7 +177,7 @@ Backend services          (loopback only, systemd)
 - Track A (Domain): ✅ elfogadva — 21 teszt, commit `96e23f1`
 - Track B (Application): ✅ elfogadva — 41 teszt (20 Application + 21 Domain), commit `c6ad6f8`
 - Track C (Infrastructure/Persistence): 🔵 folyamatban — MSG-IDENTITY-003
-- Track D (KC client + Workers + Redis): 🔵 folyamatban — MSG-IDENTITY-004
+- Track D (KC client + Workers + Redis): ✅ elfogadva — 54 teszt, commit `689d610` (plain HttpClient, Keycloak.AuthServices.Sdk net8.0 inkompatibilis)
 - Track E (API + deploy): Track B+C után, P0-1 előfeltétel
 
 ## Backend tesztek összesen: ~3884 (verifikált)
