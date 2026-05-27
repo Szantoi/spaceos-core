@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-27 — E2E regression 4141/0 ✅ · Doorstar data seed · Keycloak tid mapper · KC admin reset
+**Utolsó frissítés:** 2026-05-27 — Soft Launch operátor teendők lezárva · Keycloak user profilok javítva · email pipeline live
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -96,7 +96,7 @@ Backend services          (loopback only, systemd)
 | Service | Port | Tesztek | Státusz | Path |
 |---|---|---|---|---|
 | **Kernel** | 5000 | **1178** | ✅ RUNNING | `backend/spaceos-kernel/` |
-| **Orchestrator** | 3000 | **254** | ✅ RUNNING (systemd, spaceos user) | `backend/spaceos-orchestrator/` |
+| **Orchestrator** | 3000 | **121** | ✅ RUNNING (systemd, spaceos user, AI gateway only) | `backend/spaceos-orchestrator/` |
 | **Joinery** | 5002 | **389** | ✅ RUNNING | `backend/spaceos-modules-joinery/` |
 | **Abstractions** | 5003 | **81** | ✅ RUNNING | `backend/spaceos-modules-abstractions/` |
 | **Inventory** | 5004 | **164** | ✅ RUNNING | `backend/spaceos-modules-inventory/` |
@@ -170,9 +170,9 @@ Backend services          (loopback only, systemd)
 ## Backend tesztek összesen: ~3884 (verifikált)
 
 ```
-Kernel 963+107+108=1178 (unit+API+IT) + Orchestrator 254 + Joinery 389 + Abstractions 81 +
+Kernel 963+107+108=1178 (unit+API+IT) + Orchestrator 121 + Joinery 389 + Abstractions 81 +
 Inventory 164 + Cutting 931 + Procurement 53 + Contracts 57 +
-Nesting 32 + Cabinet 755 = 3894
+Nesting 32 + Cabinet 755 = 3761
 ```
 
 ---
@@ -187,6 +187,7 @@ Nesting 32 + Cabinet 755 = 3894
 | Abstractions templates (5 db) | Egyszárnyú, Kétszárnyú, Bejárati, Tolóajtó, Üveges | ✅ |
 | Keycloak `tid` mapper | spaceos-tenant-scope → tenantId attr → tid claim | ✅ |
 | Keycloak user attribútumok | 9 user: doorstar-admin/designer/op1 + névvel ellátott userek | ✅ |
+| Keycloak user profilok | firstName/lastName/email minden usernél kitöltve, emailVerified=true, requiredActions=[] | ✅ |
 | doorstar-admin jelszó | `Doorstar2026!` | ✅ |
 | KC admin jelszó (reset) | `SpaceOS_Admin_2026!` | ✅ |
 
@@ -195,6 +196,6 @@ Nesting 32 + Cabinet 755 = 3894
 | # | Feladat |
 |---|---|
 | nginx config: API proxy route-ok | ✅ KÉSZ — minden route konfigurálva (2026-04-30 óta) |
-| Orchestrator cleanup | ❌ BFF proxy route-ok törlése (dead code, nem blokkoló) |
-| Brevo API key | ❌ Még nem regisztrálva (brevo.com) |
-| Turnstile site key | ❌ Még nem regisztrálva (Cloudflare) |
+| Orchestrator cleanup | ✅ KÉSZ — AI gateway only, 254→121 teszt |
+| Brevo email | ✅ KÉSZ — smtp-relay.brevo.com:587, joinerytech.hu domain hitelesítve, Keycloak SMTP beállítva, reset password engedélyezve |
+| Turnstile site key | ⏸ Later — nincs publikus regisztrációs form, nem blokkoló |
