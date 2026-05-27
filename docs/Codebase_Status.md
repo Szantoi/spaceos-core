@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-27 — P0-1 kiadva (Kernel) · Cutting+Inventory+Procurement JWT Authority fix
+**Utolsó frissítés:** 2026-05-27 — P0-1 ✅ lezárva · Identity deploy-ready · operator teendők mailbox/root/
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -99,9 +99,9 @@ Backend services          (loopback only, systemd)
 | **Orchestrator** | 3000 | **121** | ✅ RUNNING (systemd, spaceos user, AI gateway only) | `backend/spaceos-orchestrator/` |
 | **Joinery** | 5002 | **389** | ✅ RUNNING | `backend/spaceos-modules-joinery/` |
 | **Abstractions** | 5003 | **81** | ✅ RUNNING | `backend/spaceos-modules-abstractions/` |
-| **Inventory** | 5004 | **164** | ✅ RUNNING | `backend/spaceos-modules-inventory/` |
-| **Cutting** | 5005 | **931** | ✅ RUNNING | `backend/spaceos-modules-cutting/` |
-| **Procurement** | 5006 | **53** | ✅ RUNNING | `backend/spaceos-modules-procurement/` |
+| **Inventory** | 5004 | **164** | ✅ RUNNING · P0-1 fix deployed szükséges (`JWT_AUTHORITY` env) | `backend/spaceos-modules-inventory/` |
+| **Cutting** | 5005 | **931** | ✅ RUNNING · P0-1 fix deployed szükséges (`JWT_AUTHORITY` env) | `backend/spaceos-modules-cutting/` |
+| **Procurement** | 5006 | **53** | ✅ RUNNING · P0-1 fix deployed szükséges (`JWT_AUTHORITY` env) | `backend/spaceos-modules-procurement/` |
 
 ## NuGet Libraries
 

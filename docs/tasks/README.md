@@ -42,6 +42,7 @@
 - **Keycloak SMTP** ✅ — Brevo, noreply@joinerytech.hu, domain hitelesítve, reset password on (2026-05-27)
 - **Orchestrator → systemd** ✅ — PM2 root helyett spaceos user, AI gateway only (2026-05-27)
 - **Identity modul v1** ✅ — 63 teszt, 5 track, Clean Architecture + Outbox + Redis (2026-05-27)
+- **P0-1 JWT RS256** ✅ — Cutting+Inventory+Procurement Authority+ValidateIssuer fix (2026-05-27)
 
 ### Backend tesztek: ~3761
 
@@ -49,7 +50,7 @@
 
 | Task | Terminál | Státusz |
 |---|---|---|
-| `P0-1_jwt-rs256-authority-fix.md` | KERNEL | MSG-KERNEL-106 kiadva — Cutting+Inventory+Procurement JWT fix |
+| `INFRA-IDENTITY-DEPLOY_dotnet-ef-tool-install.md` | VPS Operator | Identity deploy + P0-1 env vars — lásd `mailbox/root/2026-05-27_001` |
 
 ### 🟡 New
 
