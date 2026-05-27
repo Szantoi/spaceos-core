@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-27 — Identity Track A ✅ (21 teszt) · Track B+C+D kiadva párhuzamosan
+**Utolsó frissítés:** 2026-05-27 — Identity Track B ✅ (41 teszt) · Track C+D folyamatban
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -175,7 +175,7 @@ Backend services          (loopback only, systemd)
 
 **Implementációs track-ek:**
 - Track A (Domain): ✅ elfogadva — 21 teszt, commit `96e23f1`
-- Track B (Application): 🔵 folyamatban — MSG-IDENTITY-002
+- Track B (Application): ✅ elfogadva — 41 teszt (20 Application + 21 Domain), commit `c6ad6f8`
 - Track C (Infrastructure/Persistence): 🔵 folyamatban — MSG-IDENTITY-003
 - Track D (KC client + Workers + Redis): 🔵 folyamatban — MSG-IDENTITY-004
 - Track E (API + deploy): Track B+C után, P0-1 előfeltétel

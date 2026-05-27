@@ -58,7 +58,7 @@ Nincs new task.
 
 | # | Feladat | Leírás | Előfeltétel |
 |---|---|---|---|
-| Identity Track B | IDENTITY | Application layer — kiadva MSG-IDENTITY-002 | ✅ kiadva |
+| Identity Track B | IDENTITY | Application layer — elfogadva, 41 teszt | ✅ DONE |
 | Identity Track C | IDENTITY | Infrastructure/Persistence — kiadva MSG-IDENTITY-003 | ✅ kiadva |
 | Identity Track D | IDENTITY | KC client + Workers + Redis — kiadva MSG-IDENTITY-004 | ✅ kiadva |
 | Identity Track E | IDENTITY | API controllers + Program.cs | Track B+C DONE |
