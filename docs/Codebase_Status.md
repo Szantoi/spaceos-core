@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-27 — Orchestrator átmigráció: root PM2 → systemd spaceos user · health OK
+**Utolsó frissítés:** 2026-05-27 — E2E regression 4141/0 ✅ · Doorstar data seed · Keycloak tid mapper · KC admin reset
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -177,10 +177,24 @@ Nesting 32 + Cabinet 755 = 3894
 
 ---
 
+## Doorstar Soft Launch seed (2026-05-27)
+
+| Erőforrás | ID | Státusz |
+|---|---|---|
+| Tenant "Doorstar Kft." | `63ef28b6-a43b-4d3f-a076-759a47911559` | ✅ |
+| Facility "Doorstar Budapest Üzem" | `b3328bf2-b056-46f7-b42c-ee083dab275c` | ✅ |
+| Workstations (5 db) | Holzma, Biesse, Homag, Weeke, SCM | ✅ |
+| Abstractions templates (5 db) | Egyszárnyú, Kétszárnyú, Bejárati, Tolóajtó, Üveges | ✅ |
+| Keycloak `tid` mapper | spaceos-tenant-scope → tenantId attr → tid claim | ✅ |
+| Keycloak user attribútumok | 9 user: doorstar-admin/designer/op1 + névvel ellátott userek | ✅ |
+| doorstar-admin jelszó | `Doorstar2026!` | ✅ |
+| KC admin jelszó (reset) | `SpaceOS_Admin_2026!` | ✅ |
+
 ## Operátori teendők
 
 | # | Feladat |
 |---|---|
 | nginx config: API proxy route-ok | ✅ KÉSZ — minden route konfigurálva (2026-04-30 óta) |
-| Brevo API key | Még nem regisztrálva |
-| Turnstile site key | Még nem regisztrálva |
+| Orchestrator cleanup | ❌ BFF proxy route-ok törlése (dead code, nem blokkoló) |
+| Brevo API key | ❌ Még nem regisztrálva (brevo.com) |
+| Turnstile site key | ❌ Még nem regisztrálva (Cloudflare) |
