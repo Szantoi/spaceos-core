@@ -11,7 +11,7 @@
 #
 # On-demand (inbox → indul → DONE → leáll):
 #   spaceos-orch, spaceos-portal, spaceos-joinery,
-#   spaceos-abstractions, spaceos-infra, spaceos-e2e
+#   spaceos-abstractions, spaceos-infra, spaceos-e2e, spaceos-sales
 #
 # Közös tmux socket: /tmp/spaceos.tmux
 # Root mód: notify | semi | auto (runtime-ban váltható)
@@ -52,6 +52,7 @@ declare -A TERMINALS=(
     [cutting]="spaceos-cutting:/opt/spaceos/backend/spaceos-modules-cutting"
     [procurement]="spaceos-procurement:/opt/spaceos/backend/spaceos-modules-procurement"
     [identity]="spaceos-identity:/opt/spaceos/backend/spaceos-modules-identity"
+    [sales]="spaceos-sales:/opt/spaceos/backend/spaceos-modules-sales"
     # NuGet libraries
     [cabinet]="spaceos-cabinet:/opt/spaceos/backend/spaceos-modules-cabinet"
     # Frontend
