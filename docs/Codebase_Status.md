@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-28 — Sales modul implementáció DONE (102 teszt) · VPS deploy + ADR-039 INFRA folyamatban
+**Utolsó frissítés:** 2026-05-28 — Sales FE Phase 1+2 DONE (304 teszt) · VPS deploy + ADR-039 INFRA folyamatban
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -116,13 +116,27 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ Identity UsersPanel live (258 teszt, 0 build hiba, dist deployed) | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ Sales Phase 1+2 kész (304 teszt, 0 build hiba) — dist deploy szükséges | `frontend/joinerytech-portal/` |
+
+**FE-039 Sales Phase 2** (2026-05-28):
+- `QuoteDetailSlideOver` (680px) — inline tételszerkesztés Draft-ban, Nettó/ÁFA/Bruttó, FSM akciók (Send/Accept/Reject/Convert + spinner)
+- `CreateQuoteSlideOver` (500px) — ügyfél typeahead, validáció, success → QuoteDetail auto-open
+- `CustomerDetailSlideOver` (520px) — gradient avatar, inline contact edit, mini quote lista, FSM promote/deactivate
+- `useSalesDetail` hook + `SalesDetailHost` — cross-navigation (quote↔customer)
+- Quote sorok + customer kártyák kattinthatók, "Új ajánlat" gomb aktív
+- 304/304 teszt pass
+
+**FE-038 Sales Phase 1** (2026-05-28):
+- `SalesCustomers` → `GET /sales/api/customers` (mock fallback, debounce)
+- `SalesQuotes` → `GET /sales/api/quotes` (status mapping, filter count-ok)
+- `SalesDashboard` KPI-ok API-ból számítva
+- `CreateCustomerSlideOver` (400px) — validált form, `POST /sales/api/customers`
+- 271/271 teszt pass
 
 **FE-037 Identity UsersPanel** (2026-05-28):
 - `UsersPanel.tsx` — kétoszlopos layout, user lista + szinkronizáció összesítő
 - `UserDetailSlideOver` (440px) — adatok, UUID copy, reset/disable/enable műveletek
 - `InviteUserSlideOver` (400px) — validált form, `POST /identity/users`
-- `UsersPanel.test.tsx` — 7 teszt (skeleton, error, disabled badge, Failed sync, összesítő, SlideOverök)
 - 258/258 teszt pass
 
 **FE API integrations — Phase 8+9 (COMPLETE)** (2026-05-26):

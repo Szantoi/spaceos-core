@@ -48,8 +48,11 @@
 - **ADR-039 Kernel** ✅ — `GET /api/internal/tenants/{id}` 1186 teszt, commit `c70a359` (2026-05-28)
 - **ADR-039 Joinery** ✅ — `POST /joinery/internal/orders/from-quote` 420 teszt, commit `da7199f` (2026-05-28)
 - **Sales modul v4** ✅ — 102 teszt, commit `2ab1586`, Track A–G kész, VPS deploy szükséges (2026-05-28)
+- **FE-037** ✅ — Identity UsersPanel, 258 teszt (2026-05-28)
+- **FE-038** ✅ — Sales Phase 1 lista bekötés + CreateCustomer, 271 teszt (2026-05-28)
+- **FE-039** ✅ — Sales Phase 2 SlideOver-ök (Quote/Customer/Create) + useSalesDetail, 304 teszt (2026-05-28)
 
-### Backend tesztek: ~3902 | Frontend: 258
+### Backend tesztek: ~3902 | Frontend: 304
 
 ### 🔵 Active
 
