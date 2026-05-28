@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-28 — Kernel ADR-039 + Joinery receiver kiadva · Sales modul unblock folyamatban
+**Utolsó frissítés:** 2026-05-28 — ADR-039 DONE (Kernel+Joinery) · Sales modul kiadva (MSG-SALES-001) · INFRA deploy folyamatban
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -95,13 +95,14 @@ Backend services          (loopback only, systemd)
 
 | Service | Port | Tesztek | Státusz | Path |
 |---|---|---|---|---|
-| **Kernel** | 5000 | **1178** | ✅ RUNNING | `backend/spaceos-kernel/` |
+| **Kernel** | 5000 | **1186** | ✅ RUNNING · ADR-039 `GET /api/internal/tenants/{id}` kész | `backend/spaceos-kernel/` |
 | **Orchestrator** | 3000 | **121** | ✅ RUNNING (systemd, spaceos user, AI gateway only) | `backend/spaceos-orchestrator/` |
-| **Joinery** | 5002 | **389** | ✅ RUNNING | `backend/spaceos-modules-joinery/` |
+| **Joinery** | 5002 | **420** | ✅ RUNNING · ADR-039 `POST /joinery/internal/orders/from-quote` kész | `backend/spaceos-modules-joinery/` |
 | **Abstractions** | 5003 | **81** | ✅ RUNNING | `backend/spaceos-modules-abstractions/` |
 | **Inventory** | 5004 | **164** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-inventory/` |
 | **Cutting** | 5005 | **931** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-cutting/` |
 | **Procurement** | 5006 | **53** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-procurement/` |
+| **Sales** | 5009 | **— (új)** | 🔵 IMPLEMENTÁCIÓ ALATT · MSG-SALES-001 kiadva | `backend/spaceos-modules-sales/` (new polyrepo) |
 
 ## NuGet Libraries
 
@@ -188,12 +189,12 @@ Backend services          (loopback only, systemd)
 - **Deploy: ✅ KÉSZ** (2026-05-27) — spaceos_identity DB, kézi SQL migration, systemd, nginx `/identity/`, KC client `spaceos-identity-service`
 - Production fix: `616a89f` — EF Core ComplexProperty ctor, Port 5433 (natív PG)
 
-## Backend tesztek összesen: ~3947 (verifikált)
+## Backend tesztek összesen: ~3800 (verifikált)
 
 ```
-Kernel 963+107+108=1178 (unit+API+IT) + Orchestrator 121 + Joinery 389 + Abstractions 81 +
+Kernel 108+971+107=1186 (unit+IT+API) + Orchestrator 121 + Joinery 420 + Abstractions 81 +
 Inventory 164 + Cutting 931 + Procurement 53 + Contracts 57 +
-Nesting 32 + Cabinet 755 = 3761
+Nesting 32 + Cabinet 755 = 3800
 ```
 
 ---

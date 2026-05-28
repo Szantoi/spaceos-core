@@ -45,29 +45,25 @@
 - **P0-1 JWT RS256** ✅ — Cutting+Inventory+Procurement Authority+ValidateIssuer fix (2026-05-27)
 - **Identity DEPLOYED** ✅ — 5008, systemd, nginx `/identity/`, spaceos_identity DB, KC client (2026-05-27)
 - **FE-037 Identity UsersPanel** ✅ — kétoszlop, SlideOver részletek + meghívás, 258 teszt (2026-05-28)
+- **ADR-039 Kernel** ✅ — `GET /api/internal/tenants/{id}` 1186 teszt, commit `c70a359` (2026-05-28)
+- **ADR-039 Joinery** ✅ — `POST /joinery/internal/orders/from-quote` 420 teszt, commit `da7199f` (2026-05-28)
 
-### Backend tesztek: ~3761 | Frontend: 258
+### Backend tesztek: ~3800 | Frontend: 258
 
 ### 🔵 Active
 
 | Task | Terminál | Leírás |
 |---|---|---|
-| `SpaceOS_Kernel_ADR039_InternalTenantEndpoint_v1.md` | KERNEL | `GET /api/internal/tenants/{id}` — Sales blocker |
-| `SpaceOS_Joinery_OrderConversionReceiver_Architecture_v2.md` | JOINERY | Quote→Order conversion receiver — Sales blocker |
+| `SpaceOS_Modules_Sales_Architecture_v4.md` | SALES | Sales modul — MSG-SALES-001 kiadva (v4 spec, 7 track, ≥88 teszt) |
+| `INFRA-ADR039-DEPLOY_migration-0031.md` | OPERATOR | Kernel M-0031 + Joinery J-003 deploy + InternalSecret env var |
 
 ### 🟡 New
 
-| Task | Leírás |
-|---|---|
-| `SpaceOS_Modules_Sales_Architecture_v4.md` | Sales modul — blokkolt: Kernel ADR-039 + Joinery receiver |
+*(üres)*
 
 ### Következő lépések (nem kiadva)
 
 | # | Feladat | Leírás | Előfeltétel |
 |---|---|---|---|
-| Identity Track B | IDENTITY | Application layer — elfogadva, 41 teszt | ✅ DONE |
-| Identity Track C | IDENTITY | Infrastructure/Persistence — elfogadva, 58 teszt | ✅ DONE |
-| Identity Track D | IDENTITY | KC client + Workers + Redis — elfogadva, 54 teszt | ✅ DONE |
-| Identity Track E | IDENTITY | API controllers + Program.cs — elfogadva, 63 teszt | ✅ DONE |
-| Identity Deploy | INFRA | systemd + nginx + dotnet-ef 8.x + KC client | P0-1 (JWT RS256) lezárva |
+| Sales INFRA deploy | OPERATOR | Port 5009 UFW + systemd + nginx + env | Sales implementáció DONE után |
 | Turnstile | — | Later — csak ha publikus regisztrációs form lesz | — |
