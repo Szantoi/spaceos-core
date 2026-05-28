@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-28 — FE-037 ✅ Identity UsersPanel live (258 teszt) · SlideOver + kétoszlop + műveletek
+**Utolsó frissítés:** 2026-05-28 — Kernel ADR-039 + Joinery receiver kiadva · Sales modul unblock folyamatban
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 

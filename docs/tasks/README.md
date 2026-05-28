@@ -50,11 +50,16 @@
 
 ### 🔵 Active
 
-_(nincs aktív task)_
+| Task | Terminál | Leírás |
+|---|---|---|
+| `SpaceOS_Kernel_ADR039_InternalTenantEndpoint_v1.md` | KERNEL | `GET /api/internal/tenants/{id}` — Sales blocker |
+| `SpaceOS_Joinery_OrderConversionReceiver_Architecture_v2.md` | JOINERY | Quote→Order conversion receiver — Sales blocker |
 
 ### 🟡 New
 
-_(nincs új task)_
+| Task | Leírás |
+|---|---|
+| `SpaceOS_Modules_Sales_Architecture_v4.md` | Sales modul — blokkolt: Kernel ADR-039 + Joinery receiver |
 
 ### Következő lépések (nem kiadva)
 
