@@ -144,7 +144,55 @@ Mit kell dönteni / kiadni ahhoz, hogy folytatni tudjam.
 | Portal | `/opt/spaceos/docs/mailbox/portal/inbox/` | `.../portal/outbox/` |
 | Sales | `/opt/spaceos/docs/mailbox/sales/inbox/` | `.../sales/outbox/` |
 
-## 6. Amit soha nem szabad
+## 6. EF Core migration — kötelező manuális SQL eljárás
+
+> ⚠️ `dotnet ef database update` **NEM megbízható** ezen a VPS-en.
+> A `~/.dotnet/tools/dotnet-ef` v10-es, de a projektek .NET 8 targetűek — inkompatibilis.
+> Minden migrációt manuális SQL-lel kell alkalmazni.
+
+**Mikor kell:** Új migration fájl van a `Migrations/` könyvtárban, amit a DB még nem tartalmaz.
+
+**Diagnózis — pending migration van-e:**
+```bash
+# Ellenőrizd mi van a DB-ben
+sudo -u postgres psql -p 5433 -d <adatbázis> \
+  -c 'SELECT "MigrationId" FROM "__EFMigrationsHistory" ORDER BY 1;'
+
+# Ellenőrizd mi van a kódban
+ls src/*/Persistence/Migrations/*.cs | grep -v Snapshot | sort
+```
+
+**Migration futtatás:**
+```bash
+# 1. Olvasd el a .cs fájlt — a migrationBuilder.Sql(@"...") blokkok tartalmazzák az SQL-t
+cat src/*/Persistence/Migrations/YYYYMMDD_MigrationName.cs
+
+# 2. Futtasd psql-ben (port: 5433)
+sudo -u postgres psql -p 5433 -d <adatbázis> <<'SQL'
+-- ide kerül a migration SQL tartalma
+SELECT 'migration-name OK' AS result;
+SQL
+
+# 3. Ha az EF migrations history táblát is frissíteni kell:
+sudo -u postgres psql -p 5433 -d <adatbázis> <<SQL
+INSERT INTO public."__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('YYYYMMDDHHMMSS_MigrationName', '8.0.x')
+ON CONFLICT DO NOTHING;
+SQL
+```
+
+**Stale model snapshot** — ha az EF `No migrations were applied. Already up to date.`-t mond,
+de a tábla nem létezik: a snapshot üres. Ellenőrzés:
+```bash
+wc -l src/*/Persistence/Migrations/*ModelSnapshot.cs
+# < 50 sor → stale → manuális SQL szükséges
+```
+
+> Teljes gotcha dokumentáció: `docs/knowledge/deployment/KNOWN_GOTCHAS.md`
+
+---
+
+## 7. Amit soha nem szabad
 
 - DONE outbox írása build/test failure mellett
 - Találgatással folytatni, ha elakadtál (→ BLOCKED)
