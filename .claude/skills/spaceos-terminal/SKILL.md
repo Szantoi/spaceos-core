@@ -142,6 +142,7 @@ Mit kell dönteni / kiadni ahhoz, hogy folytatni tudjam.
 | Joinery | `/opt/spaceos/docs/mailbox/joinery/inbox/` | `.../joinery/outbox/` |
 | Abstractions | `/opt/spaceos/docs/mailbox/abstractions/inbox/` | `.../abstractions/outbox/` |
 | Portal | `/opt/spaceos/docs/mailbox/portal/inbox/` | `.../portal/outbox/` |
+| Sales | `/opt/spaceos/docs/mailbox/sales/inbox/` | `.../sales/outbox/` |
 
 ## 6. Amit soha nem szabad
 
