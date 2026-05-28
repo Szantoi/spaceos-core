@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-27 — Identity ✅ DEPLOYED (5008) · P0-1 env fix deployed · Cutting/Inventory/Procurement RS256 aktív
+**Utolsó frissítés:** 2026-05-28 — FE-037 ✅ Identity UsersPanel live (258 teszt) · SlideOver + kétoszlop + műveletek
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -115,7 +115,14 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ API integrations COMPLETE (12 komponens live, 247 teszt, 0 build hiba, dist deployed) | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ Identity UsersPanel live (258 teszt, 0 build hiba, dist deployed) | `frontend/joinerytech-portal/` |
+
+**FE-037 Identity UsersPanel** (2026-05-28):
+- `UsersPanel.tsx` — kétoszlopos layout, user lista + szinkronizáció összesítő
+- `UserDetailSlideOver` (440px) — adatok, UUID copy, reset/disable/enable műveletek
+- `InviteUserSlideOver` (400px) — validált form, `POST /identity/users`
+- `UsersPanel.test.tsx` — 7 teszt (skeleton, error, disabled badge, Failed sync, összesítő, SlideOverök)
+- 258/258 teszt pass
 
 **FE API integrations — Phase 8+9 (COMPLETE)** (2026-05-26):
 - MachineParkPanel: `GET /api/tools/workstations` — WS_STATUS_MAP, mock fallback
@@ -128,7 +135,6 @@ Backend services          (loopback only, systemd)
 **Fennmaradó mock-only területek (nincs backend API):**
 - SalesPage: ajánlatok, CRM ügyfelek
 - ShopFloorPage: gép queue, operátor PIN login
-- SettingsPage/UsersTab: Keycloak admin 403
 - RolesPanel, PartnersPanel, CatalogPanel, StageChainEditor: nincs kernel/modul API
 
 **FE-035 Raktár bugfix** (2026-05-26):

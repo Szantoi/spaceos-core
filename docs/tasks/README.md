@@ -44,8 +44,9 @@
 - **Identity modul v1** ✅ — 63 teszt, 5 track, Clean Architecture + Outbox + Redis (2026-05-27)
 - **P0-1 JWT RS256** ✅ — Cutting+Inventory+Procurement Authority+ValidateIssuer fix (2026-05-27)
 - **Identity DEPLOYED** ✅ — 5008, systemd, nginx `/identity/`, spaceos_identity DB, KC client (2026-05-27)
+- **FE-037 Identity UsersPanel** ✅ — kétoszlop, SlideOver részletek + meghívás, 258 teszt (2026-05-28)
 
-### Backend tesztek: ~3761
+### Backend tesztek: ~3761 | Frontend: 258
 
 ### 🔵 Active
 
