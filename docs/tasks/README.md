@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-05-28 — FULL DEPLOY KÉSZ)
+## Jelenlegi állapot (2026-05-28 — Procurement v2 kiadva)
 
 ### Architektúra
 
@@ -57,7 +57,13 @@
 
 ### 🔵 Active
 
-*(üres)*
+| Task | Terminál | Leírás |
+|---|---|---|
+| `SpaceOS_Modules_Procurement_v2_Architecture_v4.md` | PROCUREMENT + INVENTORY | Procurement v2: PurchaseRequisition + SupplierInvoice + Three-Way Match + Pricing · 8 track · ≥82 teszt |
+
+**Párhuzamos kiadás (2026-05-28):**
+- PROCUREMENT: MSG-012 — Track A–H implementáció (Track D+E blokkolva: Inventory-059-re vár)
+- INVENTORY: MSG-059 — 2 blokkoló endpoint: `POST /internal/inbound` + `reorder_alert` outbox
 
 ### 🟡 New
 
