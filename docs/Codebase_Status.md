@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-28 — FULL DEPLOY ✅ Kernel M-0031 + Joinery J-003 + Sales 5009 + FE 304 teszt · Minden smoke teszt zöld
+**Utolsó frissítés:** 2026-05-28 — Inventory 180 teszt · Procurement v2 blokkolók DONE · Procurement Track D+E unblocked
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -100,7 +100,7 @@ Backend services          (loopback only, systemd)
 | **Orchestrator** | 3000 | **121** | ✅ RUNNING (systemd, spaceos user, AI gateway only) | `backend/spaceos-orchestrator/` |
 | **Joinery** | 5002 | **420** | ✅ RUNNING · ADR-039 `POST /joinery/internal/orders/from-quote` kész | `backend/spaceos-modules-joinery/` |
 | **Abstractions** | 5003 | **81** | ✅ RUNNING | `backend/spaceos-modules-abstractions/` |
-| **Inventory** | 5004 | **164** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-inventory/` |
+| **Inventory** | 5004 | **180** | ✅ RUNNING · RS256 aktív · `POST /internal/inbound` + `reorder_alert` outbox kész (Procurement v2 blokkolók) | `backend/spaceos-modules-inventory/` |
 | **Cutting** | 5005 | **931** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-cutting/` |
 | **Procurement** | 5006 | **53** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-procurement/` |
 | **Sales** | 5009 | **102** | ✅ RUNNING · systemd · nginx `/sales/` · spaceos_sales schema · RS256 aktív | `backend/spaceos-modules-sales/` |
@@ -237,12 +237,12 @@ Backend services          (loopback only, systemd)
 - **Deploy: ✅ KÉSZ** (2026-05-27) — spaceos_identity DB, kézi SQL migration, systemd, nginx `/identity/`, KC client `spaceos-identity-service`
 - Production fix: `616a89f` — EF Core ComplexProperty ctor, Port 5433 (natív PG)
 
-## Backend tesztek összesen: ~3902 (verifikált)
+## Backend tesztek összesen: ~3918 (verifikált)
 
 ```
 Kernel 108+971+107=1186 (unit+IT+API) + Orchestrator 121 + Joinery 420 + Abstractions 81 +
-Inventory 164 + Cutting 931 + Procurement 53 + Sales 102 + Contracts 57 +
-Nesting 32 + Cabinet 755 = 3902
+Inventory 180 + Cutting 931 + Procurement 53 + Sales 102 + Contracts 57 +
+Nesting 32 + Cabinet 755 = 3918
 ```
 
 ---
