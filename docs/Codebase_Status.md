@@ -148,10 +148,43 @@ Backend services          (loopback only, systemd)
 - Skill docs frissítve: `fe-api-integration` (12 befejezett integráció)
 - 247/247 teszt pass
 
-**Fennmaradó mock-only területek (nincs backend API):**
-- SalesPage: ajánlatok, CRM ügyfelek
-- ShopFloorPage: gép queue, operátor PIN login
-- RolesPanel, PartnersPanel, CatalogPanel, StageChainEditor: nincs kernel/modul API
+### FE API bekötés teljes térkép (2026-05-28 állapot)
+
+**Élő API bekötéssel rendelkező oldalak/komponensek:**
+
+| Oldal / komponens | Backend hívás | Státusz |
+|---|---|---|
+| OrdersPage | `GET /joinery/api/orders` | ✅ |
+| WorkflowPage | `GET /api/facilities/{id}/flow-epics` | ✅ |
+| ProductionPage | `GET /cutting/api/cutting/plans` | ✅ |
+| AnalyticsPage | `GET /cutting/api/cutting/waste` | ✅ |
+| DashboardPage | Kernel stats + `GET /joinery/api/orders?pageSize=5` | ✅ |
+| SalesQuotes | `GET /sales/api/quotes` | ✅ |
+| SalesCustomers | `GET /sales/api/customers` | ✅ |
+| SalesDashboard | Sales API KPI-ok | ✅ |
+| QuoteDetailSlideOver | `GET/POST/DELETE /sales/api/quotes/{id}/*` | ✅ |
+| CreateQuoteSlideOver | `POST /sales/api/quotes` + customer typeahead | ✅ |
+| CustomerDetailSlideOver | `GET/PATCH /sales/api/customers/{id}` | ✅ |
+| UsersPanel | `GET/POST /identity/users` | ✅ |
+| FacilitiesPanel | `GET /api/tenants/{id}/facilities` | ✅ |
+| MachineParkPanel | `GET /api/tools/workstations` | ✅ |
+| AuditPanel | `GET /api/audit` | ✅ |
+| DesignPage | `GET /abstractions/api/modules/templates` (count stat) | ✅ |
+| TenantInfoBar | `GET /api/tenants/{id}` | ✅ |
+| MiniKanbanStrip | `GET /api/facilities/{id}/flow-epics` | ✅ |
+
+**Mock-only területek — backend API nincs, tervezés szükséges előbb:**
+
+| Oldal / komponens | Mi hiányzik | Prioritás |
+|---|---|---|
+| **ShopFloorPage** | Gép queue, operátor PIN login — `SHOPFLOOR_MACHINES/QUEUE/OPERATORS` mock | 🔵 Doorstar-releváns, de ShopFloor modul nincs |
+| **RolesPanel** | RBAC szerepkör + jogosultsági mátrix szerkesztő | ⚪ Kernel RBAC API nincs |
+| **PartnersPanel** | B2B partner meghívás, partner lista | ⚪ Partner modul nincs |
+| **CatalogPanel** | Anyagjegyzék / katalógus CRUD | ⚪ Catalog API nincs |
+| **StageChainEditor** | Gyártási fázis szerkesztő | ⚪ Stage API nincs |
+| **TemplatesPanel** | Sablon lista és szerkesztés | 🟡 Abstractions `GET /api/modules/templates` megvan — bekötés lehetséges design nélkül |
+
+> Minden mock-only területen: frontend tervezés csak akkor indulhat, ha a mögöttes backend API specifikálva és deployolva van. Kivétel: TemplatesPanel — az Abstractions API-ja már él.
 
 **FE-035 Raktár bugfix** (2026-05-26):
 - MovementsPage: `embedded` prop — InventoryPage mozgások tabban nincs dupla padding, nincs redundáns summary card, filter bar azonnal látható
