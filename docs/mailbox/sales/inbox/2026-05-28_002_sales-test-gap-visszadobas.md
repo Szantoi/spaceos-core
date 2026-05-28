@@ -4,7 +4,7 @@ from: root
 to: sales
 type: task
 priority: high
-status: UNREAD
+status: READ
 ref: MSG-SALES-001-DONE
 created: 2026-05-28
 skill: /spaceos-terminal

@@ -47,15 +47,15 @@
 - **FE-037 Identity UsersPanel** ✅ — kétoszlop, SlideOver részletek + meghívás, 258 teszt (2026-05-28)
 - **ADR-039 Kernel** ✅ — `GET /api/internal/tenants/{id}` 1186 teszt, commit `c70a359` (2026-05-28)
 - **ADR-039 Joinery** ✅ — `POST /joinery/internal/orders/from-quote` 420 teszt, commit `da7199f` (2026-05-28)
+- **Sales modul v4** ✅ — 102 teszt, commit `2ab1586`, Track A–G kész, VPS deploy szükséges (2026-05-28)
 
-### Backend tesztek: ~3800 | Frontend: 258
+### Backend tesztek: ~3902 | Frontend: 258
 
 ### 🔵 Active
 
 | Task | Terminál | Leírás |
 |---|---|---|
-| `SpaceOS_Modules_Sales_Architecture_v4.md` | SALES | Sales modul — MSG-SALES-001 kiadva (v4 spec, 7 track, ≥88 teszt) |
-| `INFRA-ADR039-DEPLOY_migration-0031.md` | OPERATOR | Kernel M-0031 + Joinery J-003 deploy + InternalSecret env var |
+| `INFRA-ADR039-DEPLOY_migration-0031.md` | OPERATOR | Kernel M-0031 + Joinery J-003 + Sales S-001/002/003 deploy + InternalSecret |
 
 ### 🟡 New
 

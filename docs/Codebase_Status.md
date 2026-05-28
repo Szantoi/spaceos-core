@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-28 — ADR-039 DONE (Kernel+Joinery) · Sales modul kiadva (MSG-SALES-001) · INFRA deploy folyamatban
+**Utolsó frissítés:** 2026-05-28 — Sales modul implementáció DONE (102 teszt) · VPS deploy + ADR-039 INFRA folyamatban
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -102,7 +102,7 @@ Backend services          (loopback only, systemd)
 | **Inventory** | 5004 | **164** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-inventory/` |
 | **Cutting** | 5005 | **931** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-cutting/` |
 | **Procurement** | 5006 | **53** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-procurement/` |
-| **Sales** | 5009 | **— (új)** | 🔵 IMPLEMENTÁCIÓ ALATT · MSG-SALES-001 kiadva | `backend/spaceos-modules-sales/` (new polyrepo) |
+| **Sales** | 5009 | **102** | 🔵 IMPLEMENTÁCIÓ KÉSZ · VPS deploy szükséges (MSG-ROOT-002) | `backend/spaceos-modules-sales/` |
 
 ## NuGet Libraries
 
@@ -189,12 +189,12 @@ Backend services          (loopback only, systemd)
 - **Deploy: ✅ KÉSZ** (2026-05-27) — spaceos_identity DB, kézi SQL migration, systemd, nginx `/identity/`, KC client `spaceos-identity-service`
 - Production fix: `616a89f` — EF Core ComplexProperty ctor, Port 5433 (natív PG)
 
-## Backend tesztek összesen: ~3800 (verifikált)
+## Backend tesztek összesen: ~3902 (verifikált)
 
 ```
 Kernel 108+971+107=1186 (unit+IT+API) + Orchestrator 121 + Joinery 420 + Abstractions 81 +
-Inventory 164 + Cutting 931 + Procurement 53 + Contracts 57 +
-Nesting 32 + Cabinet 755 = 3800
+Inventory 164 + Cutting 931 + Procurement 53 + Sales 102 + Contracts 57 +
+Nesting 32 + Cabinet 755 = 3902
 ```
 
 ---
