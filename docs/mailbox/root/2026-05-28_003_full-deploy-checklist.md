@@ -4,7 +4,7 @@ from: root
 to: operator
 type: task
 priority: high
-status: UNREAD
+status: READ
 created: 2026-05-28
 ---
 

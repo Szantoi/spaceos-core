@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-05-27 — Identity DEPLOYED)
+## Jelenlegi állapot (2026-05-28 — FULL DEPLOY KÉSZ)
 
 ### Architektúra
 
@@ -51,14 +51,13 @@
 - **FE-037** ✅ — Identity UsersPanel, 258 teszt (2026-05-28)
 - **FE-038** ✅ — Sales Phase 1 lista bekötés + CreateCustomer, 271 teszt (2026-05-28)
 - **FE-039** ✅ — Sales Phase 2 SlideOver-ök (Quote/Customer/Create) + useSalesDetail, 304 teszt (2026-05-28)
+- **FULL DEPLOY** ✅ — Kernel M-0031 + Joinery J-003 + Sales S-001/002/003 + FE · minden smoke teszt zöld (2026-05-28)
 
 ### Backend tesztek: ~3902 | Frontend: 304
 
 ### 🔵 Active
 
-| Task | Terminál | Leírás |
-|---|---|---|
-| `INFRA-ADR039-DEPLOY_migration-0031.md` | OPERATOR | Kernel M-0031 + Joinery J-003 + Sales S-001/002/003 deploy + InternalSecret |
+*(üres)*
 
 ### 🟡 New
 
@@ -68,5 +67,4 @@
 
 | # | Feladat | Leírás | Előfeltétel |
 |---|---|---|---|
-| Sales INFRA deploy | OPERATOR | Port 5009 UFW + systemd + nginx + env | Sales implementáció DONE után |
 | Turnstile | — | Later — csak ha publikus regisztrációs form lesz | — |

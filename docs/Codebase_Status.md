@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-28 — Sales FE Phase 1+2 DONE (304 teszt) · VPS deploy + ADR-039 INFRA folyamatban
+**Utolsó frissítés:** 2026-05-28 — FULL DEPLOY ✅ Kernel M-0031 + Joinery J-003 + Sales 5009 + FE 304 teszt · Minden smoke teszt zöld
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -83,6 +83,7 @@ Nginx       (TLS 1.3 · HSTS · CSP)                          port 443
   │  /inventory/*         → backend/spaceos-modules-inventory (5004)
   │  /procurement/*       → backend/spaceos-modules-procurement (5006)
   │  /abstractions/*      → backend/spaceos-modules-abstractions (5003)
+  │  /sales/*             → backend/spaceos-modules-sales (5009)
   │  /ai/*                → backend/spaceos-orchestrator (3000)   ← CSAK AI/LLM
   │  /auth/*              → Keycloak (8080)
   ▼
@@ -102,7 +103,7 @@ Backend services          (loopback only, systemd)
 | **Inventory** | 5004 | **164** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-inventory/` |
 | **Cutting** | 5005 | **931** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-cutting/` |
 | **Procurement** | 5006 | **53** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-procurement/` |
-| **Sales** | 5009 | **102** | 🔵 IMPLEMENTÁCIÓ KÉSZ · VPS deploy szükséges (MSG-ROOT-002) | `backend/spaceos-modules-sales/` |
+| **Sales** | 5009 | **102** | ✅ RUNNING · systemd · nginx `/sales/` · spaceos_sales schema · RS256 aktív | `backend/spaceos-modules-sales/` |
 
 ## NuGet Libraries
 
@@ -116,7 +117,7 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ Sales Phase 1+2 kész (304 teszt, 0 build hiba) — dist deploy szükséges | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ DEPLOYED · Sales Phase 1+2 kész (304 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
 
 **FE-039 Sales Phase 2** (2026-05-28):
 - `QuoteDetailSlideOver` (680px) — inline tételszerkesztés Draft-ban, Nettó/ÁFA/Bruttó, FSM akciók (Send/Accept/Reject/Convert + spinner)
