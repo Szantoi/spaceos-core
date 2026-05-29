@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-29 — FE-040 DONE · 330 FE teszt · Procurement v2 deploy kódbug (MSG-PROCUREMENT-014)
+**Utolsó frissítés:** 2026-05-29 — Procurement v2 DEPLOYED ✅ · 136 teszt · GUC fix (MSG-PROCUREMENT-015) · 330 FE teszt
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -102,7 +102,7 @@ Backend services          (loopback only, systemd)
 | **Abstractions** | 5003 | **81** | ✅ RUNNING | `backend/spaceos-modules-abstractions/` |
 | **Inventory** | 5004 | **180** | ✅ RUNNING · RS256 aktív · `POST /internal/inbound` + `reorder_alert` outbox kész (Procurement v2 blokkolók) | `backend/spaceos-modules-inventory/` |
 | **Cutting** | 5005 | **931** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-cutting/` |
-| **Procurement** | 5006 | **136** | ✅ RUNNING · v2 PR-M1..M8 migráció kész · DB schema javítva (RLS, inbox, SourceIp, fn signature) · 2 kódbug: SqlQueryRaw alias + Worker GUC (MSG-PROCUREMENT-014) | `backend/spaceos-modules-procurement/` |
+| **Procurement** | 5006 | **136** | ✅ DEPLOYED · v2 PR-M1..M8 + DB schema javítva · 3 deploy bug fix: SqlQueryRaw alias + Worker BYPASSRLS + from-reorder-alert GUC · commit `c5f1292` | `backend/spaceos-modules-procurement/` |
 | **Sales** | 5009 | **102** | ✅ RUNNING · systemd · nginx `/sales/` · spaceos_sales schema · RS256 aktív | `backend/spaceos-modules-sales/` |
 
 ## NuGet Libraries

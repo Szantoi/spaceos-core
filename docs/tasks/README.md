@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-05-29 — FE-040 DONE · 330 teszt · Procurement v2 deploy kódbug alatt)
+## Jelenlegi állapot (2026-05-29 — Procurement v2 DEPLOYED ✅ · 330 FE teszt · FE-041 kiadható)
 
 ### Architektúra
 
@@ -53,6 +53,9 @@
 - **FE-039** ✅ — Sales Phase 2 SlideOver-ök (Quote/Customer/Create) + useSalesDetail, 304 teszt (2026-05-28)
 - **FULL DEPLOY** ✅ — Kernel M-0031 + Joinery J-003 + Sales S-001/002/003 + FE · minden smoke teszt zöld (2026-05-28)
 - **Procurement v2** ✅ — 136 teszt · PurchaseRequisition+SupplierInvoice+ThreeWayMatch+PriceList · commit `26a05d1` (2026-05-29)
+- **Procurement v2 deploy bug #1–2** ✅ — SqlQueryRaw AS "Value" alias + Worker BYPASSRLS factory · commit `96a51e3` (2026-05-29)
+- **Procurement v2 deploy bug #3** ✅ — from-reorder-alert GUC fix (INSERT RETURNING RLS) · commit `c5f1292` (2026-05-29)
+- **Procurement v2 DEPLOYED** ✅ — 136 teszt · live on 5006 · smoke test OK (2026-05-29)
 - **FE-040** ✅ — Procurement v1 kiegészítések · PO detail + Delivery drawer + Supplier SlideOver + New PO · 330 teszt (2026-05-29)
 
 ### Backend tesztek: ~3902 | Frontend: 330
@@ -61,7 +64,7 @@
 
 | Task | Terminál | Leírás |
 |---|---|---|
-| `MSG-PROCUREMENT-014` | PROCUREMENT | v2 deploy kódbug fix — SqlQueryRaw alias + Worker GUC |
+| `MSG-FE-041` | FE | Procurement v2 UI — PurchaseRequisition + SupplierInvoice + ThreeWayMatch + PriceList panelek |
 
 ### 🟡 New
 
