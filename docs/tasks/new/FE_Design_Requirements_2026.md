@@ -13,7 +13,7 @@
 
 ---
 
-## 1. Procurement v2 — Teljes új UI modul ✅ Design kész — implementáció blokkolt (MSG-PROCUREMENT-014)
+## 1. Procurement v2 — Teljes új UI modul ✅ KÉSZ — FE-041 DONE (2026-05-29)
 
 **Backend státusz:** v2 DONE (136 teszt) · 2 kódbug javítás folyamatban (MSG-PROCUREMENT-014) · FE task kiadva ha bug fix kész
 

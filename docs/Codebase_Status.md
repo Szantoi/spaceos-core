@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-29 — Procurement v2 DEPLOYED ✅ · 136 teszt · GUC fix (MSG-PROCUREMENT-015) · 330 FE teszt
+**Utolsó frissítés:** 2026-05-29 — FE-041 DONE ✅ · Procurement v2 UI kész · 360 FE teszt
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -117,7 +117,14 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ DEPLOYED · FE-040 Procurement v1 kész (330 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ DEPLOYED · FE-041 Procurement v2 UI kész (360 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+
+**FE-041 Procurement v2 UI** (2026-05-29):
+- `RequisitionPanel` — igénylés lista, CreateRequisitionDrawer, RequisitionDetailSlideOver (FSM Approve/Reject + SoD jelzés)
+- `InvoicePanel` — számla lista, RecordInvoiceDrawer, InvoiceDetailSlideOver + Three-Way Match (PO/Delivered/Invoiced összehasonlítás, Match status pill, ApproveWithVariance, Vita)
+- `PriceListPanel` — kártyás layout, best-price kiemelés (zöld ★ Legjobb badge), NewPriceListDrawer, FSM Draft→Active→Expired
+- `ProcurementPage` — 4 tab: Megrendelések | Igénylések | Számlák | Árlisták
+- 360/360 teszt pass
 
 **FE-040 Procurement v1 kiegészítések** (2026-05-29):
 - `PODetailSlideOver` (640px) — FSM timeline, tételsorok, nyomkövetési szám, inline Szállítás rögzítése form per-tétel qty stepperrel, hiány/többlet jelzés, `POST /procurement/api/deliveries`
