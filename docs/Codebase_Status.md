@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-29 — FE-042 DONE ✅ · 370 FE teszt · FE-043+044 aktív (Abstractions)
+**Utolsó frissítés:** 2026-05-29 — FE-043 DONE ✅ · 381 FE teszt · FE-044 aktív (DesignPage wizard)
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -117,7 +117,7 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ DEPLOYED · FE-042 WorkflowPage NewOrderDrawer POST (370 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ DEPLOYED · FE-043 Settings TemplatesPanel (381 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
 
 **FE-041 Procurement v2 UI** (2026-05-29):
 - `RequisitionPanel` — igénylés lista, CreateRequisitionDrawer, RequisitionDetailSlideOver (FSM Approve/Reject + SoD jelzés)

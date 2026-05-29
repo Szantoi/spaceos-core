@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-05-29 — FE-042 DONE ✅ · 370 FE teszt · FE-043+044 aktív)
+## Jelenlegi állapot (2026-05-29 — FE-043 DONE ✅ · 381 FE teszt · FE-044 aktív)
 
 ### Architektúra
 
@@ -58,18 +58,18 @@
 - **Procurement v2 DEPLOYED** ✅ — 136 teszt · live on 5006 · smoke test OK (2026-05-29)
 - **FE-041** ✅ — Procurement v2 UI · RequisitionPanel+InvoicePanel+PriceListPanel · SoD · 3WM · 360 teszt (2026-05-29)
 - **FE-042** ✅ — WorkflowPage NewOrderDrawer POST · flowEpicId prop · DetailPanel "Rendelés indítása" · 370 teszt (2026-05-29)
+- **FE-043** ✅ — Settings TemplatesPanel · lista + SlideOver + mock fallback · 381 teszt (2026-05-29)
 - **FE-040** ✅ — Procurement v1 kiegészítések · PO detail + Delivery drawer + Supplier SlideOver + New PO · 330 teszt (2026-05-29)
 
-### Backend tesztek: ~3902 | Frontend: 370
+### Backend tesztek: ~3902 | Frontend: 381
 
 ### 🔵 Active
 
 | Task | Terminál | Leírás |
 |---|---|---|
-| `MSG-FE-043` | FE | Settings TemplatesPanel — lista + SlideOver (Abstractions API) |
 | `MSG-FE-044` | FE | DesignPage paraméter wizard — sablon picker + params + calculate (Abstractions API) |
 
-### Backend tesztek: ~3902 | Frontend: 370
+### Backend tesztek: ~3902 | Frontend: 381
 
 ### 🟡 New
 
