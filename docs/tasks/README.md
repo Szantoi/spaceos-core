@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-05-28 — Procurement v2 kiadva)
+## Jelenlegi állapot (2026-05-29 — Procurement v2 DONE)
 
 ### Architektúra
 
@@ -52,6 +52,7 @@
 - **FE-038** ✅ — Sales Phase 1 lista bekötés + CreateCustomer, 271 teszt (2026-05-28)
 - **FE-039** ✅ — Sales Phase 2 SlideOver-ök (Quote/Customer/Create) + useSalesDetail, 304 teszt (2026-05-28)
 - **FULL DEPLOY** ✅ — Kernel M-0031 + Joinery J-003 + Sales S-001/002/003 + FE · minden smoke teszt zöld (2026-05-28)
+- **Procurement v2** ✅ — 136 teszt · PurchaseRequisition+SupplierInvoice+ThreeWayMatch+PriceList · commit `26a05d1` (2026-05-29)
 
 ### Backend tesztek: ~3902 | Frontend: 304
 
@@ -59,15 +60,13 @@
 
 | Task | Terminál | Leírás |
 |---|---|---|
-| `SpaceOS_Modules_Procurement_v2_Architecture_v4.md` | PROCUREMENT + INVENTORY | Procurement v2: PurchaseRequisition + SupplierInvoice + Three-Way Match + Pricing · 8 track · ≥82 teszt |
-
-**Párhuzamos kiadás (2026-05-28):**
-- PROCUREMENT: MSG-012 + MSG-013 — Track A–H implementáció · Track D+E unblocked (Inventory-059 DONE ✅)
-- INVENTORY: MSG-059 ✅ DONE — `POST /internal/inbound` + `reorder_alert` outbox · 180 teszt
+| `MSG-ROOT-010` | OPERATOR | Procurement v2 VPS deploy — PR-M1..M8 migration + service restart |
 
 ### 🟡 New
 
-*(üres)*
+| Fájl | Megjegyzés |
+|---|---|
+| `FE_Design_Requirements_2026.md` | Design terv szükséges előbb — user kezeli |
 
 ### Következő lépések (nem kiadva)
 
