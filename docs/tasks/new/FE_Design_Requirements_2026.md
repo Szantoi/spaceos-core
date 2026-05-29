@@ -92,7 +92,7 @@ A kanban kártyák megjelennek API-ból, de a **kanban oszlopok** (`STAGES` mock
 
 ---
 
-## 4. DesignPage — Paraméter wizard mock-only ✅ Design kész — MSG-FE-044 kiadva
+## 4. DesignPage — Paraméter wizard ✅ KÉSZ — FE-044 DONE (2026-05-29)
 
 **Backend státusz:** Template count stat él (`GET /abstractions/api/modules/templates`), de a wizard teljesen mock
 
