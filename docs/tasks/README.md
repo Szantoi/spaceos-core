@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-05-29 — FE-041 DONE ✅ · 360 FE teszt · Procurement v2 UI kész)
+## Jelenlegi állapot (2026-05-29 — FE-042 kiadva · WorkflowPage NewOrderDrawer POST)
 
 ### Architektúra
 
@@ -63,7 +63,9 @@
 
 ### 🔵 Active
 
-Nincs aktív task.
+| Task | Terminál | Leírás |
+|---|---|---|
+| `MSG-FE-042` | FE | WorkflowPage NewOrderDrawer POST — flowEpicId prop + `POST /joinery/api/orders` |
 
 ### Backend tesztek: ~3902 | Frontend: 360
 
