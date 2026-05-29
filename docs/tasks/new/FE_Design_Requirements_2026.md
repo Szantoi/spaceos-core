@@ -4,17 +4,18 @@
 > tervezési munkára van szükség mielőtt a FE terminál implementálni tudja.
 >
 > **Státusz szerinti csoportosítás:**
+> - ✅ **Design kész, implementáció kiadva** — FE terminál dolgozik rajta / kész
 > - 🔴 **Backend kész, design hiányzik** — implementálható, amint terv megvan
 > - 🟡 **Backend folyamatban** — tervezés előre elindítható, implementáció blokkolva
 > - ⚪ **Backend nincs** — terv és backend spec is kell előbb
 >
-> **Utolsó frissítés:** 2026-05-29
+> **Utolsó frissítés:** 2026-05-29 — Design sprint lezárult (összes terület design-kész)
 
 ---
 
-## 1. Procurement v2 — Teljes új UI modul 🟡
+## 1. Procurement v2 — Teljes új UI modul ✅ Design kész — implementáció blokkolt (MSG-PROCUREMENT-014)
 
-**Backend státusz:** Implementáció folyamatban (Track A–H, MSG-PROCUREMENT-012)
+**Backend státusz:** v2 DONE (136 teszt) · 2 kódbug javítás folyamatban (MSG-PROCUREMENT-014) · FE task kiadva ha bug fix kész
 
 A Procurement v2 backend négy teljesen új aggregate-et vezet be. Ezekhez nincs frontend — sem terv, sem implementáció.
 
@@ -62,7 +63,7 @@ A Procurement v2 backend négy teljesen új aggregate-et vezet be. Ezekhez nincs
 
 ---
 
-## 2. Procurement v1 — Meglévő oldal mock-only területei 🔴
+## 2. Procurement v1 — Meglévő oldal mock-only területei ✅ Design kész — MSG-FE-040 kiadva
 
 **Backend státusz:** Fut (5006), `GET /procurement/api/orders` és `GET /procurement/api/suppliers` már bekötve
 
@@ -77,7 +78,7 @@ A `ProcurementPage` jelenleg részben API-ból tölt, de az alábbi funkciók mo
 
 ---
 
-## 3. WorkflowPage — Kanban oszlopok mock-only 🔴
+## 3. WorkflowPage — Kanban oszlopok mock-only ✅ Design kész — NewOrderDrawer POST backend-függő
 
 **Backend státusz:** `GET /api/facilities/{id}/flow-epics` bekötve (FlowEpic lista él)
 
@@ -91,7 +92,7 @@ A kanban kártyák megjelennek API-ból, de a **kanban oszlopok** (`STAGES` mock
 
 ---
 
-## 4. DesignPage — Paraméter wizard mock-only 🔴
+## 4. DesignPage — Paraméter wizard mock-only ✅ Design kész — FE task pending
 
 **Backend státusz:** Template count stat él (`GET /abstractions/api/modules/templates`), de a wizard teljesen mock
 
@@ -103,9 +104,9 @@ A kanban kártyák megjelennek API-ból, de a **kanban oszlopok** (`STAGES` mock
 
 ---
 
-## 5. ShopFloorPage — Kiosk UI teljes újratervezés ⚪
+## 5. ShopFloorPage — Kiosk UI teljes újratervezés ✅ Design kész — backend spec szükséges implementáció előtt
 
-**Backend státusz:** Nincs ShopFloor modul — backend spec sem létezik
+**Backend státusz:** Nincs ShopFloor modul — backend spec szükséges
 
 A ShopFloor kiosk (`/w/shopfloor`) teljesen mock adaton fut. Ez egyedi UX igényeket támaszt — operátori kiosk, nagy érintőképernyős gombok, PIN bejelentkezés.
 
@@ -121,7 +122,7 @@ A ShopFloor kiosk (`/w/shopfloor`) teljesen mock adaton fut. Ez egyedi UX igény
 
 ---
 
-## 6. Settings — Hiányzó panelek ⚪ / 🔴
+## 6. Settings — Hiányzó panelek ✅ Design kész — implementáció backend-függő
 
 ### 6a. TemplatesPanel 🔴
 **Backend:** Abstractions `GET /api/modules/templates` él — bekötés designja szükséges

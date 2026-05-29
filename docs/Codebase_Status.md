@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-29 — Procurement v2 DONE (136 teszt) · VPS deploy pending (PR-M1..M8)
+**Utolsó frissítés:** 2026-05-29 — Design sprint lezárva (összes FE terület) · Procurement v2 deploy kódbug folyamatban · FE-040 kiadva
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -102,7 +102,7 @@ Backend services          (loopback only, systemd)
 | **Abstractions** | 5003 | **81** | ✅ RUNNING | `backend/spaceos-modules-abstractions/` |
 | **Inventory** | 5004 | **180** | ✅ RUNNING · RS256 aktív · `POST /internal/inbound` + `reorder_alert` outbox kész (Procurement v2 blokkolók) | `backend/spaceos-modules-inventory/` |
 | **Cutting** | 5005 | **931** | ✅ RUNNING · RS256 aktív (JWT_AUTHORITY deployed) | `backend/spaceos-modules-cutting/` |
-| **Procurement** | 5006 | **136** | ✅ RUNNING · v2 DONE (PurchaseRequisition+SupplierInvoice+ThreeWayMatch+PriceList) · VPS deploy pending (PR-M1..M8) | `backend/spaceos-modules-procurement/` |
+| **Procurement** | 5006 | **136** | ✅ RUNNING · v2 PR-M1..M8 migráció kész · DB schema javítva (RLS, inbox, SourceIp, fn signature) · 2 kódbug: SqlQueryRaw alias + Worker GUC (MSG-PROCUREMENT-014) | `backend/spaceos-modules-procurement/` |
 | **Sales** | 5009 | **102** | ✅ RUNNING · systemd · nginx `/sales/` · spaceos_sales schema · RS256 aktív | `backend/spaceos-modules-sales/` |
 
 ## NuGet Libraries

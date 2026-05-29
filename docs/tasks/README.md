@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-05-29 — Procurement v2 DONE)
+## Jelenlegi állapot (2026-05-29 — Design sprint lezárva · Procurement v2 deploy kódbug alatt · FE-040 kiadva)
 
 ### Architektúra
 
@@ -60,13 +60,14 @@
 
 | Task | Terminál | Leírás |
 |---|---|---|
-| `MSG-ROOT-010` | OPERATOR | Procurement v2 VPS deploy — PR-M1..M8 migration + service restart |
+| `MSG-PROCUREMENT-014` | PROCUREMENT | v2 deploy kódbug fix — SqlQueryRaw alias + Worker GUC |
+| `MSG-FE-040` | FE | Procurement v1 kiegészítések — PO detail + Delivery drawer + Supplier SlideOver + New PO |
 
 ### 🟡 New
 
 | Fájl | Megjegyzés |
 |---|---|
-| `FE_Design_Requirements_2026.md` | Design terv szükséges előbb — user kezeli |
+| `FE_Design_Requirements_2026.md` | Design sprint ✅ lezárva (2026-05-29) — összes terület design-kész |
 
 ### Következő lépések (nem kiadva)
 
