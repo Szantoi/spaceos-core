@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-29 — Design sprint lezárva (összes FE terület) · Procurement v2 deploy kódbug folyamatban · FE-040 kiadva
+**Utolsó frissítés:** 2026-05-29 — FE-040 DONE · 330 FE teszt · Procurement v2 deploy kódbug (MSG-PROCUREMENT-014)
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -117,7 +117,14 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ DEPLOYED · Sales Phase 1+2 kész (304 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ DEPLOYED · FE-040 Procurement v1 kész (330 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+
+**FE-040 Procurement v1 kiegészítések** (2026-05-29):
+- `PODetailSlideOver` (640px) — FSM timeline, tételsorok, nyomkövetési szám, inline Szállítás rögzítése form per-tétel qty stepperrel, hiány/többlet jelzés, `POST /procurement/api/deliveries`
+- `SupplierSlideOver` (500px) — 3 KPI kártya, 7-hetes trend chart, kapcsolattartó, aktív rendelések
+- `NewPODrawer` (480px) — szállító dropdown, anyag, mennyiség/egység, határidő, `POST /procurement/api/orders` → success → PODetail auto-open
+- Mock fallback minden SlideOver-en
+- 330/330 teszt pass
 
 **FE-039 Sales Phase 2** (2026-05-28):
 - `QuoteDetailSlideOver` (680px) — inline tételszerkesztés Draft-ban, Nettó/ÁFA/Bruttó, FSM akciók (Send/Accept/Reject/Convert + spinner)
@@ -237,7 +244,7 @@ Backend services          (loopback only, systemd)
 - **Deploy: ✅ KÉSZ** (2026-05-27) — spaceos_identity DB, kézi SQL migration, systemd, nginx `/identity/`, KC client `spaceos-identity-service`
 - Production fix: `616a89f` — EF Core ComplexProperty ctor, Port 5433 (natív PG)
 
-## Backend tesztek összesen: ~4001 (verifikált)
+## Backend tesztek összesen: ~4001 (verifikált) | Frontend: 330
 
 ```
 Kernel 108+971+107=1186 (unit+IT+API) + Orchestrator 121 + Joinery 420 + Abstractions 81 +

@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-05-29 — Design sprint lezárva · Procurement v2 deploy kódbug alatt · FE-040 kiadva)
+## Jelenlegi állapot (2026-05-29 — FE-040 DONE · 330 teszt · Procurement v2 deploy kódbug alatt)
 
 ### Architektúra
 
@@ -53,15 +53,15 @@
 - **FE-039** ✅ — Sales Phase 2 SlideOver-ök (Quote/Customer/Create) + useSalesDetail, 304 teszt (2026-05-28)
 - **FULL DEPLOY** ✅ — Kernel M-0031 + Joinery J-003 + Sales S-001/002/003 + FE · minden smoke teszt zöld (2026-05-28)
 - **Procurement v2** ✅ — 136 teszt · PurchaseRequisition+SupplierInvoice+ThreeWayMatch+PriceList · commit `26a05d1` (2026-05-29)
+- **FE-040** ✅ — Procurement v1 kiegészítések · PO detail + Delivery drawer + Supplier SlideOver + New PO · 330 teszt (2026-05-29)
 
-### Backend tesztek: ~3902 | Frontend: 304
+### Backend tesztek: ~3902 | Frontend: 330
 
 ### 🔵 Active
 
 | Task | Terminál | Leírás |
 |---|---|---|
 | `MSG-PROCUREMENT-014` | PROCUREMENT | v2 deploy kódbug fix — SqlQueryRaw alias + Worker GUC |
-| `MSG-FE-040` | FE | Procurement v1 kiegészítések — PO detail + Delivery drawer + Supplier SlideOver + New PO |
 
 ### 🟡 New
 
