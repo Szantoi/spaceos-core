@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-05-29 — FE-044 DONE ✅ · 391 FE teszt · minden kiadható FE task elvégezve
+**Utolsó frissítés:** 2026-05-29 — FE DEPLOYED ✅ · 391 teszt · FE-040–044 mind live (joinerytech.hu)
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -117,7 +117,26 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ DEPLOYED · FE-044 DesignPage wizard API (391 teszt, 0 build hiba) | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ DEPLOYED · FE-040–044 live · 391 teszt · Procurement v1+v2 UI · WorkflowPage NewOrderDrawer · TemplatesPanel · DesignPage wizard | `frontend/joinerytech-portal/` |
+
+**FE DEPLOY** (2026-05-29): `pnpm build` → 95 module, 653 kB JS · nginx reload · https://joinerytech.hu ✅ 200
+
+**FE-044 DesignPage paraméter wizard** (2026-05-29):
+- `ApiParamWizard` — dinamikus paraméter form (API definíció alapján), PUT on blur, POST calculate, GET cutting-list preview
+- TemplateEditor picker: API sablonok (teal "API" badge) + mock sablonok (amber), kondicionális wizard rendering
+- 391/391 teszt pass
+
+**FE-043 Settings TemplatesPanel** (2026-05-29):
+- Lista táblázat: Név, Típus badge, Paraméterszám, Slotok, Aktív/Inaktív
+- `TemplateDetailSlideOver` — paraméterek táblázat, graph JSON preview, statisztika
+- Settings "Sablonok" tab hozzáadva
+- 381/381 teszt pass
+
+**FE-042 WorkflowPage NewOrderDrawer POST** (2026-05-29):
+- `NewOrderDrawer` `flowEpicId` prop + `POST /joinery/api/orders`
+- `DetailPanel` "Rendelés indítása" gomb → drawer epicId-vel
+- OrdersPage mock mód változatlan
+- 370/370 teszt pass
 
 **FE-041 Procurement v2 UI** (2026-05-29):
 - `RequisitionPanel` — igénylés lista, CreateRequisitionDrawer, RequisitionDetailSlideOver (FSM Approve/Reject + SoD jelzés)
