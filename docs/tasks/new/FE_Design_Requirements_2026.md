@@ -78,7 +78,7 @@ A `ProcurementPage` jelenleg részben API-ból tölt, de az alábbi funkciók mo
 
 ---
 
-## 3. WorkflowPage — Kanban oszlopok mock-only ✅ Design kész — NewOrderDrawer POST backend-függő
+## 3. WorkflowPage — Kanban oszlopok mock-only ✅ NewOrderDrawer KÉSZ — FE-042 DONE (2026-05-29)
 
 **Backend státusz:** `GET /api/facilities/{id}/flow-epics` bekötve (FlowEpic lista él)
 
@@ -92,7 +92,7 @@ A kanban kártyák megjelennek API-ból, de a **kanban oszlopok** (`STAGES` mock
 
 ---
 
-## 4. DesignPage — Paraméter wizard mock-only ✅ Design kész — FE task pending
+## 4. DesignPage — Paraméter wizard mock-only ✅ Design kész — MSG-FE-044 kiadva
 
 **Backend státusz:** Template count stat él (`GET /abstractions/api/modules/templates`), de a wizard teljesen mock
 
@@ -124,7 +124,7 @@ A ShopFloor kiosk (`/w/shopfloor`) teljesen mock adaton fut. Ez egyedi UX igény
 
 ## 6. Settings — Hiányzó panelek ✅ Design kész — implementáció backend-függő
 
-### 6a. TemplatesPanel 🔴
+### 6a. TemplatesPanel ✅ MSG-FE-043 kiadva
 **Backend:** Abstractions `GET /api/modules/templates` él — bekötés designja szükséges
 | Elem | Leírás |
 |---|---|

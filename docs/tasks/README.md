@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-05-29 — FE-042 kiadva · WorkflowPage NewOrderDrawer POST)
+## Jelenlegi állapot (2026-05-29 — FE-042 DONE ✅ · 370 FE teszt · FE-043+044 aktív)
 
 ### Architektúra
 
@@ -57,17 +57,19 @@
 - **Procurement v2 deploy bug #3** ✅ — from-reorder-alert GUC fix (INSERT RETURNING RLS) · commit `c5f1292` (2026-05-29)
 - **Procurement v2 DEPLOYED** ✅ — 136 teszt · live on 5006 · smoke test OK (2026-05-29)
 - **FE-041** ✅ — Procurement v2 UI · RequisitionPanel+InvoicePanel+PriceListPanel · SoD · 3WM · 360 teszt (2026-05-29)
+- **FE-042** ✅ — WorkflowPage NewOrderDrawer POST · flowEpicId prop · DetailPanel "Rendelés indítása" · 370 teszt (2026-05-29)
 - **FE-040** ✅ — Procurement v1 kiegészítések · PO detail + Delivery drawer + Supplier SlideOver + New PO · 330 teszt (2026-05-29)
 
-### Backend tesztek: ~3902 | Frontend: 360
+### Backend tesztek: ~3902 | Frontend: 370
 
 ### 🔵 Active
 
 | Task | Terminál | Leírás |
 |---|---|---|
-| `MSG-FE-042` | FE | WorkflowPage NewOrderDrawer POST — flowEpicId prop + `POST /joinery/api/orders` |
+| `MSG-FE-043` | FE | Settings TemplatesPanel — lista + SlideOver (Abstractions API) |
+| `MSG-FE-044` | FE | DesignPage paraméter wizard — sablon picker + params + calculate (Abstractions API) |
 
-### Backend tesztek: ~3902 | Frontend: 360
+### Backend tesztek: ~3902 | Frontend: 370
 
 ### 🟡 New
 
