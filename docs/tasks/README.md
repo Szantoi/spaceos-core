@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-05-29 — FE-044 DONE ✅ · 391 FE teszt · minden kiadható FE task kész)
+## Jelenlegi állapot (2026-06-15 — FE-045 DONE ✅ · 391 FE teszt · prototípus live · FE-046 + FE2-001 kiadva)
 
 ### Architektúra
 
@@ -61,23 +61,48 @@
 - **FE-043** ✅ — Settings TemplatesPanel · lista + SlideOver + mock fallback · 381 teszt (2026-05-29)
 - **FE-044** ✅ — DesignPage paraméter wizard · ApiParamWizard + calculate + cutting-list preview · 391 teszt (2026-05-29)
 - **FE-040** ✅ — Procurement v1 kiegészítések · PO detail + Delivery drawer + Supplier SlideOver + New PO · 330 teszt (2026-05-29)
+- **FE-045** ✅ — Mobil menü · hamburger + slide-in drawer · scroll lock · close-on-nav · 391 teszt (2026-06-15)
+- **Prototípus LIVE** ✅ — https://joinerytech.hu/proto/ · teljes UI spec · 27 világ · design reference (2026-06-15)
 
 ### Backend tesztek: ~3902 | Frontend: 391
 
 ### 🔵 Active
 
-Nincs aktív task — minden kiadható feladat elvégezve.
-
-### Backend tesztek: ~3902 | Frontend: 391
+| Task | Terminál | Leírás |
+|---|---|---|
+| MSG-FE-046 | FE-A | CRM világ + Finance világ implementálása |
+| MSG-FE2-001 | FE-B | HR világ + Kontrolling világ implementálása |
 
 ### 🟡 New
 
 | Fájl | Megjegyzés |
 |---|---|
-| `FE_Design_Requirements_2026.md` | Design sprint ✅ lezárva (2026-05-29) — összes terület design-kész |
+| `joinerytech/` | Prototípus forrás (27 világ) — FE terminálok ide hivatkoznak |
+| `bakery-project.md` | Pékség vertikál tervdok — következő üzleti vonal |
+| `FE_Design_Requirements_2026.md` | Design sprint ✅ lezárva (2026-05-29) |
 
-### Következő lépések (nem kiadva)
+### Következő lépések (FE backlog — prioritás szerint)
 
-| # | Feladat | Leírás | Előfeltétel |
+| # | Feladat | Prototípus fájlok | Terminál |
 |---|---|---|---|
-| Turnstile | — | Later — csak ha publikus regisztrációs form lesz | — |
+| FE-046 | CRM + Finance világ | page-crm.jsx, page-finance.jsx | FE-A 🔵 |
+| FE2-001 | HR + Kontrolling világ | page-hr.jsx, page-controlling.jsx | FE-B 🔵 |
+| FE-047 | Projektek + Logisztika világ | page-projects.jsx, page-logistics.jsx | FE-A (következő) |
+| FE2-002 | Raktár (bővített) + Reklamáció | page-warehouse-2.jsx, page-service.jsx | FE-B (következő) |
+| FE-048 | Gyártás-előkészítés (mfgprep) világ | page-mfg-prep.jsx + release | FE-A |
+| FE2-003 | AI munkaterület + Dokumentumtár | page-ai.jsx, page-docs.jsx | FE-B |
+
+### Többterminál-struktúra (2026-06-15 óta)
+
+| Terminál | tmux session | Mailbox | Fókusz |
+|---|---|---|---|
+| FE-A | `fe-a` | `docs/mailbox/fe/` | CRM / Finance / Projektek / MfgPrep |
+| FE-B | `fe-b` | `docs/mailbox/fe2/` | HR / Kontrolling / Raktár / AI |
+
+### Monitoring
+
+```bash
+bash /opt/spaceos/scripts/fe-status.sh
+```
+
+Megmutatja: tmux session-ök, aktív task-ok, világ-implementáltság, következő lépések.
