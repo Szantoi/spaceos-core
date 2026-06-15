@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-06-16 — FE-049 DONE ✅ · 539 FE teszt · 15/27 világ · FE-050 + FE2-001/002 aktív · Marveen telepítve)
+## Jelenlegi állapot (2026-06-16 — FE-050 DONE ✅ · 596 FE teszt · 19/27 világ · FE-051 + FE2-001/002 aktív)
 
 ### Architektúra
 
@@ -67,14 +67,15 @@
 - **FE-047** ✅ — Projektek világ (Kanban+Lista+SlideOver) + Logisztika világ (fuvarok+stepper+FSM) · 455 teszt · commit `89da031` (2026-06-15)
 - **FE-048** ✅ — MfgPrep világ (ReleaseQueue+Datasheets+SlideOver) + Supervisor világ (FloorView+AlertPanel+DayPlan) · 489 teszt · commit `e86bede` (2026-06-16)
 - **FE-049** ✅ — Törzsadatok világ (Termék+Anyag+Szállító) + Kereskedelem világ (Ajánlat+PO+Partner) + Belső tér világ (Szoba+Bútor) · 539 teszt · commit `4dea708` (2026-06-16)
+- **FE-050** ✅ — Karbantartás (Gép+Jegy+Ütemező) + Minőség (NCR+Sablon+Audit) + EHS (Esemény+Kockázat-mátrix+Intézkedés) + Jelenléti (Műszak+Tábla+Kivételek) · 596 teszt · commit `51a55c8` (2026-06-16)
 
-### Backend tesztek: ~3902 | Frontend: 539
+### Backend tesztek: ~3902 | Frontend: 596
 
 ### 🔵 Active
 
 | Task | Terminál | Leírás |
 |---|---|---|
-| MSG-FE-050 | FE-A | Karbantartás + Minőség + EHS + Jelenléti világ |
+| MSG-FE-051 | FE-A | Feladatkezelő + Dokumentumtár + AI munkaterület + ExecBI világ |
 | MSG-FE2-001 | FE-B | HR + Kontrolling világ (fut) |
 | MSG-FE2-002 | FE-B | Raktár (bővített) + Reklamáció/Szerviz világ |
 
