@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-06-16 — FE-052 DEPLOYED ✅ · 671 FE teszt · 24/27 világ LIVE · FE-B: HR+Kontrolling+Service hátra)
+## Jelenlegi állapot (2026-06-16 — FE-053 DONE ✅ · mobil fix · 24/27 világ live · FE-A STANDBY · FE-B: HR+Kontrolling+Service fut)
 
 ### Architektúra
 
@@ -70,6 +70,7 @@
 - **FE-050** ✅ — Karbantartás (Gép+Jegy+Ütemező) + Minőség (NCR+Sablon+Audit) + EHS (Esemény+Kockázat-mátrix+Intézkedés) + Jelenléti (Műszak+Tábla+Kivételek) · 596 teszt · commit `51a55c8` (2026-06-16)
 - **FE-051** ✅ — Feladatkezelő (Kanban+Lista+SlideOver) + Dokumentumtár (Verzió+Típus) + AI munkaterület (Ágensek+Receptek+Chat) + ExecBI (4 tab cockpit) · 656 teszt · commit `2b562d1` (2026-06-16)
 - **FE-052** ✅ — Shop világ (Katalógus+Kosár+Rendelések) + **Production DEPLOY** · 671 teszt · **24/27 világ LIVE** · HTTP 200 · commit `74ba719` (2026-06-16)
+- **FE-053** ✅ — Mobil reszponzivitás javítások (ExecBI grid · EHS SlideOver · TaskDetail · HomeScreen px/pt/text) · build zöld · FE-A STANDBY (2026-06-16)
 
 ### Backend tesztek: ~3902 | Frontend: 671
 
