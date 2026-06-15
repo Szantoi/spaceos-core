@@ -57,6 +57,7 @@ declare -A TERMINALS=(
     [cabinet]="spaceos-cabinet:/opt/spaceos/backend/spaceos-modules-cabinet"
     # Frontend
     [fe]="spaceos-fe:/opt/spaceos/frontend/joinerytech-portal"
+    [fe2]="spaceos-fe-b:/opt/spaceos/frontend/joinerytech-portal"
 )
 
 # Persistent terminálok — nincs (on-demand only, 8GB VPS)

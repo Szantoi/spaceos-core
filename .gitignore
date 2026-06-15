@@ -20,6 +20,9 @@ logs/
 # Secrets / env
 *.env
 .mcp.json
+scripts/email.conf
+scripts/.streak
+scripts/.motivator-state
 
 # Build artifacts
 *.bak
