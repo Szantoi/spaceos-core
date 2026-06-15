@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-06-16 — FE-048 DONE ✅ · 489 FE teszt · MfgPrep+Supervisor live · FE-049 + FE2-001/002 aktív · Marveen migráció indul)
+## Jelenlegi állapot (2026-06-16 — FE-049 DONE ✅ · 539 FE teszt · 15/27 világ · FE-050 + FE2-001/002 aktív · Marveen telepítve)
 
 ### Architektúra
 
@@ -66,14 +66,15 @@
 - **FE-046** ✅ — CRM világ (LeadPipeline+Kanban+OppList+Forecast) + Finance világ (ki/bejövő számlák+kifizetések) · 422 teszt · commit `9070dc0` (2026-06-15)
 - **FE-047** ✅ — Projektek világ (Kanban+Lista+SlideOver) + Logisztika világ (fuvarok+stepper+FSM) · 455 teszt · commit `89da031` (2026-06-15)
 - **FE-048** ✅ — MfgPrep világ (ReleaseQueue+Datasheets+SlideOver) + Supervisor világ (FloorView+AlertPanel+DayPlan) · 489 teszt · commit `e86bede` (2026-06-16)
+- **FE-049** ✅ — Törzsadatok világ (Termék+Anyag+Szállító) + Kereskedelem világ (Ajánlat+PO+Partner) + Belső tér világ (Szoba+Bútor) · 539 teszt · commit `4dea708` (2026-06-16)
 
-### Backend tesztek: ~3902 | Frontend: 489
+### Backend tesztek: ~3902 | Frontend: 539
 
 ### 🔵 Active
 
 | Task | Terminál | Leírás |
 |---|---|---|
-| MSG-FE-049 | FE-A | Törzsadatok + Kereskedelem + Belső tér világ |
+| MSG-FE-050 | FE-A | Karbantartás + Minőség + EHS + Jelenléti világ |
 | MSG-FE2-001 | FE-B | HR + Kontrolling világ (fut) |
 | MSG-FE2-002 | FE-B | Raktár (bővített) + Reklamáció/Szerviz világ |
 
