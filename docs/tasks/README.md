@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-06-16 — FE-051 DONE ✅ · 656 FE teszt · 23/27 világ · FE-052 DEPLOY + FE2-001 ⚠️ újraindítás)
+## Jelenlegi állapot (2026-06-16 — FE-052 DEPLOYED ✅ · 671 FE teszt · 24/27 világ LIVE · FE-B: HR+Kontrolling+Service hátra)
 
 ### Architektúra
 
@@ -69,14 +69,16 @@
 - **FE-049** ✅ — Törzsadatok világ (Termék+Anyag+Szállító) + Kereskedelem világ (Ajánlat+PO+Partner) + Belső tér világ (Szoba+Bútor) · 539 teszt · commit `4dea708` (2026-06-16)
 - **FE-050** ✅ — Karbantartás (Gép+Jegy+Ütemező) + Minőség (NCR+Sablon+Audit) + EHS (Esemény+Kockázat-mátrix+Intézkedés) + Jelenléti (Műszak+Tábla+Kivételek) · 596 teszt · commit `51a55c8` (2026-06-16)
 - **FE-051** ✅ — Feladatkezelő (Kanban+Lista+SlideOver) + Dokumentumtár (Verzió+Típus) + AI munkaterület (Ágensek+Receptek+Chat) + ExecBI (4 tab cockpit) · 656 teszt · commit `2b562d1` (2026-06-16)
+- **FE-052** ✅ — Shop világ (Katalógus+Kosár+Rendelések) + **Production DEPLOY** · 671 teszt · **24/27 világ LIVE** · HTTP 200 · commit `74ba719` (2026-06-16)
 
-### Backend tesztek: ~3902 | Frontend: 656
+### Backend tesztek: ~3902 | Frontend: 671
 
 ### 🔵 Active
 
 | Task | Terminál | Leírás |
 |---|---|---|
-| MSG-FE-052 | FE-A | Shop világ + Production DEPLOY (23 világ live) |
+| MSG-FE2-001 | FE-B | HR + Kontrolling világ (folyamatban) |
+| MSG-FE2-002 | FE-B | Raktár bővített + Szerviz (FE2-001 után) |
 | MSG-FE2-001 | FE-B | HR + Kontrolling világ ⚠️ terminál újraindítás szükséges |
 | MSG-FE2-002 | FE-B | Raktár (bővített) + Szerviz világ (FE2-001 után) |
 
