@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-06-15 — FE-046 DONE ✅ · 422 FE teszt · CRM+Finance live · FE-047 + FE2-001 aktív)
+## Jelenlegi állapot (2026-06-15 — FE-047 DONE ✅ · 455 FE teszt · Projektek+Logisztika live · FE-048 + FE2-001 aktív)
 
 ### Architektúra
 
@@ -64,14 +64,15 @@
 - **FE-045** ✅ — Mobil menü · hamburger + slide-in drawer · scroll lock · close-on-nav · 391 teszt (2026-06-15)
 - **Prototípus LIVE** ✅ — https://joinerytech.hu/proto/ · teljes UI spec · 27 világ · design reference (2026-06-15)
 - **FE-046** ✅ — CRM világ (LeadPipeline+Kanban+OppList+Forecast) + Finance világ (ki/bejövő számlák+kifizetések) · 422 teszt · commit `9070dc0` (2026-06-15)
+- **FE-047** ✅ — Projektek világ (Kanban+Lista+SlideOver) + Logisztika világ (fuvarok+stepper+FSM) · 455 teszt · commit `89da031` (2026-06-15)
 
-### Backend tesztek: ~3902 | Frontend: 422
+### Backend tesztek: ~3902 | Frontend: 455
 
 ### 🔵 Active
 
 | Task | Terminál | Leírás |
 |---|---|---|
-| MSG-FE-047 | FE-A | Projektek + Logisztika világ implementálása |
+| MSG-FE-048 | FE-A | Gyártás-előkészítés (mfgprep) + Supervisor világ implementálása |
 | MSG-FE2-001 | FE-B | HR világ + Kontrolling világ implementálása ⚠️ terminál nem fut |
 
 ### 🟡 New
@@ -88,9 +89,9 @@
 |---|---|---|---|
 | FE-046 | CRM + Finance világ | page-crm.jsx, page-finance.jsx | ✅ DONE |
 | FE2-001 | HR + Kontrolling világ | page-hr.jsx, page-controlling.jsx | FE-B 🔵 |
-| FE-047 | Projektek + Logisztika világ | page-projects.jsx, page-logistics.jsx | FE-A 🔵 |
+| FE-047 | Projektek + Logisztika világ | page-projects.jsx, page-logistics.jsx | ✅ DONE |
 | FE2-002 | Raktár (bővített) + Reklamáció | page-warehouse-2.jsx, page-service.jsx | FE-B (következő) |
-| FE-048 | Gyártás-előkészítés (mfgprep) világ | page-mfg-prep.jsx + release | FE-A |
+| FE-048 | Gyártás-előkészítés (mfgprep) + Supervisor világ | page-mfg-prep.jsx, page-supervisor.jsx | FE-A 🔵 |
 | FE2-003 | AI munkaterület + Dokumentumtár | page-ai.jsx, page-docs.jsx | FE-B |
 
 ### Többterminál-struktúra (2026-06-15 óta)
