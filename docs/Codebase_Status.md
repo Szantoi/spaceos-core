@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-06-15 — FE-047 DONE ✅ · 455 FE teszt · Projektek + Logisztika világ implementálva · FE-048 kiadva
+**Utolsó frissítés:** 2026-06-16 — FE-048 DONE ✅ · 489 FE teszt · MfgPrep + Supervisor világ implementálva · FE-049 + FE2-002 kiadva · Marveen migráció indul
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -117,7 +117,7 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ DEPLOYED · FE-040–047 live · 455 teszt · Projektek világ (Kanban+Lista+SlideOver) · Logisztika világ (fuvarok+FSM stepper) · commit `89da031` | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ DEPLOYED · FE-040–048 live · 489 teszt · MfgPrep világ (ReleaseQueue+Datasheets) · Supervisor világ (FloorView+AlertPanel+DayPlan) · commit `e86bede` | `frontend/joinerytech-portal/` |
 
 **FE DEPLOY** (2026-05-29): `pnpm build` → 95 module, 653 kB JS · nginx reload · https://joinerytech.hu ✅ 200
 
