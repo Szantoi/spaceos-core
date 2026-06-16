@@ -10,7 +10,7 @@
 
 ---
 
-## Jelenlegi állapot (2026-06-16 — FE2-002 DONE ✅ · 27/27 világ · 742 teszt · FE-A: végső deploy folyamatban)
+## Jelenlegi állapot (2026-06-16 — 🎉 TELJES PORTAL LIVE · 27/27 világ · 742 teszt · joinerytech.hu HTTP 200)
 
 ### Architektúra
 
@@ -73,14 +73,13 @@
 - **FE-053** ✅ — Mobil reszponzivitás javítások (ExecBI grid · EHS SlideOver · TaskDetail · HomeScreen px/pt/text) · build zöld · FE-A STANDBY (2026-06-16)
 - **FE2-001** ✅ — HR világ + Kontrolling világ · 699 teszt · 26 világ (2026-06-16)
 - **FE2-002** ✅ — Raktár bővítés (lot+zóna+mozgások) + Szerviz világ (jegyek+garanciák+látogatások) · 742 teszt · **27/27 világ** (2026-06-16)
+- **FE-054** ✅ — **VÉGSŐ DEPLOY** · 27/27 világ LIVE · HTTP 200 · joinerytech.hu (2026-06-16)
 
 ### Backend tesztek: ~3902 | Frontend: 742
 
 ### 🔵 Active
 
-| Task | Terminál | Leírás |
-|---|---|---|
-| MSG-FE-054 | FE-A | Végső deploy — 27/27 világ production |
+Nincs aktív task — minden világ live. Következő: backend integráció / Marveen.
 
 ### 🟡 New
 

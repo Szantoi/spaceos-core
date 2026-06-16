@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-06-16 — FE-052 DEPLOYED ✅ · 671 FE teszt · **24/27 világ LIVE** joinerytech.hu · FE-A track KÉSZ · FE-B: HR+Kontrolling+Service
+**Utolsó frissítés:** 2026-06-16 — FE-054 DEPLOYED ✅ · 742 FE teszt · **27/27 világ LIVE** joinerytech.hu · TELJES PORTAL KÉSZ 🎉
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -117,7 +117,7 @@ Backend services          (loopback only, systemd)
 
 | App | Domain | Státusz | Path |
 |---|---|---|---|
-| **JoineryTech Portal** | joinerytech.hu | ✅ DEPLOYED · 671 teszt · **24/27 világ LIVE** · Shop+Tasks+Docs+AI+ExecBI+Maintenance+Quality+EHS+Attendance+Projektek+Logisztika mind live · commit `74ba719` | `frontend/joinerytech-portal/` |
+| **JoineryTech Portal** | joinerytech.hu | ✅ DEPLOYED · **742 teszt · 27/27 világ LIVE** · HR+Kontrolling+Raktár+Szerviz · TELJES PORTAL · commit `54f5e44` | `frontend/joinerytech-portal/` |
 
 **FE DEPLOY** (2026-05-29): `pnpm build` → 95 module, 653 kB JS · nginx reload · https://joinerytech.hu ✅ 200
 
