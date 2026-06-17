@@ -4,7 +4,7 @@ from: root
 to: root
 type: milestone
 priority: critical
-status: UNREAD
+status: READ
 created: 2026-06-17
 ---
 
