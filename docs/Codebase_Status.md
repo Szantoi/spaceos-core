@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-06-17 10:00 — **🎉 CONSENSUS PHASE 1 100% COMPLETE ✅** · ALL 5 ITEMS APPROVED · +55 FE tests · +1005 BE tests · Nexus LIVE · **PHASE 2 IN EXECUTION** · Doorstar DEPLOYMENT AUTHORIZED
+**Utolsó frissítés:** 2026-06-17 10:15 — **🎉 CONSENSUS PHASE 1 100% COMPLETE ✅** · ALL 5 ITEMS APPROVED · +55 FE tests · +1005 BE tests · Nexus LIVE · **PHASE 2 TRACK B COMPLETE ✅** (Joinery integration) · **TRACK A IN PROGRESS** (Nexus systemd) · Doorstar DEPLOYMENT AUTHORIZED
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -10,20 +10,20 @@
 
 | Terminál | Feladat | Status | Commit | Review |
 |---|---|---|---|---|
-| **FE** | ~~TOP 1 ✅~~ ~~TOP 2 ✅~~ ~~TOP 3 ✅~~ \| Phase 2: Joinery integration | 🟢 **3/3 DONE** \| 🟡 **Phase 2 IN PROGRESS** | 4081a5c + afbc201 + TOP3 \| MSG-FE-068 | ✅ APPROVED |
+| **FE** | ~~TOP 1 ✅~~ ~~TOP 2 ✅~~ ~~TOP 3 ✅~~ \| ~~Phase 2: Joinery integration ✅~~ | 🟢 **3/3 + Phase 2 DONE** | 4081a5c + afbc201 + TOP3 + MSG-FE-069 | ✅ APPROVED |
 | **Identity** | ~~GET /users?role ✅~~ | 🟢 DONE | c1324ec | ✅ APPROVED |
 | **Cutting** | ~~POST /assign-batch ✅~~ | 🟢 DONE | e7e484f | ✅ APPROVED |
-| **Nexus** | ~~Knowledge Service Phase 1 ✅~~ \| Phase 2: Systemd+Haiku | 🟢 DONE \| 🟡 **Phase 2 QUEUED** | Port 3456 \| MSG-NEXUS-009 | ✅ APPROVED |
-| **Orch** | Phase 2: Routing verification | 🟡 **QUEUED** | — | MSG-ORCH-001 |
+| **Nexus** | ~~Knowledge Service Phase 1 ✅~~ \| Phase 2: Systemd+Haiku | 🟢 DONE \| 🟡 **Phase 2 IN PROGRESS** | Port 3456 \| MSG-NEXUS-009 | ✅ APPROVED |
+| **Orch** | Phase 2: Routing verification | 🟡 **IN PROGRESS** (MSG-ORCH-001) | — | — |
 | **Librarian** | Memory sync (5-hourly) | 🟡 ACTIVE | — | — |
 | **Conductor** | Monitoring mode | ✅ READY | — | — |
 
 **Milestones:**
-- 🎉 CONSENSUS PHASE 1 COMPLETE (TOP 1+2+3 + Nexus) — Doorstar Soft Launch DEPLOY READY (+47 tests)
+- 🎉 CONSENSUS PHASE 1 COMPLETE (TOP 1+2+3 + Nexus) — Doorstar Soft Launch DEPLOY READY (+55 tests)
 - 🟡 **PHASE 2 ACTIVATED** (2026-06-17 09:35)
-  - Track A: Nexus Phase 2 (Systemd + Librarian + Haiku) — MSG-NEXUS-009
-  - Track B: Manufacturing (Joinery integration + routing) — MSG-FE-068 + MSG-ORCH-001
-  - Timeline: Both parallel, converge ~2026-06-19
+  - **Track A: Nexus Phase 2** (Systemd + Librarian + Haiku) — MSG-NEXUS-009 — **IN PROGRESS**
+  - **✅ Track B: MANUFACTURING COMPLETE** (Joinery integration + routing) — MSG-FE-069 DONE, MSG-ORCH-001 IN PROGRESS
+  - Timeline: Both parallel, converge ~2026-06-19 (FE ready, awaiting Orch routing + Nexus infra)
 
 ---
 
