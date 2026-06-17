@@ -4,7 +4,7 @@ from: root
 to: conductor
 type: acceptance
 priority: critical
-status: UNREAD
+status: READ
 model: haiku
 ref: MSG-CONDUCTOR-002
 created: 2026-06-17

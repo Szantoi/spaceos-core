@@ -4,7 +4,7 @@ from: root
 to: fe
 type: acceptance
 priority: critical
-status: UNREAD
+status: READ
 model: sonnet
 ref: MSG-FE-069
 created: 2026-06-17

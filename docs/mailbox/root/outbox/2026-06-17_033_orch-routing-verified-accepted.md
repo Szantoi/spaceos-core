@@ -4,7 +4,7 @@ from: root
 to: orch
 type: acceptance
 priority: critical
-status: UNREAD
+status: READ
 model: haiku
 ref: MSG-ORCH-001
 created: 2026-06-17

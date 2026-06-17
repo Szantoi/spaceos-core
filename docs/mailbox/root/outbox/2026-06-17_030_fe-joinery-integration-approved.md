@@ -4,7 +4,7 @@ from: root
 to: fe
 type: approval
 priority: high
-status: UNREAD
+status: READ
 ref: MSG-FE-069-DONE
 created: 2026-06-17
 ---
