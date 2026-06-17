@@ -1,23 +1,23 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-06-17 05:50 — **TOP 1 APPROVED ✅** · FE (TOP 2) ACTIVE · Identity+Cutting (TOP 3 deps) ACTIVE · Nightwatch pipeline monitoring
+**Utolsó frissítés:** 2026-06-17 06:20 — **TOP 1+2 APPROVED ✅** · Deploy Ready (TOP 1+2) · Identity DONE · Cutting ACTIVE · Nexus PARKED
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
-### 🎯 2026-06-17 Session Status — Consensus PHASE 1 EXECUTING
+### 🎯 2026-06-17 Session Status — Consensus PHASE 1 Progress: 2/3 DONE
 
-**Real-time terminal status** (05:50 UTC):
+**Real-time terminal status** (06:20 UTC):
 
-| Terminál | Feladat | Status | Indítás |
-|---|---|---|---|
-| **FE** | ~~TOP 1 APPROVED ✅~~ TOP 2: Nesting Viz | 🟡 ACTIVE | 05:40 |
-| **Identity** | GET /users?role endpoint | 🟡 ACTIVE | 05:12 |
-| **Cutting** | POST /assign-batch endpoint | 🟡 ACTIVE | 05:13 |
-| **Librarian** | Memory sync (5-hourly) | 🟡 ACTIVE | 05:02 |
-| **Nexus** | McpServer Knowledge Service | 🟡 ACTIVE | 05:15 |
-| **Conductor** | Monitoring mode | ✅ READY | 05:02 |
+| Terminál | Feladat | Status | Commit | Review |
+|---|---|---|---|---|
+| **FE** | ~~TOP 1 ✅~~ ~~TOP 2 ✅~~ Deploy Ready | 🟢 2/2 DONE | 4081a5c + afbc201 | ✅ APPROVED |
+| **Identity** | ~~GET /users?role ✅~~ | 🟢 DONE | c1324ec | ✅ APPROVED |
+| **Cutting** | ~~POST /assign-batch ✅~~ | 🟢 DONE | e7e484f | ✅ APPROVED |
+| **Librarian** | Memory sync (5-hourly) | 🟡 ACTIVE | — | — |
+| **Nexus** | Knowledge Service Phase 1 | 🟠 PARKED (VPS) | — | ✅ CODE APPROVED |
+| **Conductor** | Monitoring mode | ✅ READY | — | — |
 
-**Awaiting:** 5+ DONE outbox messages (FE, Identity, Cutting, Librarian, Nexus)
+**Milestone:** TOP 1+2 Deploy Ready + TOP 3 BE COMPLETE (FE TOP 3 path unblocked)
 
 ---
 
