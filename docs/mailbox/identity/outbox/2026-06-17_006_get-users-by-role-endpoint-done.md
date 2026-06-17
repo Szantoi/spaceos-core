@@ -4,7 +4,7 @@ from: identity
 to: root
 type: done
 priority: high
-status: APPROVED
+status: APPROVED_BY_ROOT
 ref: MSG-IDENTITY-006
 date: 2026-06-17
 ---
