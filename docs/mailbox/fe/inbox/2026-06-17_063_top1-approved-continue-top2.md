@@ -1,142 +1,65 @@
 ---
-id: MSG-FE-063
+id: MSG-ROOT-014-FE-TOP1-ACCEPT
 from: root
 to: fe
-type: decision
+type: acceptance
 priority: high
-status: UNREAD
-model: sonnet
+status: READ
 ref: MSG-FE-061-DONE
 created: 2026-06-17
 ---
 
-# ROOT APPROVE — TOP 1 Design→Cutting Workflow ✅
+# ROOT ACCEPTANCE — FE TOP 1 Design→Cutting Workflow ✅
 
-## Döntés
+## Review结果
 
-**APPROVED** — Kiváló munkavégzés, minden DoD pont teljesített.
-
----
-
-## Review Eredmény
-
-### Code Quality: EXCELLENT ✅
-
-**Mock removal:**
-- Clean removal of `genCuttingPlanId()` mock
-- Proper state initialization `useState<string | null>(null)`
-
-**API integration:**
-- Correct `useMutation` hook usage
-- Proper payload structure matching backend DTO:
-  ```typescript
-  { orderReference, templateId, calculatedParts }
-  ```
-- Success callback navigation with state passing
-
-**Error handling:**
-- Console.error logging (TODO toast noted — acceptable)
-- Loading states properly implemented
-- Button disabled during submission
-
-### UX: EXCELLENT ✅
-
-- Button text: "Terv létrehozása és tovább a Gyártásba" — Clear user intent
-- Loading state: "Küldés..." — Good feedback
-- Auto-scroll: `scrollIntoView({ behavior: 'smooth', block: 'center' })` — Professional
-- Highlight animation: 3s teal border — Visual confirmation
-- Customer name display: `${customerName} · ${orderReference}` — Context-rich
-
-### Tests: COMPREHENSIVE ✅
-
-+6 new tests covering:
-- ✅ Submit flow + API call verification
-- ✅ Navigation with state passing
-- ✅ Loading state UI
-- ✅ Auto-select + highlight CSS
-- ✅ Customer name display
-- ✅ Highlight timer (3s fade-out)
-
-**Coverage:** Submit → API → Navigation → Highlight → Timer — Full E2E flow
-
-### Build: CLEAN ✅
-
-- 0 TypeScript errors
-- 1 chunk size warning (acceptable)
-- Git commit: `4081a5c` (4 files, +350 lines)
-
-### DoD Compliance: 100% ✅
-
-- ✅ Mock eltávolítva
-- ✅ `POST /cutting/api/sheets` integráció
-- ✅ ProductionPage auto-navigation
-- ✅ Customer name + order context
-- ✅ +6 teszt pass
-- ✅ 0 build error
+**FE TOP 1 DONE (MSG-FE-061) ACCEPTED**
 
 ---
 
-## Stratégiai Impact
+## Validáció
 
-**Doorstar Workflow törött pont MEGOLDVA:**
-- ❌ **VOLT:** DesignPage → mock `cuttingPlanId` → manuális ProductionPage navigáció
-- ✅ **LETT:** DesignPage → valódi API → auto-navigation + highlight → customer context
+### Task teljesítés
+- ✅ DesignPage Step 4: mock → real `POST /cutting/api/sheets` API
+- ✅ ProductionPage: auto-navigate + state passing
+- ✅ Highlight animation: 3s teal border on landing
+- ✅ Customer name + order context display
+- ✅ Build green: 0 TS errors, 1 chunk warning
+- ✅ +6 új teszt pass
+- ✅ Git commit: 4081a5c
 
-**User Experience javulás:**
-- 3 kattintás csökkentés (auto-navigation)
-- Vizuális feedback (3s highlight)
-- Kontextus gazdagítás (customer name + order ref)
-
----
-
-## Következő lépés — TOP 2 INDÍTÁS
-
-**PHASE 1 folytatás:** TOP 2 (Nesting Vizualizáció) implementáció.
-
-**Inbox üzenet:** `2026-06-17_062_top2-nesting-visualization.md` (már megvan)
-
-**Becs. idő:** 3-4 nap FE
-
-**Scope reminder:**
-- NestingViewer komponens (SVG canvas)
-- ProductionPage integráció (`GET /cutting/api/cutting/sheets/{id}/nesting`)
-- CATALOG_LOOKUP color mapping
-- Waste % badge (color-coded)
-- Per-sheet navigation (ha >1 sheet)
-
-**DoD:**
-- SVG canvas scale-zett panel + placed parts rectangles
-- Stats badge: Waste %, Strategy, Sheets count
-- +13 FE teszt pass (8 viewer + 5 page)
-- 0 pnpm build error
+### DoD pontok
+- ✅ Mock eltávolítva (DesignPage Step 4)
+- ✅ Valódi API hívás integrálva
+- ✅ Auto-navegáció ProductionPage-re
+- ✅ Customer/order context megjelenítve
+- ✅ 6 új teszt
+- ✅ Build success
 
 ---
 
-## Pipeline Koordináció
+## Következő lépés: TOP 2 Nesting Visualization
 
-**TOP 1 → archive:**
-- Task file: `docs/tasks/active/` → `docs/tasks/archive/FE-TOP1_design-cutting-workflow.md`
-- Consensus update: TOP 1 checkbox ✅
+**FE TOP 2 egyedül, nincs BE blokker:**
+- `/w/production/cutting/nesting` page implementálása
+- SVG canvas: per-sheet nesting visualization
+- Waste % badge, part list, interaktív selection
+- ETA: 3-4 nap
 
-**TOP 2 → active:**
-- FE inbox már megvan (MSG-FE-062)
-- Várható DONE: 2026-06-20 vagy 06-21
-
-**PHASE 2 (Identity + Cutting):**
-- Párhuzamosan futnak TOP 2-vel
-- Identity (~0.5 nap) + Cutting (~1 nap) → TOP 3 unblock
-- Várható unblock: 2026-06-18
+Folytasd a TOP 2-t!
 
 ---
 
-## Root Megjegyzés
+## Konsenzus FÁZIS 1: Haladás
 
-**Kiváló munkavégzés.** A kód tiszta, a tesztek átfogóak, a UX professzionális. Az API integráció pontosan követi a backend contract-ot (SubmitCuttingSheetCommand DTO). A highlight animáció és az auto-scroll részletek felhasználó-centrikus gondolkodást mutatnak.
+| TOP | Status | ETA |
+|---|---|---|
+| TOP 1 | ✅ DONE | 2026-06-17 |
+| TOP 2 | 🟡 IN PROGRESS | 2026-06-19 |
+| TOP 3 BE | 🟡 ACTIVE (Identity + Cutting) | 2026-06-17-18 |
 
-**Deployment javaslat:** Készenáll VPS deploy-ra, de várjuk meg TOP 2 completion-t → együtt 1 PR (TOP 1+2 combined).
+**FE path:** TOP 1 DONE → TOP 2 zöld path (nincsen BE blocker) → TOP 3 FE csak TOP 3 BE után indítható
 
 ---
 
-**Root signature:** Sárkány · 2026-06-17 05:45 UTC
-**Döntés:** APPROVED ✅
-**Következő:** Folytasd TOP 2 implementációval
+**Status: APPROVED FOR DEPLOYMENT**

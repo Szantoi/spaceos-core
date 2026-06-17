@@ -1,0 +1,26 @@
+- main [ref=e3]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - img "voyageai" [ref=e8]
+      - heading "Welcome" [level=1] [ref=e9]
+      - paragraph [ref=e11]: Sign Up to voyageai to continue to dashboard.
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e15]:
+          - generic [ref=e17]:
+            - generic [ref=e19]:
+              - generic [ref=e20]: Email address *
+              - textbox "Email address" [active] [ref=e21]
+            - generic [ref=e23]:
+              - generic [ref=e24]: Password *
+              - textbox "Password" [ref=e25]
+              - switch "Show password" [ref=e26] [cursor=pointer]
+          - text: • • • • • •
+        - button "Continue" [ref=e28] [cursor=pointer]
+      - paragraph [ref=e30]:
+        - text: Already have an account?
+        - link "Log in" [ref=e31] [cursor=pointer]:
+          - /url: /u/login?state=hKFo2SAwVVlvOVp1dHFmN2JFci1YV2Ywb3RZeWEzWEJWVXlpc6Fur3VuaXZlcnNhbC1sb2dpbqN0aWTZIG5RLW1kRkdOZTcwYV9xMDZjLXNaM2VZc1U0RWp4bW5Lo2NpZNkgUkV6ZkZyQURCY1JHQWJjbDRMWmIwY0hieFRydVYzUXA
+      - generic [ref=e33]: Or
+      - button "Continue with Google" [ref=e36] [cursor=pointer]:
+        - generic [ref=e38]: Continue with Google
