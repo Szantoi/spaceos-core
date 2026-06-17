@@ -62,7 +62,9 @@ declare -A SESSIONS=(
 )
 
 # Prioritásos session-ök — ezek indulnak ELSŐKÉNT
-PRIORITY_SESSIONS=("spaceos-root" "spaceos-conductor")
+# Root NINCS itt, mert stratégiai döntéseket hoz, nem kell mindig futni
+# A Conductor koordinálja a terminálokat és feldolgozza a DONE-okat
+PRIORITY_SESSIONS=("spaceos-conductor")
 
 # Session → munkamappa hozzárendelések
 declare -A SESSION_WORKDIR=(
