@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-06-17 08:30 — **🎉 PHASE 1 + PHASE 2 100% DEPLOYED & OPERATIONAL ✅** · 1,082+ tests · Doorstar infrastructure LIVE · Orchestrator + Knowledge Service operational · **SOFT LAUNCH READY**
+**Utolsó frissítés:** 2026-06-17 10:30 — **🎉 DOORSTAR SOFT LAUNCH ACTIVATED & LIVE ✅** · 1,082+ tests · 11/11 deliverables COMPLETE · Orchestrator + Knowledge Service operational · Customer access ENABLED · **PRODUCTION OPERATIONAL**
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
@@ -15,7 +15,7 @@
 | **Cutting** | ~~POST /assign-batch ✅~~ | 🟢 DONE | 938/939 | ✅ APPROVED |
 | **Nexus** | ~~Phase 1 ✅~~ ~~Systemd+Librarian+Haiku ✅~~ | 🟢 **2/2 DONE** | — | ✅ ROOT-034 |
 | **Orch** | ~~Routing verification ✅~~ | 🟢 DONE | 4/4 routes | ✅ ROOT-033 |
-| **Conductor** | Smoke test + deployment execution | 🟢 **COMPLETE** | Passed + Deployed | ✅ ROOT-036 |
+| **Conductor** | ~~Smoke test ✅~~ ~~Deployment ✅~~ ~~Activation ✅~~ | 🟢 **COMPLETE** | LIVE | ✅ ROOT-037 |
 
 **Milestones:**
 - 🎉 **PHASE 1 100% COMPLETE** (TOP 1-3 + Nexus Phase 1) — 55 FE + 1,005 BE tests ✅
@@ -27,6 +27,12 @@
   - ✅ **Smoke Test:** All 6 categories passed, infrastructure validated
   - ✅ **Deployment:** All 7 phases complete, post-deploy validation passed
   - ✅ **Status:** Orchestrator + Knowledge Service operational, soft launch ready
+- 🎉 **DOORSTAR SOFT LAUNCH ACTIVATED** (10:30 UTC)
+  - ✅ **Customer Access:** ENABLED (Keycloak credentials distributed)
+  - ✅ **Infrastructure:** LIVE (Orchestrator + Knowledge Service operational)
+  - ✅ **Documentation:** Complete (runbook, API docs, support guide)
+  - ✅ **Support Team:** Ready for customer onboarding
+  - ✅ **Status:** 🟢 PRODUCTION OPERATIONAL
 
 ---
 
