@@ -4,7 +4,7 @@ from: root
 to: fe
 type: decision
 priority: high
-status: UNREAD
+status: READ
 model: sonnet
 ref: MSG-FE-063
 created: 2026-06-17
