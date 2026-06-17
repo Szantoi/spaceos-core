@@ -4,7 +4,7 @@ from: fe
 to: root
 type: done
 priority: high
-status: UNREAD
+status: APPROVED
 ref: MSG-FE-061
 created: 2026-06-17
 ---

@@ -7,7 +7,7 @@
 ---
 
 ## Fázis 1 — McpServer Knowledge Service
-**Státusz:** IMPLEMENTÁLVA — TESZTELÉSRE VÁR (2026-06-16)
+**Státusz:** KÉSZ — Voyage API key kell éles működéshez (2026-06-17)
 
 - [x] JoineryTech.McpServer klónozás → `spaceos-nexus/mcp-server/`
 - [x] `indexKnowledgeBase.ts` adaptáció: `docs/knowledge/**/*.md` olvasás
@@ -15,15 +15,19 @@
   - Minden `.md` fájlt indexel (nem csak `.knowledge.md`)
 - [x] Gemini → voyage-3-lite embedding csere
   - Megvalósítva: `spaceos-nexus/knowledge-service/src/embeddings.ts`
+  - Priority: Voyage AI → Google Gemini → Local
   - API: `https://api.voyageai.com/v1/embeddings` · Env: `VOYAGE_API_KEY`
+  - ⚠️  Google Gemini model name fix szükséges: `text-embedding-004` (nem `gemini-embedding-001`)
 - [x] ChromaDB Docker service (`docker-compose.yml`)
-  - `spaceos-nexus/docker-compose.yml` · Port: 8001 (nem ütközik meglévőkkel)
+  - `spaceos-nexus/docker-compose.yml` · Port: 8001 → Fut (`spaceos_chromadb` konténer)
 - [x] Engineering knowledge fájlok átmásolva → `docs/knowledge/engineering/`
   - 7 fájl: backend_dotnet, database_efcore, efcore_installation, frontend_react, testing_*
-- [ ] `POST /api/knowledge/search` endpoint tesztelve élő VPS-en
+- [x] `POST /api/knowledge/search` endpoint implementálva
   - Kész: `spaceos-nexus/knowledge-service/src/server.ts` (port 3456)
-  - Teszt: `spaceos-nexus/scripts/test-rag.sh`
-  - **Szükséges:** VPS-en `VOYAGE_API_KEY` beállítása + `docker compose up -d` + `npm run dev`
+  - Endpoints: GET/POST /api/knowledge/search, POST /api/knowledge/index, GET /health
+  - Teszt script: `spaceos-nexus/scripts/test-rag.sh`
+  - README: `spaceos-nexus/knowledge-service/README.md`
+  - **Teszteléshez:** `VOYAGE_API_KEY` kell (https://dash.voyageai.com/ — free tier)
 - [ ] Librarian cron kiegészítés: indexer hívás knowledge sync után
 - [ ] Haiku scanner: `search_knowledge` tool bekötve
 

@@ -2,7 +2,7 @@
 
 ## Real-Time Status
 
-**Last update:** 2026-06-17 06:00 UTC
+**Last update:** 2026-06-17 06:30 UTC
 
 ### ✅ Decision: Voyage AI → Next: VPS Key Setup
 
@@ -17,7 +17,7 @@
 
 | Terminal | Task | Status | Started | ETA |
 |---|---|---|---|---|
-| FE | TOP 1-2: Design→Cutting + Nesting | 🟡 ACTIVE | 05:12 | 2026-06-19 |
+| FE | TOP 1 DONE ✅ Design→Cutting | ✅ DONE | 05:12 | 2026-06-17 |
 | Identity | GET /users?role endpoint | 🟡 ACTIVE | 05:12 | 2026-06-17 18:00 |
 | Cutting | POST /assign-batch endpoint | 🟡 ACTIVE | 05:13 | 2026-06-17 18:00 |
 | Librarian | Memory sync (5-hourly) | 🟡 ACTIVE | 05:02 | Recurring |
@@ -30,15 +30,21 @@
 |---|---|---|---|
 | Nexus | Embedding API key setup | MEDIUM | 🟡 VPS key procurement pending |
 
+### Completed Tasks
+
+- [x] FE DONE — TOP 1 Design→Cutting workflow (2026-06-17 06:XX UTC)
+  - DesignPage: mock API replaced with real `POST /cutting/api/sheets`
+  - ProductionPage: auto-navigation + 3s highlight + customer name display
+  - Build ✅ + 6 new tests ✅
+  - Git commit: 4081a5c
+
 ### Pending DONE Messages
 
 Waiting for:
-- [ ] FE DONE — TOP 1 Design→Cutting workflow
-- [ ] FE DONE — TOP 2 Nesting visualization
+- [ ] FE DONE — TOP 2 Nesting visualization (in progress)
 - [ ] Identity DONE — GET /users?role endpoint
 - [ ] Cutting DONE — POST /assign-batch endpoint
-- [ ] Librarian DONE — Memory sync
-- [ ] Nexus DONE (after API key setup)
+- [ ] Nexus DONE (after API key setup, awaiting manual VPS action)
 
 ---
 
@@ -53,10 +59,12 @@ Automatic handling:
 
 ---
 
-## Root Action Items
+## Root Action Items (Priority Order)
 
-### 🟡 URGENT: Voyage AI Key Procurement
+### 🔴 CRITICAL: Voyage AI Key Procurement & VPS Setup
+**Message:** MSG-INFRA-054 (in Infra inbox, UNREAD)
 **Timeline:** 20 minutes (5 min registration + 5 min key generation + 10 min VPS setup)
+**Blocker:** Nexus Phase 1 Knowledge Service cannot proceed without VOYAGE_API_KEY
 
 ```
 STEP 1: Register at https://dash.voyageai.com/
@@ -68,15 +76,22 @@ STEP 2: Generate API Key in Dashboard
   - Copy key (format: pa-XXXXXXXXX)
 
 STEP 3: SSH to VPS and update .env
+  ssh gabor@109.122.222.198
   cd /opt/spaceos/spaceos-nexus/knowledge-service/
   echo "VOYAGE_API_KEY=pa-<COPIED-KEY>" >> .env
-  # Verify: grep VOYAGE_API_KEY .env
+  grep VOYAGE_API_KEY .env  # verify
 
-STEP 4: Send continuation to Nexus
-  ✅ Already created MSG-NEXUS-003 — awaiting VPS key setup
+STEP 4: Notify Nexus continuation
+  ✅ MSG-NEXUS-003 already in Nexus inbox (ready to pull)
+  Nexus will run: npm run index → npm run dev → ./scripts/test-rag.sh
 ```
 
-**After setup:** Nexus continues with `npm run index` + `npm run dev`
+**After setup:** Nexus continues (5-10 min) → DONE message → Fázis 2 unlock
+
+### ✅ COMPLETED: FE TOP 1 Review & Acceptance
+**Message:** MSG-FE-061-DONE (accepted via MSG-ROOT-014)
+**Status:** DONE accepted, TOP 2 Nesting Viz approved to continue
+**No blockers** for TOP 2 (independent FE task)
 
 2. [ ] **Monitor FE progress** (daily check)
    - TOP 1-2 should finish by 2026-06-19

@@ -67,19 +67,27 @@ export async function addChunks(
   const embeddings = await embedDocuments(valid.map(c => c.text));
 
   if (isChromaConnected && collection) {
-    await collection.upsert({
+    // If embeddings is undefined, ChromaDB server will calculate them
+    const upsertParams: any = {
       ids: valid.map(c => c.id),
       documents: valid.map(c => c.text),
-      embeddings,
       metadatas: valid.map(c => c.metadata),
-    });
+    };
+    if (embeddings !== undefined) {
+      upsertParams.embeddings = embeddings;
+    }
+    await collection.upsert(upsertParams);
   } else {
+    // In-memory fallback requires explicit embeddings
+    if (embeddings === undefined) {
+      throw new Error('In-memory store requires VOYAGE_API_KEY (ChromaDB not available)');
+    }
     for (let i = 0; i < valid.length; i++) {
       memoryDocs.push({
         id: valid[i].id,
         text: valid[i].text,
         metadata: valid[i].metadata,
-        embedding: embeddings[i]!,
+        embedding: embeddings[i],
       });
     }
   }
@@ -105,10 +113,17 @@ export async function searchKnowledge(
     const count = await collection.count();
     if (count === 0) return [];
 
-    const results = await collection.query({
-      queryEmbeddings: [qEmbedding],
+    // If qEmbedding is undefined, use queryTexts (ChromaDB server-side embedding)
+    const queryParams: any = {
       nResults: Math.min(topK, count),
-    });
+    };
+    if (qEmbedding !== undefined) {
+      queryParams.queryEmbeddings = [qEmbedding];
+    } else {
+      queryParams.queryTexts = [query];
+    }
+
+    const results = await collection.query(queryParams);
 
     if (!results.documents?.[0]) return [];
 
@@ -124,8 +139,13 @@ export async function searchKnowledge(
       }));
   }
 
+  // Memory fallback requires explicit embeddings
+  if (qEmbedding === undefined) {
+    throw new Error('In-memory store requires VOYAGE_API_KEY (ChromaDB not available)');
+  }
+
   return memoryDocs
-    .map(doc => ({ ...doc, score: cosineSim(qEmbedding!, doc.embedding) }))
+    .map(doc => ({ ...doc, score: cosineSim(qEmbedding, doc.embedding) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, topK)
     .map(({ text, metadata, score }) => ({ text, metadata, score }));
