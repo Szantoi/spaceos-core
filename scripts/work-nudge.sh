@@ -1,11 +1,11 @@
 #!/bin/bash
 # =============================================================================
-# work-nudge.sh — Root terminál munkára ösztönzés + Nexus projekt figyelmeztetés
+# work-nudge.sh — Conductor terminál munkára ösztönzés + Nexus projekt figyelmeztetés
 #
 # Cron: */15 * * * * bash /opt/spaceos/scripts/work-nudge.sh
 #
 # Funkciók:
-#   - Ha Root 15+ perce inaktív, emlékeztetés
+#   - Ha Conductor 15+ perce inaktív, emlékeztetés
 #   - Ha Nexus inbox UNREAD és session nem fut, figyelmeztetés
 #   - Blokkoló outbox-ok számlálása
 #   - Planning queue állapot
@@ -24,9 +24,9 @@ if [ "$HOUR" -lt 7 ] || [ "$HOUR" -ge 22 ]; then
   exit 0
 fi
 
-# ── Root session inaktivitás ────────────────────────────────────────────────
+# ── Conductor session inaktivitás ────────────────────────────────────────────
 
-CONTENT=$(tmux_s capture-pane -t spaceos-root -p 2>/dev/null | tail -20)
+CONTENT=$(tmux_s capture-pane -t spaceos-conductor -p 2>/dev/null | tail -20)
 NOW=$(date +%s)
 
 LAST_ACTIVITY=$(stat -c %Y "$STATE_FILE" 2>/dev/null || echo "0")
@@ -36,10 +36,10 @@ ELAPSED=$(( NOW - LAST_ACTIVITY ))
 CONTENT_HASH=$(echo "$CONTENT" | md5sum | cut -d' ' -f1)
 PREV_HASH=$(cat "$STATE_FILE" 2>/dev/null || echo "")
 
-NUDGE_ROOT=false
+NUDGE_CONDUCTOR=false
 if [ "$CONTENT_HASH" = "$PREV_HASH" ] && [ "$ELAPSED" -gt 900 ]; then
   # 15+ perc inaktivitás
-  NUDGE_ROOT=true
+  NUDGE_CONDUCTOR=true
 fi
 echo "$CONTENT_HASH" > "$STATE_FILE"
 
@@ -95,16 +95,16 @@ if [ ${#ALERTS[@]} -gt 0 ]; then
   NUDGE_MSG="${NUDGE_MSG}\nFolyamatosan haladj a feladatokon."
 fi
 
-# ── Nudge küldés Root sessionbe (ha inaktív + van teendő) ───────────────────
+# ── Nudge küldés Conductor sessionbe (ha inaktív + van teendő) ───────────────
 
-if [ "$NUDGE_ROOT" = "true" ] && [ -n "$NUDGE_MSG" ]; then
-  log "Root inaktív 15+ perce, nudge küldés"
+if [ "$NUDGE_CONDUCTOR" = "true" ] && [ -n "$NUDGE_MSG" ]; then
+  log "Conductor inaktív 15+ perce, nudge küldés"
 
-  tmux_s send-keys -t spaceos-root "$(echo -e "$NUDGE_MSG")" 2>/dev/null
+  tmux_s send-keys -t spaceos-conductor "$(echo -e "$NUDGE_MSG")" 2>/dev/null
   sleep 0.5
-  tmux_s send-keys -t spaceos-root Enter 2>/dev/null
+  tmux_s send-keys -t spaceos-conductor Enter 2>/dev/null
   sleep 1
-  tmux_s send-keys -t spaceos-root Enter 2>/dev/null
+  tmux_s send-keys -t spaceos-conductor Enter 2>/dev/null
 fi
 
 # ── Telegram értesítés (ha sok a teendő) ────────────────────────────────────
@@ -116,7 +116,7 @@ if [ "$TOTAL_ALERTS" -ge 3 ]; then
 Több mint 3 feladat vár figyelemre:
 $(printf '• %s\n' "${ALERTS[@]}")
 
-Root session: $([ "$NUDGE_ROOT" = "true" ] && echo "inaktív" || echo "aktív")"
+Conductor session: $([ "$NUDGE_CONDUCTOR" = "true" ] && echo "inaktív" || echo "aktív")"
 
   log "Telegram nudge küldve ($TOTAL_ALERTS alert)"
 fi
@@ -143,4 +143,4 @@ tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-nexus -c /opt/spaceos/s
   fi
 fi
 
-log "Check complete: $TOTAL_ALERTS alerts, Root=$([ "$NUDGE_ROOT" = "true" ] && echo "inactive" || echo "active"), Nexus=$NEXUS_INBOX inbox"
+log "Check complete: $TOTAL_ALERTS alerts, Conductor=$([ "$NUDGE_CONDUCTOR" = "true" ] && echo "inactive" || echo "active"), Nexus=$NEXUS_INBOX inbox"
