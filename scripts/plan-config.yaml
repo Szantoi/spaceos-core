@@ -1,0 +1,126 @@
+# =============================================================================
+# plan-config.yaml — SpaceOS Planning Pipeline konfiguráció
+#
+# Minden paraméter innen jön, a szkriptek NEM tartalmaznak hardcoded értékeket.
+# =============================================================================
+
+# ── Modellek ─────────────────────────────────────────────────────────────────
+
+models:
+  scanner: haiku              # plan-scan.sh — ötletgyűjtés
+  selector: sonnet            # plan-select.sh — szűrés + kutatás
+  planner_a: sonnet           # plan-debate.sh — első tervező
+  planner_b: sonnet           # plan-debate.sh — második tervező
+  reviewer: sonnet            # plan-debate.sh — keresztértékelés
+  consensus: sonnet           # plan-debate.sh — konsenzus szintézis
+
+# ── Timeout (másodperc) ──────────────────────────────────────────────────────
+
+timing:
+  scanner_timeout: 60         # Haiku scanner
+  selector_timeout: 120       # Sonnet selector + web search
+  planner_timeout: 180        # Sonnet tervező
+  reviewer_timeout: 90        # Keresztértékelés
+  consensus_timeout: 120      # Konsenzus szintézis
+  file_wait: 2                # Várakozás fájl lezárására
+
+# ── Throttling ───────────────────────────────────────────────────────────────
+
+throttling:
+  ideas_threshold: 5          # Ennyi ötlet felett select indul
+  skip_threshold: 3           # Ennyi ötlet felett 50% skip
+  queue_notify_threshold: 2   # Ennyi queue elem felett Conductor értesítés
+  max_queue_size: 3           # Max pufferelt konsenzus
+
+# ── Szegmensek (scanner) ─────────────────────────────────────────────────────
+
+segments:
+  - name: api-status
+    label: "Frontend API integráció státusz"
+    source: frontend/joinerytech-portal/API_INTEGRATION_STATUS.md
+
+  - name: fe-memory
+    label: "Frontend terminál memória"
+    sources:
+      - frontend/joinerytech-portal/MEMORY.md
+      - spaceos-doorstar-portal/MEMORY.md
+
+  - name: kernel-memory
+    label: "Kernel terminál memória (auth, tenant, FSM)"
+    sources:
+      - backend/spaceos-kernel/MEMORY.md
+
+  - name: joinery-memory
+    label: "Joinery + Cutting + Orchestrator memória"
+    sources:
+      - backend/spaceos-modules-joinery/MEMORY.md
+      - backend/spaceos-modules-cutting/MEMORY.md
+      - backend/spaceos-orchestrator/MEMORY.md
+
+  - name: knowledge-adr
+    label: "Architekturális döntések katalógusa (ADR)"
+    source: docs/knowledge/architecture/ADR_CATALOGUE.md
+
+  - name: knowledge-api
+    label: "API contract katalógus"
+    source: docs/knowledge/architecture/API_CONTRACT_CATALOGUE.md
+
+  - name: knowledge-patterns
+    label: "Fejlesztési minták és visszatérő problémák"
+    sources:
+      - docs/knowledge/patterns/DEV_DIFFICULTIES.md
+      - docs/knowledge/patterns/DATABASE_PATTERNS.md
+      - docs/knowledge/deployment/KNOWN_GOTCHAS.md
+
+  - name: infra-memory
+    label: "Infra + E2E terminál memória"
+    sources:
+      - infra/MEMORY.md
+      - e2e/MEMORY.md
+
+  - name: datahaven-resonance
+    label: "Datahaven + Resonance fejlesztési állapot"
+    sources:
+      - docs/agent-infrastructure/ROADMAP.md
+      - docs/agent-infrastructure/DECISIONS.md
+      - spaceos-nexus/MEMORY.md
+
+# ── Stratégia (scanner szegmens választás) ───────────────────────────────────
+
+strategy:
+  rotating_percent: 50        # Forgó sorrend valószínűsége
+  hotspot_percent: 30         # Hot spot valószínűsége
+  exploration_percent: 20     # Véletlenszerű felfedezés
+  hotspot_decay: 0.8          # Decay szorzó select után
+
+# ── Fájl útvonalak (relatív SPACEOS_ROOT-hoz) ────────────────────────────────
+
+paths:
+  planning_dir: docs/planning
+  ideas_dir: docs/planning/ideas
+  selected_dir: docs/planning/selected
+  plans_dir: docs/planning/plans
+  consensus_dir: docs/planning/consensus
+  queue_dir: docs/planning/queue
+  archive_dir: docs/planning/archive
+  domain_focus: docs/planning/domain-focus.md
+  codebase_status: docs/Codebase_Status.md
+  log_dir: logs/dispatcher
+  scan_state: scripts/.plan-scan-state
+
+# ── Prompt fájlok ────────────────────────────────────────────────────────────
+
+prompts:
+  scanner: scripts/prompts/plan-scan-prompt.md
+  selector: scripts/prompts/plan-select-prompt.md
+  planner: scripts/prompts/plan-debate-prompt.md
+  reviewer: scripts/prompts/plan-review-prompt.md
+  consensus: scripts/prompts/plan-consensus-prompt.md
+
+# ── Telegram értesítések ─────────────────────────────────────────────────────
+
+notifications:
+  on_select: false            # Értesítés select után
+  on_consensus: true          # Értesítés konsenzus után
+  on_queue_ready: true        # Értesítés ha queue elérte a küszöböt
+  on_error: true              # Értesítés hiba esetén

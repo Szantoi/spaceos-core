@@ -9,19 +9,33 @@ Utolsó frissítés: 2026-06-17 07:25
 
 ## Fontos kontextus
 
-### Reviewer rendszer (refaktorálva)
-- **Hideg indítás:** `claude -p` (nem interaktív, friss processz)
-- **Konfiguráció:** `scripts/reviewer-config.yaml` (minden paraméter)
-- **Prompt:** `scripts/reviewer-prompt.md` (template placeholderekkel)
-- **Kontextus:** `scripts/reviewer-context.md` (projekt tudás)
+### Pipeline rendszer (refaktorálva)
 
-| Placeholder | Tartalom |
-|---|---|
-| `{{CONTEXT}}` | reviewer-context.md tartalma |
-| `{{INBOX_PATH}}` | Eredeti feladat fájl útvonala |
-| `{{INBOX_CONTENT}}` | Eredeti feladat tartalma |
-| `{{DONE_PATH}}` | DONE üzenet fájl útvonala |
-| `{{DONE_CONTENT}}` | DONE üzenet tartalma |
+Minden pipeline komponens:
+- **Hideg indítás:** `claude -p` (friss processz, timeout)
+- **Konfiguráció:** YAML fájlból (modellek, timing, útvonalak)
+- **Promptok:** külön .md fájlok `{{placeholder}}` szintaxissal
+
+| Komponens | Config | Promptok |
+|---|---|---|
+| **Reviewer** | `reviewer-config.yaml` | `reviewer-prompt.md` |
+| **Planning** | `plan-config.yaml` | `prompts/plan-*.md` |
+
+**Prompt placeholder szintaxis:** `{{VARIABLE_NAME}}`
+
+```
+scripts/
+├── yaml-parser.sh           # Közös YAML parser
+├── reviewer-config.yaml     # Reviewer konfig
+├── reviewer-prompt.md       # Reviewer prompt
+├── plan-config.yaml         # Planning konfig
+└── prompts/
+    ├── plan-scan-prompt.md
+    ├── plan-select-prompt.md
+    ├── plan-debate-prompt.md
+    ├── plan-review-prompt.md
+    └── plan-consensus-prompt.md
+```
 
 ### Terminál architektúra
 - **DONE routing:** terminálok → conductor (nem root)

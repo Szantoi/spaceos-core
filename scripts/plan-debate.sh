@@ -1,258 +1,244 @@
 #!/bin/bash
 # =============================================================================
-# plan-debate.sh — 2× Sonnet párhuzamos tervezés + keresztértékelés → konsenzus
+# plan-debate.sh — 2× párhuzamos tervezés + keresztértékelés → konsenzus
 #
-# Egyetlen felelőssége:
-#   1. Fázis: Sonnet-A és Sonnet-B egymástól függetlenül tervet ír (párhuzam)
-#   2. Fázis: Mindkettő elolvassa a másik tervét és értékeli
-#   3. Fázis: Konsenzus dokumentum (Sonnet szintetizálja)
-#   → Konsenzus a queue/-ba kerül (2-3 pufferelt terv)
-#   → Ha a queue tele (3+), a Conductor inbox-ba értesítés megy
+# 1. Fázis: Planner-A és Planner-B egymástól függetlenül tervet ír (párhuzam)
+# 2. Fázis: Mindkettő elolvassa a másik tervét és értékeli
+# 3. Fázis: Konsenzus dokumentum szintézise
+# → Konsenzus a queue/-ba kerül
+# → Ha a queue elérte a küszöböt, Conductor inbox értesítés
+#
+# Minden paraméter a plan-config.yaml fájlból jön.
+# Promptok a prompts/ mappából jönnek.
 #
 # Hívja: plan-select.sh
 # =============================================================================
 
-source "$(dirname "$0")/common.sh"
+set -uo pipefail
 
-PLANNING="$SPACEOS_ROOT/docs/planning"
-SELECTED_FILE="$PLANNING/selected/pending.md"
-PLANS_DIR="$PLANNING/plans"
-CONSENSUS_DIR="$PLANNING/consensus"
-mkdir -p "$PLANS_DIR" "$CONSENSUS_DIR"
+SPACEOS_ROOT="${SPACEOS_ROOT:-/opt/spaceos}"
+SCRIPT_DIR="$(dirname "$0")"
+CONFIG_FILE="$SCRIPT_DIR/plan-config.yaml"
 
+source "$SCRIPT_DIR/common.sh"
+source "$SCRIPT_DIR/yaml-parser.sh"
+
+# ── Konfiguráció betöltése ───────────────────────────────────────────────────
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "HIBA: Konfiguráció nem található: $CONFIG_FILE" >&2
+    exit 1
+fi
+
+# Modellek
+PLANNER_A_MODEL=$(yaml_get "$CONFIG_FILE" "models.planner_a" "sonnet")
+PLANNER_B_MODEL=$(yaml_get "$CONFIG_FILE" "models.planner_b" "sonnet")
+REVIEWER_MODEL=$(yaml_get "$CONFIG_FILE" "models.reviewer" "sonnet")
+CONSENSUS_MODEL=$(yaml_get "$CONFIG_FILE" "models.consensus" "sonnet")
+
+# Timing
+PLANNER_TIMEOUT=$(yaml_get "$CONFIG_FILE" "timing.planner_timeout" "180")
+REVIEWER_TIMEOUT=$(yaml_get "$CONFIG_FILE" "timing.reviewer_timeout" "90")
+CONSENSUS_TIMEOUT=$(yaml_get "$CONFIG_FILE" "timing.consensus_timeout" "120")
+FILE_WAIT=$(yaml_get "$CONFIG_FILE" "timing.file_wait" "2")
+
+# Throttling
+QUEUE_NOTIFY_THRESHOLD=$(yaml_get "$CONFIG_FILE" "throttling.queue_notify_threshold" "2")
+
+# Útvonalak
+SELECTED_DIR="$SPACEOS_ROOT/$(yaml_get "$CONFIG_FILE" "paths.selected_dir" "docs/planning/selected")"
+PLANS_DIR="$SPACEOS_ROOT/$(yaml_get "$CONFIG_FILE" "paths.plans_dir" "docs/planning/plans")"
+CONSENSUS_DIR="$SPACEOS_ROOT/$(yaml_get "$CONFIG_FILE" "paths.consensus_dir" "docs/planning/consensus")"
+QUEUE_DIR="$SPACEOS_ROOT/$(yaml_get "$CONFIG_FILE" "paths.queue_dir" "docs/planning/queue")"
+DOMAIN_FOCUS_FILE="$SPACEOS_ROOT/$(yaml_get "$CONFIG_FILE" "paths.domain_focus" "docs/planning/domain-focus.md")"
+CODEBASE_STATUS_FILE="$SPACEOS_ROOT/$(yaml_get "$CONFIG_FILE" "paths.codebase_status" "docs/Codebase_Status.md")"
+
+# Prompt fájlok
+PLANNER_PROMPT_FILE="$SPACEOS_ROOT/$(yaml_get "$CONFIG_FILE" "prompts.planner" "scripts/prompts/plan-debate-prompt.md")"
+REVIEWER_PROMPT_FILE="$SPACEOS_ROOT/$(yaml_get "$CONFIG_FILE" "prompts.reviewer" "scripts/prompts/plan-review-prompt.md")"
+CONSENSUS_PROMPT_FILE="$SPACEOS_ROOT/$(yaml_get "$CONFIG_FILE" "prompts.consensus" "scripts/prompts/plan-consensus-prompt.md")"
+
+# Notifications
+NOTIFY_CONSENSUS=$(yaml_get "$CONFIG_FILE" "notifications.on_consensus" "true")
+NOTIFY_QUEUE_READY=$(yaml_get "$CONFIG_FILE" "notifications.on_queue_ready" "true")
+
+mkdir -p "$PLANS_DIR" "$CONSENSUS_DIR" "$QUEUE_DIR"
+
+SELECTED_FILE="$SELECTED_DIR/pending.md"
 if [ ! -f "$SELECTED_FILE" ]; then
-  echo "$TIMESTAMP Plan-debate: nincs selected fájl, kilépés" >> "$LOG_DIR/pipeline.log"
-  exit 1
+    echo "$TIMESTAMP Plan-debate: nincs selected fájl, kilépés" >> "$LOG_DIR/pipeline.log"
+    exit 1
 fi
 
 SELECTED_CONTENT=$(cat "$SELECTED_FILE")
-CODEBASE_STATUS=$(head -30 "$SPACEOS_ROOT/docs/Codebase_Status.md" 2>/dev/null || echo "")
-DOMAIN_FOCUS=$(cat "$PLANNING/domain-focus.md" 2>/dev/null || echo "")
+CODEBASE_STATUS=$(head -30 "$CODEBASE_STATUS_FILE" 2>/dev/null || echo "")
+DOMAIN_FOCUS=$(cat "$DOMAIN_FOCUS_FILE" 2>/dev/null || echo "")
 
 DATE=$(date +%Y-%m-%d)
-PLAN_A="$PLANS_DIR/${DATE}_plan-sonnet-a.md"
-PLAN_B="$PLANS_DIR/${DATE}_plan-sonnet-b.md"
+PLAN_A="$PLANS_DIR/${DATE}_plan-a.md"
+PLAN_B="$PLANS_DIR/${DATE}_plan-b.md"
 
-OPUS_BASE_PROMPT="# SpaceOS Implementációs Terv — Független tervező
+# ── Prompt template betöltése ────────────────────────────────────────────────
 
-Te egy tapasztalt szoftverarchitekt vagy, aki a SpaceOS projektre dolgozol.
-A SpaceOS a magyar faipar ERP/MES platformja — .NET 8 backend, React 18 frontend.
+if [ ! -f "$PLANNER_PROMPT_FILE" ]; then
+    echo "HIBA: Planner prompt nem található: $PLANNER_PROMPT_FILE" >&2
+    exit 1
+fi
 
-## Projekt kontextus:
-${CODEBASE_STATUS}
+PLANNER_PROMPT_TEMPLATE=$(cat "$PLANNER_PROMPT_FILE")
 
-## Domain fókusz:
-${DOMAIN_FOCUS}
+# ── 1. Fázis: Párhuzamos független tervek ────────────────────────────────────
 
-## Kiválasztott fejlesztési irányok (Sonnet által szűrve + kutatva):
-${SELECTED_CONTENT}
+echo "$TIMESTAMP Tervezés indul (A: $PLANNER_A_MODEL, B: $PLANNER_B_MODEL)..." >> "$LOG_DIR/pipeline.log"
 
-## Feladatod — Független implementációs terv írása
+# Planner-A prompt
+PLANNER_A_PROMPT="${PLANNER_PROMPT_TEMPLATE}"
+PLANNER_A_PROMPT="${PLANNER_A_PROMPT//\{\{CODEBASE_STATUS\}\}/$CODEBASE_STATUS}"
+PLANNER_A_PROMPT="${PLANNER_A_PROMPT//\{\{DOMAIN_FOCUS\}\}/$DOMAIN_FOCUS}"
+PLANNER_A_PROMPT="${PLANNER_A_PROMPT//\{\{SELECTED_CONTENT\}\}/$SELECTED_CONTENT}"
+PLANNER_A_PROMPT="${PLANNER_A_PROMPT//\{\{PLANNER_ID\}\}/Planner-A}"
+PLANNER_A_PROMPT="${PLANNER_A_PROMPT//\{\{PLANNER_STYLE\}\}/Fókuszálj az inkrementális, biztonságos megközelítésre.}"
 
-Hozz létre egy KONKRÉT implementációs tervet a fenti irányokhoz.
-Te FÜGGETLEN vagy — ne befolyásoljon semmilyen más terv, csak a saját ítéleted.
+# Planner-B prompt
+PLANNER_B_PROMPT="${PLANNER_PROMPT_TEMPLATE}"
+PLANNER_B_PROMPT="${PLANNER_B_PROMPT//\{\{CODEBASE_STATUS\}\}/$CODEBASE_STATUS}"
+PLANNER_B_PROMPT="${PLANNER_B_PROMPT//\{\{DOMAIN_FOCUS\}\}/$DOMAIN_FOCUS}"
+PLANNER_B_PROMPT="${PLANNER_B_PROMPT//\{\{SELECTED_CONTENT\}\}/$SELECTED_CONTENT}"
+PLANNER_B_PROMPT="${PLANNER_B_PROMPT//\{\{PLANNER_ID\}\}/Planner-B}"
+PLANNER_B_PROMPT="${PLANNER_B_PROMPT//\{\{PLANNER_STYLE\}\}/Fókuszálj a merészebb, innovatívabb megközelítésre.}"
 
-A tervnek tartalmaznia kell:
-1. **Prioritás sorrend** — melyik funkciót mikor érdemes implementálni és miért
-2. **Backend szükségletek** — milyen endpoint-ok, adatmodellek kellenek
-3. **Frontend megközelítés** — komponens struktúra, state management, UX flow
-4. **Kockázatok** — mi nehéz, mi bukhat el
-5. **Sorrend és függőségek** — mi blokkolja mit
-
-Légy konkrét. Adj tényleges API path javaslatokat, komponens neveket, adatmodelleket.
-Maximum 600 szó."
-
-# ── 1. Fázis: Párhuzamos független tervek ──────────────────────────────────
-
-echo "$TIMESTAMP Sonnet tervek indulnak (párhuzam)..." >> "$LOG_DIR/pipeline.log"
-
-echo "${OPUS_BASE_PROMPT}
-
-## Te vagy: Sonnet-A tervező
-Fókuszálj az inkrementális, biztonságos megközelítésre.
-
-Válaszolj KÖZVETLENÜL markdown formátumban (ne használj tool-okat)." \
-  | claude -p --model sonnet \
+# Párhuzamos futtatás (hideg indítás)
+echo "$PLANNER_A_PROMPT" | timeout "$PLANNER_TIMEOUT" claude -p --model "$PLANNER_A_MODEL" \
     > "$PLAN_A" 2>/dev/null &
 PID_A=$!
 
-echo "${OPUS_BASE_PROMPT}
-
-## Te vagy: Sonnet-B tervező
-Fókuszálj a merészebb, innováltívabb megközelítésre.
-
-Válaszolj KÖZVETLENÜL markdown formátumban (ne használj tool-okat)." \
-  | claude -p --model sonnet \
+echo "$PLANNER_B_PROMPT" | timeout "$PLANNER_TIMEOUT" claude -p --model "$PLANNER_B_MODEL" \
     > "$PLAN_B" 2>/dev/null &
 PID_B=$!
 
 wait $PID_A
 wait $PID_B
-sleep 2
+sleep "$FILE_WAIT"
 
-echo "$TIMESTAMP Opus tervek elkészültek" >> "$LOG_DIR/pipeline.log"
+echo "$TIMESTAMP Tervek elkészültek" >> "$LOG_DIR/pipeline.log"
 
-# ── 2. Fázis: Keresztértékelés ──────────────────────────────────────────────
+# ── 2. Fázis: Keresztértékelés ───────────────────────────────────────────────
 
 PLAN_A_CONTENT=$(cat "$PLAN_A" 2>/dev/null || echo "")
 PLAN_B_CONTENT=$(cat "$PLAN_B" 2>/dev/null || echo "")
 
+if [ -z "$PLAN_A_CONTENT" ] || [ -z "$PLAN_B_CONTENT" ]; then
+    echo "$TIMESTAMP Plan-debate HIBA: üres terv(ek)" >> "$LOG_DIR/pipeline.log"
+    exit 1
+fi
+
 REVIEW_A="$PLANS_DIR/${DATE}_review-a-on-b.md"
 REVIEW_B="$PLANS_DIR/${DATE}_review-b-on-a.md"
 
-echo "$TIMESTAMP Keresztértékelés indul..." >> "$LOG_DIR/pipeline.log"
+if [ ! -f "$REVIEWER_PROMPT_FILE" ]; then
+    echo "HIBA: Reviewer prompt nem található: $REVIEWER_PROMPT_FILE" >&2
+    exit 1
+fi
 
-echo "# Keresztértékelés — Sonnet-A értékeli Sonnet-B tervét
+REVIEWER_PROMPT_TEMPLATE=$(cat "$REVIEWER_PROMPT_FILE")
 
-## Sonnet-B terve:
-${PLAN_B_CONTENT}
+echo "$TIMESTAMP Keresztértékelés indul (model: $REVIEWER_MODEL)..." >> "$LOG_DIR/pipeline.log"
 
-## A te saját terved (Sonnet-A):
-${PLAN_A_CONTENT}
+# A értékeli B-t
+REVIEW_A_PROMPT="${REVIEWER_PROMPT_TEMPLATE}"
+REVIEW_A_PROMPT="${REVIEW_A_PROMPT//\{\{REVIEWER_ID\}\}/Planner-A}"
+REVIEW_A_PROMPT="${REVIEW_A_PROMPT//\{\{OTHER_ID\}\}/Planner-B}"
+REVIEW_A_PROMPT="${REVIEW_A_PROMPT//\{\{OTHER_PLAN\}\}/$PLAN_B_CONTENT}"
+REVIEW_A_PROMPT="${REVIEW_A_PROMPT//\{\{OWN_PLAN\}\}/$PLAN_A_CONTENT}"
 
-## Feladatod
-Értékeld Sonnet-B tervét:
-- Miben erősebb a tiédnél? (legyél őszinte)
-- Miben gyengébb?
-- Mit átvennél belőle?
-- Mi az a 2-3 pont ahol egyetértetek? (ezek a konsenzus magja)
-- Mi az ahol nem értetek egyet? (indokold meg miért a te megközelítésed jobb)
+# B értékeli A-t
+REVIEW_B_PROMPT="${REVIEWER_PROMPT_TEMPLATE}"
+REVIEW_B_PROMPT="${REVIEW_B_PROMPT//\{\{REVIEWER_ID\}\}/Planner-B}"
+REVIEW_B_PROMPT="${REVIEW_B_PROMPT//\{\{OTHER_ID\}\}/Planner-A}"
+REVIEW_B_PROMPT="${REVIEW_B_PROMPT//\{\{OTHER_PLAN\}\}/$PLAN_A_CONTENT}"
+REVIEW_B_PROMPT="${REVIEW_B_PROMPT//\{\{OWN_PLAN\}\}/$PLAN_B_CONTENT}"
 
-Maximum 300 szó. Légy konkrét és konstruktív.
-Válaszolj KÖZVETLENÜL markdown formátumban." \
-  | claude -p --model sonnet \
+# Párhuzamos futtatás
+echo "$REVIEW_A_PROMPT" | timeout "$REVIEWER_TIMEOUT" claude -p --model "$REVIEWER_MODEL" \
     > "$REVIEW_A" 2>/dev/null &
 PID_RA=$!
 
-echo "# Keresztértékelés — Sonnet-B értékeli Sonnet-A tervét
-
-## Sonnet-A terve:
-${PLAN_A_CONTENT}
-
-## A te saját terved (Sonnet-B):
-${PLAN_B_CONTENT}
-
-## Feladatod
-Értékeld Sonnet-A tervét:
-- Miben erősebb a tiédnél? (legyél őszinte)
-- Miben gyengébb?
-- Mit átvennél belőle?
-- Mi az a 2-3 pont ahol egyetértetek? (ezek a konsenzus magja)
-- Mi az ahol nem értetek egyet? (indokold meg miért a te megközelítésed jobb)
-
-Maximum 300 szó. Légy konkrét és konstruktív.
-Válaszolj KÖZVETLENÜL markdown formátumban." \
-  | claude -p --model sonnet \
+echo "$REVIEW_B_PROMPT" | timeout "$REVIEWER_TIMEOUT" claude -p --model "$REVIEWER_MODEL" \
     > "$REVIEW_B" 2>/dev/null &
 PID_RB=$!
 
 wait $PID_RA
 wait $PID_RB
-sleep 2
+sleep "$FILE_WAIT"
 
 echo "$TIMESTAMP Keresztértékelés kész" >> "$LOG_DIR/pipeline.log"
 
-# ── 3. Fázis: Konsenzus szintézis (Sonnet) ─────────────────────────────────
+# ── 3. Fázis: Konsenzus szintézis ────────────────────────────────────────────
 
 REVIEW_A_CONTENT=$(cat "$REVIEW_A" 2>/dev/null || echo "")
 REVIEW_B_CONTENT=$(cat "$REVIEW_B" 2>/dev/null || echo "")
 CONSENSUS_FILE="$CONSENSUS_DIR/${DATE}_consensus.md"
 
-CONSENSUS_PROMPT="# SpaceOS Konsenzus Szintézis
+if [ ! -f "$CONSENSUS_PROMPT_FILE" ]; then
+    echo "HIBA: Consensus prompt nem található: $CONSENSUS_PROMPT_FILE" >&2
+    exit 1
+fi
 
-Két független Sonnet tervező elkészítette a terveit és értékelte egymásét.
-A te feladatod a legjobb elemek szintézise egy megvalósítható konsenzusba.
+CONSENSUS_PROMPT=$(cat "$CONSENSUS_PROMPT_FILE")
+CONSENSUS_PROMPT="${CONSENSUS_PROMPT//\{\{PLAN_A_CONTENT\}\}/$PLAN_A_CONTENT}"
+CONSENSUS_PROMPT="${CONSENSUS_PROMPT//\{\{PLAN_B_CONTENT\}\}/$PLAN_B_CONTENT}"
+CONSENSUS_PROMPT="${CONSENSUS_PROMPT//\{\{REVIEW_A_CONTENT\}\}/$REVIEW_A_CONTENT}"
+CONSENSUS_PROMPT="${CONSENSUS_PROMPT//\{\{REVIEW_B_CONTENT\}\}/$REVIEW_B_CONTENT}"
+CONSENSUS_PROMPT="${CONSENSUS_PROMPT//\{\{DATE\}\}/$DATE}"
+CONSENSUS_PROMPT="${CONSENSUS_PROMPT//\{\{PLAN_A_PATH\}\}/$PLAN_A}"
+CONSENSUS_PROMPT="${CONSENSUS_PROMPT//\{\{PLAN_B_PATH\}\}/$PLAN_B}"
 
-## Sonnet-A terve:
-${PLAN_A_CONTENT}
+echo "$TIMESTAMP Konsenzus szintézis indul (model: $CONSENSUS_MODEL)..." >> "$LOG_DIR/pipeline.log"
 
-## Sonnet-B terve:
-${PLAN_B_CONTENT}
+echo "$CONSENSUS_PROMPT" | timeout "$CONSENSUS_TIMEOUT" claude -p --model "$CONSENSUS_MODEL" \
+    > "$CONSENSUS_FILE" 2>/dev/null
 
-## Sonnet-A értékelése Sonnet-B tervéről:
-${REVIEW_A_CONTENT}
+sleep "$FILE_WAIT"
 
-## Sonnet-B értékelése Sonnet-A tervéről:
-${REVIEW_B_CONTENT}
+echo "$TIMESTAMP Konsenzus kész: $(basename "$CONSENSUS_FILE")" >> "$LOG_DIR/pipeline.log"
 
-## Feladatod
+# ── 4. Konsenzus → Queue puffer + Conductor értesítés ────────────────────────
 
-Írj egy KONSENZUS dokumentumot az alábbi formátumban:
-
----
-created: ${DATE}
-plan_a: ${PLAN_A}
-plan_b: ${PLAN_B}
-status: ready_for_conductor
----
-
-# SpaceOS Konsenzus Implementációs Terv
-
-## Összefoglalás (2-3 mondat)
-
-## Elfogadott prioritás sorrend
-1. [feature] — mindkét tervező egyetért
-2. ...
-
-## Backend szükségletek (összesített)
-- endpoint: ...
-- adatmodell: ...
-
-## Frontend megközelítés (legjobb elemek)
-- ...
-
-## Amit Sonnet-A-tól veszünk át
-- ...
-
-## Amit Sonnet-B-től veszünk át
-- ...
-
-## Nyitott kérdések a Conductor-nak
-- ...
-
-Válaszolj KÖZVETLENÜL markdown formátumban a fenti struktúrával."
-
-echo "$CONSENSUS_PROMPT" | claude -p --model sonnet \
-  > "$CONSENSUS_FILE" 2>/dev/null
-
-echo "$TIMESTAMP Konsenzus kész: $(basename $CONSENSUS_FILE)" >> "$LOG_DIR/pipeline.log"
-
-# ── 4. Konsenzus → Queue puffer + Conductor értesítés ───────────────────────
-
-if [ ! -f "$CONSENSUS_FILE" ]; then
-  echo "$TIMESTAMP Konsenzus fájl nem jött létre, queue skip" >> "$LOG_DIR/pipeline.log"
-  exit 1
+if [ ! -s "$CONSENSUS_FILE" ]; then
+    echo "$TIMESTAMP Konsenzus fájl üres, queue skip" >> "$LOG_DIR/pipeline.log"
+    exit 1
 fi
 
 # Stale pending.md átnevezése
-mv "$PLANNING/selected/pending.md" \
-   "$PLANNING/selected/${DATE}_selected-done.md" 2>/dev/null
+mv "$SELECTED_DIR/pending.md" "$SELECTED_DIR/${DATE}_selected-done.md" 2>/dev/null
 
-# ── Konsenzus másolása a queue-ba ────────────────────────────────────────────
-
-QUEUE_DIR="$PLANNING/queue"
-mkdir -p "$QUEUE_DIR"
+# Konsenzus másolása a queue-ba
 QUEUE_FILE="$QUEUE_DIR/${DATE}_$(date +%H%M)_consensus.md"
 cp "$CONSENSUS_FILE" "$QUEUE_FILE"
 
-echo "$TIMESTAMP Konsenzus queue-ba: $(basename $QUEUE_FILE)" >> "$LOG_DIR/pipeline.log"
+echo "$TIMESTAMP Konsenzus queue-ba: $(basename "$QUEUE_FILE")" >> "$LOG_DIR/pipeline.log"
 
-# ── Queue méret ellenőrzés (max 3 pufferelt terv) ────────────────────────────
+# Telegram értesítés (ha engedélyezve)
+if [ "$NOTIFY_CONSENSUS" = "true" ]; then
+    DOMAIN=$(grep "^domain:" "$DOMAIN_FOCUS_FILE" 2>/dev/null | sed 's/domain:\s*//' | tr -d '[:space:]')
+    tg "🧠 *Konsenzus kész*\nDomain: \`${DOMAIN:-all}\`\nFile: \`$(basename "$QUEUE_FILE")\`"
+fi
+
+# ── Queue méret ellenőrzés ───────────────────────────────────────────────────
 
 QUEUE_COUNT=$(ls "$QUEUE_DIR"/*.md 2>/dev/null | wc -l)
 
-if [ "$QUEUE_COUNT" -ge 2 ]; then
-  # Conductor inbox értesítés — vannak feldolgozandó tervek
-  COND_INBOX="$SPACEOS_ROOT/docs/mailbox/conductor/inbox"
-  mkdir -p "$COND_INBOX"
-  LAST_NUM=$(ls "$COND_INBOX"/*.md 2>/dev/null | sed 's/.*_\([0-9]\{3\}\)_.*/\1/' | sort -n | tail -1)
-  NEXT_NUM=$(printf "%03d" $(( ${LAST_NUM:-0} + 1 )))
+if [ "$QUEUE_COUNT" -ge "$QUEUE_NOTIFY_THRESHOLD" ]; then
+    COND_INBOX="$SPACEOS_ROOT/docs/mailbox/conductor/inbox"
+    mkdir -p "$COND_INBOX"
+    LAST_NUM=$(ls "$COND_INBOX"/*.md 2>/dev/null | sed 's/.*_\([0-9]\{3\}\)_.*/\1/' | sort -n | tail -1)
+    NEXT_NUM=$(printf "%03d" $(( ${LAST_NUM:-0} + 1 )))
 
-  # Csak akkor írunk új inbox-ot, ha nincs már UNREAD
-  EXISTING_UNREAD=$(grep -rl "status: UNREAD" "$COND_INBOX/" 2>/dev/null | head -1)
+    # Csak akkor írunk inbox-ot, ha nincs már UNREAD
+    EXISTING_UNREAD=$(grep -rl "status: UNREAD" "$COND_INBOX/" 2>/dev/null | head -1)
 
-  if [ -z "$EXISTING_UNREAD" ]; then
-    cat > "${COND_INBOX}/${DATE}_${NEXT_NUM}_planning-queue-ready.md" <<EOF
+    if [ -z "$EXISTING_UNREAD" ]; then
+        cat > "${COND_INBOX}/${DATE}_${NEXT_NUM}_planning-queue-ready.md" <<EOF
 ---
 id: MSG-COND-${NEXT_NUM}
 from: planning-pipeline
@@ -287,12 +273,15 @@ $(ls -1 "$QUEUE_DIR"/*.md 2>/dev/null | xargs -I{} basename {})
 4. Küldj DONE outbox-ot a feldolgozás végeztével
 EOF
 
-    echo "$TIMESTAMP Conductor inbox kiadva: ${DATE}_${NEXT_NUM}_planning-queue-ready.md" >> "$LOG_DIR/pipeline.log"
-    tg "📋 *Planning queue: ${QUEUE_COUNT} terv* — Conductor-nak kiadva\nDomain: $(grep '^domain:' $SPACEOS_ROOT/docs/planning/domain-focus.md | cut -d: -f2 | tr -d ' ')"
-  else
-    echo "$TIMESTAMP Conductor már dolgozik (UNREAD inbox létezik), skip" >> "$LOG_DIR/pipeline.log"
-  fi
+        echo "$TIMESTAMP Conductor inbox kiadva: ${DATE}_${NEXT_NUM}_planning-queue-ready.md" >> "$LOG_DIR/pipeline.log"
+
+        if [ "$NOTIFY_QUEUE_READY" = "true" ]; then
+            DOMAIN=$(grep "^domain:" "$DOMAIN_FOCUS_FILE" 2>/dev/null | sed 's/domain:\s*//' | tr -d '[:space:]')
+            tg "📋 *Planning queue: ${QUEUE_COUNT} terv*\nConductor-nak kiadva\nDomain: \`${DOMAIN:-all}\`"
+        fi
+    else
+        echo "$TIMESTAMP Conductor már dolgozik (UNREAD inbox létezik), skip" >> "$LOG_DIR/pipeline.log"
+    fi
 else
-  echo "$TIMESTAMP Queue: ${QUEUE_COUNT} terv (< 2, Conductor még nem értesítve)" >> "$LOG_DIR/pipeline.log"
-  tg "🧠 *Konsenzus kész* — Queue: ${QUEUE_COUNT}/3\nDomain: $(grep '^domain:' $SPACEOS_ROOT/docs/planning/domain-focus.md | cut -d: -f2 | tr -d ' ')"
+    echo "$TIMESTAMP Queue: ${QUEUE_COUNT} terv (< ${QUEUE_NOTIFY_THRESHOLD}, Conductor még nem értesítve)" >> "$LOG_DIR/pipeline.log"
 fi
