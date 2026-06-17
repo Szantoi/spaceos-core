@@ -1,8 +1,9 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-06-17 10:30 — **🎉 DOORSTAR SOFT LAUNCH ACTIVATED & LIVE ✅** · 1,082+ tests · 11/11 deliverables COMPLETE · Orchestrator + Knowledge Service operational · Customer access ENABLED · **PRODUCTION OPERATIONAL**
+**Utolsó frissítés:** 2026-06-17 11:00 — **🎉 PHASE 3 INITIALIZATION & ROADMAP READY** · PHASE 2 ✅ COMPLETE · DOORSTAR LIVE (10:30 UTC) · 1,082+ tests · 11/11 deliverables · Orchestrator + Knowledge Service operational · **PRODUCTION OPERATIONAL**
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
+**PHASE 3 Status:** 🟡 INIT — 3 infrastructure work streams + Slice 2 planning + VPS activations pending
 
 ### 🎯 2026-06-17 Session Status — Consensus PHASE 1: COMPLETE ✅
 
@@ -352,3 +353,67 @@ Nesting 32 + Cabinet 755 = 4001
 | Orchestrator cleanup | ✅ KÉSZ — AI gateway only, 254→121 teszt |
 | Brevo email | ✅ KÉSZ — smtp-relay.brevo.com:587, joinerytech.hu domain hitelesítve, Keycloak SMTP beállítva, reset password engedélyezve |
 | Turnstile site key | ⏸ Later — nincs publikus regisztrációs form, nem blokkoló |
+
+---
+
+## 🚀 PHASE 3 PLANNING — 2026-06-17 11:00
+
+### Stratégiai fókusz (Root döntés)
+
+**Domain:** manufacturing (TOP 1-3 folytatódik)
+**Új fókusz:** Datahaven/Resonance infrastructure (Planning pipeline automation + Knowledge Service integration)
+
+### 3 High-Priority Infrastructure Work Streams
+
+| # | Work Stream | Tervdoc | Státusz | Határidő |
+|---|---|---|---|---|
+| 1 | **Marvin + McpServer Planning Pipeline Migration** | `SpaceOS_Marvin_McpServer_Migration_v1.md` | 📋 **ARCH REVIEW** (MSG-ARCH-010) | 2026-06-18 |
+| 2 | **RAG Knowledge Base Scale-up + System Integration** | `RAG_Knowledge_Base_v1.md` | 🔄 **LIBRARIAN PROCESSING** (MSG-LIBRARIAN-002) | 2026-06-18 |
+| 3 | **MCP Integration Plan — McpServer Toolkit Standard** | `MCP_Integration_Plan_v1.md` | 📋 **ARCH REVIEW** (MSG-ARCH-010) | 2026-06-18 |
+
+### Slice 2 Előkészítés (Planning, nem implementáció)
+
+| Feature | Terv | Prioritás | Státusz |
+|---|---|---|---|
+| **Sales FrontOffice Contract Reconciliation** | Walking Skeleton (Slice 1a) | HIGH | 📋 DEFERRAL — TOP 3 context doc, nem v5 feature |
+| **CuttingUI + NestingViz Iterations** | UX Design workflow (TOP 4-5) | MEDIUM | 📋 **PENDING** — FE staging után |
+
+### 2 Alacsony prioritás (Later)
+
+| Dokumentum | Típus | Státusz |
+|---|---|---|
+| **FE_Domain_Ownership_Matrix_v1.md** (23K) | Frontend szervezet mapping | ⏸ Later — FE stabilization után |
+| **FE_Design_Requirements_2026.md** (8.4K) | Design spec | ⏸ Later — UX roadmap után |
+| **bakery-project.md** (4.3K) | Új vertical PoC | ⏸ Later — 2026 Q3 után |
+
+### 1 Slice 1 Context Doc (Already Active)
+
+| Dokumentum | Típus | Státusz |
+|---|---|---|
+| **SpaceOS_Sales_FrontOffice_Contract_Reconciliation_v1.md** | TOP 3 Walking Skeleton | ✅ **CONTEXT** — TOP 3 (MSG-CUTTING-054 + MSG-FE-063) implementáció alatt |
+
+### VPS Operációs feladatok
+
+| Task | Prioritás | Státusz | Határidő |
+|---|---|---|---|
+| **Knowledge Service VPS Aktiválása** (MSG-ROOT-011) | MEDIUM | ⏳ **PENDING** — Librarian feldolgozás után | 2026-06-18 10:00 |
+| VOYAGE_API_KEY beállítása | — | ⏳ Pending | 2026-06-18 |
+| docker compose up (ChromaDB) | — | ⏳ Pending | 2026-06-18 |
+| npm run dev (knowledge-service) | — | ⏳ Pending | 2026-06-18 |
+| test-rag.sh (5/5 validation) | — | ⏳ Pending | 2026-06-18 |
+
+### Planning Pipeline Updates
+
+**domain-focus.md** → manufacturing (maradt)
+**Új szegmenteket** plan-scan.sh detektálni fog:
+- `fe-marvin` — Frontend Marvin integration (if needed)
+- `infra-marvin` — Planning pipeline automation
+- `infra-rag` — Knowledge Service scale-up
+
+### Next Steps
+
+1. **Architect ADR-043/044/045 delivery** → Conductor kiadás (2026-06-18)
+2. **Librarian Knowledge Base szintetizálása** → docs/knowledge/ bázis (2026-06-18)
+3. **VPS Knowledge Service aktiválása** → Root SSH operáció (2026-06-18 délután)
+4. **Marvin Fázis 1 implementáció** → Nexus terminál (2026-06-19+)
+5. **RAG indexing go-live** → Knowledge Service full operational (2026-06-18 este)
