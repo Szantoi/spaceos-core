@@ -46,7 +46,7 @@ for SESSION in "${!SESSIONS[@]}"; do
       LAST_NUDGE=$(grep "^${NUDGE_KEY}=" "$STATE" 2>/dev/null | cut -d= -f2 || echo "0")
 
       if [ $(( NOW - LAST_NUDGE )) -gt 300 ]; then
-        NUDGE_MSG="Olvasd el az inbox üzenetedet: $(basename $UNREAD)"
+        NUDGE_MSG="Te a ${TERMINAL^^} terminál vagy. Olvasd el az inbox üzenetedet: $(basename $UNREAD)"
         tmux_s send-keys -t "$SESSION" "$NUDGE_MSG" 2>/dev/null
         sleep 0.5
         tmux_s send-keys -t "$SESSION" Enter 2>/dev/null

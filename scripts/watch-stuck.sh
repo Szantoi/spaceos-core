@@ -62,7 +62,7 @@ for SESSION in "${!SESSIONS[@]}"; do
 
   if [ "$ELAPSED" -gt 300 ]; then
     # Üzenet + dupla Enter — beírja és elküldi
-    tmux_s send-keys -t "$SESSION" "Folytasd a munkát. Olvasd el az inbox üzenetedet." 2>/dev/null
+    tmux_s send-keys -t "$SESSION" "Te a ${TERMINAL^^} terminál vagy. Folytasd a munkát. Olvasd el az inbox üzenetedet." 2>/dev/null
     sleep 0.5
     tmux_s send-keys -t "$SESSION" Enter 2>/dev/null
     sleep 1
