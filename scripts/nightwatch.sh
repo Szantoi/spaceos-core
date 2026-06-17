@@ -14,6 +14,13 @@
 # =============================================================================
 
 SCRIPTS="$(dirname "$0")"
+PAUSE_FILE="$SCRIPTS/.dispatcher-paused"
+
+# Ha szüneteltetve van, kilépünk
+if [[ -f "$PAUSE_FILE" ]]; then
+    echo "[$(date '+%H:%M:%S')] Dispatcher PAUSED - skipping"
+    exit 0
+fi
 
 # 1. Prioritásos session-ök — Root + Conductor mindig fut
 bash "$SCRIPTS/watch-priority.sh"
