@@ -59,7 +59,8 @@ A folyamatban lévő roadmap alapján határozd meg a következő task-ot.
 
 - Ha nincs következő task → jelezd: 'NEXT: NONE'
 - Ha van → hozz létre a megfelelő mailboxba: YYYY-MM-DD_NNN_slug.md
-  Frontmatter: id, from: pipeline, to: <terminál>, type: task, priority, status: UNREAD, model: sonnet, ref, created
+  Frontmatter: id, from: pipeline, to: <terminál>, type: task, priority, status: UNREAD, model: haiku, ref, created
+  (haiku elég a fókuszált kód feladatokra — a spec már kész, utána dual review jön)
 
 ## Utolsó sor (kötelező, parsing-hoz):
 PIPELINE_RESULT: DONE|NEXT:<inbox_fajlnev_vagy_NONE>|TESTS:<tesztszam>"

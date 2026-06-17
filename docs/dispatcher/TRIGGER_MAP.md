@@ -114,6 +114,24 @@ Conductor feldolgozza → Terminál inbox
 
 ---
 
+## Modell Policy
+
+| Feladat típus | Modell | Indoklás |
+|---------------|--------|----------|
+| Architektúra tervezés | **opus** | Komplex cross-module döntések |
+| Spec review (v1-v4) | **sonnet** | Tervezési minőség biztosítása |
+| Kód implementáció | **haiku** | Fókuszált feladat, spec kész, dual review utána |
+| DONE review | **haiku** | 2× párhuzamos, gyors értékelés |
+| Librarian | **haiku** | Egyszerű memória sync |
+| Infra feladatok | **haiku** | Konfiguráció, nem komplex logika |
+
+**Biztonsági tartalékok:**
+1. v1-v4 pipeline (sonnet) — spec minőség
+2. Dual Haiku review — implementáció ellenőrzés
+3. Conductor koordináció — feladat routing
+
+---
+
 ## Pause/Stop
 
 | Parancs | Hatás |
@@ -137,3 +155,4 @@ Conductor feldolgozza → Terminál inbox
 | 2026-06-17 | 12× SKILL.md: to: root → to: conductor |
 | 2026-06-17 | pause-dispatcher.sh, cron-control.sh, stop-terminals.sh, cold-shutdown.sh létrehozva |
 | 2026-06-17 | Root kikerült watch-stuck.sh-ból |
+| 2026-06-17 | Modell policy: kód feladatok sonnet → haiku (pipeline-docs.sh) |
