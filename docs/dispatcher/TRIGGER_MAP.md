@@ -27,9 +27,8 @@
 |---------|--------|-------|
 | **Nincs automatikus trigger** | — | Root manuálisan indul vagy inbox-ra |
 | Inbox üzenet | `watch-inbox.sh` | Ha van UNREAD `docs/mailbox/root/inbox/` |
-| Stuck kezelés | `watch-stuck.sh` | Ha beakadt (5 percenként max) |
 
-**Megjegyzés:** Root kikerült a `PRIORITY_SESSIONS`-ből, nem indul automatikusan.
+**Megjegyzés:** Root kikerült a `PRIORITY_SESSIONS`-ből és a `watch-stuck.sh`-ból is. Nem kap automatikus triggert.
 
 ---
 
@@ -137,3 +136,4 @@ Conductor feldolgozza → Terminál inbox
 | 2026-06-17 | pipeline-docs.sh routing → Conductor |
 | 2026-06-17 | 12× SKILL.md: to: root → to: conductor |
 | 2026-06-17 | pause-dispatcher.sh, cron-control.sh, stop-terminals.sh, cold-shutdown.sh létrehozva |
+| 2026-06-17 | Root kikerült watch-stuck.sh-ból |
