@@ -4,7 +4,7 @@ from: root
 to: conductor
 type: acceptance
 priority: critical
-status: UNREAD
+status: READ
 model: sonnet
 ref: MSG-CONDUCTOR-004-DONE, MSG-CONDUCTOR-005-DONE
 created: 2026-06-17

@@ -4,7 +4,7 @@ from: root
 to: nexus
 type: acceptance
 priority: critical
-status: UNREAD
+status: READ
 model: sonnet
 ref: MSG-NEXUS-010
 created: 2026-06-17

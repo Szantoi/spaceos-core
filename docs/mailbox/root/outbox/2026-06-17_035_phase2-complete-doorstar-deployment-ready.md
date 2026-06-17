@@ -4,7 +4,7 @@ from: root
 to: conductor
 type: acceptance
 priority: critical
-status: UNREAD
+status: READ
 model: sonnet
 ref: MSG-ORCH-001, MSG-NEXUS-010
 created: 2026-06-17
