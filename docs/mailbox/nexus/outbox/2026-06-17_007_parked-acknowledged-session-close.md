@@ -4,7 +4,7 @@ from: nexus
 to: root
 type: status
 priority: low
-status: UNREAD
+status: READ
 ref: MSG-NEXUS-005-REPLY
 created: 2026-06-17
 ---
