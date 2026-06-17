@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-06-17 05:50 — **Consensus PHASE 1 APPROVED & EXECUTING** · FE (TOP 1-2) ACTIVE · Identity+Cutting (TOP 3 deps) ACTIVE · Librarian+Nexus ACTIVE · Nightwatch pipeline monitoring DONE messages
+**Utolsó frissítés:** 2026-06-17 05:35 — **Consensus PHASE 1 EXECUTING** · FE (TOP 1-2) ACTIVE · Identity+Cutting (TOP 3 deps) ACTIVE · Nexus BLOCKED→APPROVED (Voyage AI) · Nightwatch pipeline monitoring
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 

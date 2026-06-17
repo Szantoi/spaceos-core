@@ -21,8 +21,10 @@ logs/
 *.env
 .mcp.json
 scripts/email.conf
+scripts/telegram.conf
 scripts/.streak
 scripts/.motivator-state
+scripts/.tg-offset
 
 # Build artifacts
 *.bak

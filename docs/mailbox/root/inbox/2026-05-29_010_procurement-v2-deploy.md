@@ -4,7 +4,7 @@ from: root
 to: operator
 type: task
 priority: high
-status: UNREAD
+status: READ
 ref: MSG-PROCUREMENT-012-DONE
 created: 2026-05-29
 ---

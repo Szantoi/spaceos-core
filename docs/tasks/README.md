@@ -74,12 +74,27 @@
 - **FE2-001** ✅ — HR világ + Kontrolling világ · 699 teszt · 26 világ (2026-06-16)
 - **FE2-002** ✅ — Raktár bővítés (lot+zóna+mozgások) + Szerviz világ (jegyek+garanciák+látogatások) · 742 teszt · **27/27 világ** (2026-06-16)
 - **FE-054** ✅ — **VÉGSŐ DEPLOY** · 27/27 világ LIVE · HTTP 200 · joinerytech.hu (2026-06-16)
+- **FE-059** ✅ — Slice 1C mock-mentes · Dashboard+Orders+Workflow+Settings+Analytics · SPARKS inline · EndpointPending szekciók · 725 teszt (2026-06-16)
 
-### Backend tesztek: ~3902 | Frontend: 742
+### Backend tesztek: ~3902 | Frontend: 725
 
 ### 🔵 Active
 
-Nincs aktív task — minden világ live. Következő: backend integráció / Marveen.
+| Task | Terminál | Domain | Leírás |
+|---|---|---|---|
+| MSG-FE-056 | FE-A (FE-CORE) | Core | ✅ DONE — Production/Supervisor/Design mock-mentes · 728 teszt |
+| MSG-FE-057 | FE-A (FE-CORE) | Core | ✅ DONE — AiPage SSE (`/ai/bff/chat/stream`) · MfgPrepPage EndpointPending · 728 teszt |
+| MSG-FE2-003 | FE-B (FE-OPS) | OPS | ✅ DONE — Inventory/Procurement mock fallback törölve · warehouse/* EndpointPending |
+| MSG-FE-058 | FE-B (FE-CORE) | Core | ✅ DONE — QualityPage EndpointPending + Joinery path konfirmáció · 724 teszt |
+| MSG-FE2-004 | FE-B (FE-SALES) | Sales | 🔵 ACTIVE — SalesPage off-mock · CI-001/002/003 · SEC-FE-01 |
+| MSG-FE-059 | FE-A (FE-CORE) | Core | ✅ DONE — Dashboard+Orders+Workflow+Settings+Analytics mock-mentes · 725 teszt · Slice 1C kész |
+
+### ✅ Architect DONE (2026-06-16)
+
+**MSG-ARCH-001** — FE Domain Ownership Matrix v1 (`docs/tasks/new/FE_Domain_Ownership_Matrix_v1.md`)
+- **Slice 1** (most): 19 page, backend kész — 3 párhuzamos terminál
+- **Slice 2**: 5 új backend modul (CRM/Finance/Project/Maintenance/HR)
+- **4 FE domain**: FE-CORE · FE-SALES · FE-OPS · FE-PEOPLE
 
 ### 🟡 New
 
@@ -88,6 +103,24 @@ Nincs aktív task — minden világ live. Következő: backend integráció / Ma
 | `joinerytech/` | Prototípus forrás (27 világ) — FE terminálok ide hivatkoznak |
 | `bakery-project.md` | Pékség vertikál tervdok — következő üzleti vonal |
 | `FE_Design_Requirements_2026.md` | Design sprint ✅ lezárva (2026-05-29) |
+
+### ✅ FE2-003 (2026-06-16) — FE-OPS Slice 1A DONE · 735 teszt
+
+- InventoryPage + ProcurementPage: mock fallback eltávolítva, real API only
+- warehouse/* (lots/zones/movements): EndpointPending banner — backend endpoint hiányzik [?]
+- MasterdataPage: anyagtörzs bekötve Inventory-ból
+- **Nyitott:** `/inventory/api/inventory/lots|zones|movements` endpoint-ok → Inventory backend task szükséges
+
+---
+
+### ✅ FE-055 (2026-06-16) — API Integration Audit DONE
+
+**Eredmény:** 36 page megvizsgálva
+- **10 ⚡ PARTIAL** — van real API hívás, de mock fallback is él (Dashboard, Sales, Orders, Production, Analytics, Workflow, Inventory, Procurement, Design, Settings)
+- **24 ❌ MOCK** — teljesen mock (CRM, Finance, Projects, Logistics, MfgPrep, Supervisor, stb.)
+- Részletek: `frontend/joinerytech-portal/API_INTEGRATION_STATUS.md`
+
+---
 
 ### Következő lépések (FE backlog — prioritás szerint)
 

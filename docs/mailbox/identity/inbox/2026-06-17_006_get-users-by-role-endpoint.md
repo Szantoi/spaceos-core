@@ -4,10 +4,11 @@ from: root
 to: identity
 type: task
 priority: high
-status: UNREAD
+status: READ
 model: sonnet
 ref: MSG-ROOT-001
 created: 2026-06-17
+completed: 2026-06-17
 ---
 
 # Identity — GET /users?role={role} endpoint (TOP 3 dependency)

@@ -4,20 +4,20 @@ from: root
 to: nexus
 type: decision
 priority: medium
-status: UNREAD
-ref: MSG-NEXUS-001
+status: DELIVERED
+ref: MSG-NEXUS-002
 created: 2026-06-17
 ---
 
-# ROOT Decision — Nexus Embedding API (MSG-NEXUS-001 BLOCKED)
+# ROOT Decision — Nexus Embedding API (MSG-NEXUS-002)
 
 ## Helyzet
 
-**BLOCKED:** Fázis 1 tesztelés — embedding API key szükséges (VPS CPU arch issue sharp library-val).
+**Fázis 1 tesztelés** — embedding API key szükséges (VPS CPU arch issue sharp library-val).
 
 ---
 
-## Döntés: VOYAGE AI API KEY
+## Döntés: VOYAGE AI API KEY ✅
 
 **Indoklás:**
 1. Free tier elérhető (25M tokens/hó — docs/knowledge ~500K token)
@@ -27,17 +27,17 @@ created: 2026-06-17
 
 ---
 
-## Lépések (Root feladata)
+## Akció (ROOT operatori feladata)
 
-1. [ ] SSH: VPS-en `/opt/spaceos/spaceos-nexus/knowledge-service/`
+1. [x] ROOT döntés: Voyage AI
 2. [ ] Voyage AI key beszerzése: https://dash.voyageai.com/
-   - Free tier regisztráció (20 perc)
-   - API key generálás (5 perc)
-3. [ ] `.env` frissítés:
+   - Free tier regisztráció
+   - API key generálás
+3. [ ] VPS setup: `/opt/spaceos/spaceos-nexus/knowledge-service/.env`
    ```bash
    VOYAGE_API_KEY=<key from dash.voyageai.com>
    ```
-4. [ ] Nexus terminálnak üzenet: **Folytasd a munkát** (MSG-NEXUS-001)
+4. [ ] Nexus terminálnak üzenet: **Folytasd a munkát** (continuation after key setup)
 
 ---
 

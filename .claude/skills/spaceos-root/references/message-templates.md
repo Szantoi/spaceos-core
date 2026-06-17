@@ -10,6 +10,7 @@ to: <terminál>
 type: task
 priority: critical|high|medium|low
 status: UNREAD
+model: sonnet|opus|haiku
 ref: <kapcsolódó MSG ID, vesszővel elválasztva>
 created: YYYY-MM-DD
 ---

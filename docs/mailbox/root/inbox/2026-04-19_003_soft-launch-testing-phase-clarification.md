@@ -3,7 +3,7 @@ id: MSG-ROOT-003
 from: root
 to: root
 type: decision
-status: UNREAD
+status: READ
 created: 2026-04-19
 ref: MSG-ROOT-002
 ---

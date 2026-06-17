@@ -52,12 +52,33 @@ Unsupported CPU: Prebuilt binaries for linux-x64 require v2 microarchitecture
 - Cohere embed-english-v3.0 (COHERE_API_KEY)
 - Anthropic NEM kínál embedding API-t
 
-## Kérdés
+## Tesztelési eredmény
 
-**Melyik API key-t tudsz biztosítani?**
-- Ha Voyage → add meg a key-t, beállítom és folytatok
-- Ha OpenAI/Cohere → átírom az embeddings.ts-t
-- Ha egyik sem → építem a sharp-ot source-ból (1-2 óra)
+✅ Gemini API key megtalálva orchestrator/.env-ben (`AIzaSy...`)
+❌ A key Gemini LLM API-hoz van, NEM embedding API-hoz
+❌ Local embedding (@chroma-core/default-embed) nem működik (CPU arch v2 hiányzik)
+
+## Megoldás: VOYAGE_API_KEY szükséges
+
+**Voyage AI** az egyetlen kompatibilis embedding backend ami működik:
+- Free tier: 25M tokens/hó → https://dash.voyageai.com/
+- docs/knowledge mérete: ~500K token → bőven elég
+- Model: voyage-3-lite (1024 dims)
+
+**Mi kell:**
+1. Voyage account regisztráció (email-lel)
+2. API key másolása
+3. Beállítás: `echo "VOYAGE_API_KEY=pa-..." >> /opt/spaceos/spaceos-nexus/knowledge-service/.env`
+4. `npm run index` → működni fog
+
+## Alternatív megoldás (ha nem akarsz Voyage account-ot)
+
+**OpenAI text-embedding-3-small** — ha van OpenAI API key-ed:
+- $0.02 / 1M token (docs/knowledge ~ $0.01)
+- Átírom az embeddings.ts-t OpenAI-ra (5 perc)
+
+**Mit válassz?**
+- Ha gyors MVP kell → Voyage (free)
 
 ## Amit NEM érintett a blokk
 

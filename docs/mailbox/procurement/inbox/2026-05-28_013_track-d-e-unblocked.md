@@ -4,7 +4,7 @@ from: root
 to: procurement
 type: task
 priority: high
-status: UNREAD
+status: READ
 ref: MSG-PROCUREMENT-012
 created: 2026-05-28
 ---

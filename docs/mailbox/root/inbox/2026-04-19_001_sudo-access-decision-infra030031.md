@@ -4,7 +4,7 @@ from: system
 to: root
 type: question
 priority: critical
-status: UNREAD
+status: READ
 ref: MSG-INFRA-030-031-BLOCKED
 created: 2026-04-19
 ---

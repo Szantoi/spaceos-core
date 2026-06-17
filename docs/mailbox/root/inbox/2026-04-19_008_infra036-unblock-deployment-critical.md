@@ -4,7 +4,7 @@ from: root
 to: root
 type: decision
 priority: critical
-status: UNREAD
+status: READ
 created: 2026-04-19
 ref: MSG-INFRA-036-BLOCKED
 ---

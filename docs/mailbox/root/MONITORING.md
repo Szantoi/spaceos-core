@@ -4,13 +4,14 @@
 
 **Last update:** 2026-06-17 06:00 UTC
 
-### 🔴 Critical Block Update
+### ✅ Decision: Voyage AI → Next: VPS Key Setup
 
-**Nexus BLOCKED:** Gemini API key found (LLM, não embedding). Need Voyage AI free tier:
-- Free: 25M tokens/month
-- URL: https://dash.voyageai.com/
-- Setup: `/opt/spaceos/spaceos-nexus/knowledge-service/.env` → `VOYAGE_API_KEY=...`
-- Timeline: 20 min (key procurement + setup)
+**Nexus Unblock Progress:**
+- ✅ ROOT decision (MSG-ROOT-013): Use Voyage AI free tier
+- ✅ Continuation task sent (MSG-NEXUS-003) — awaiting Nexus to pull key from VPS
+- 🟡 VPS ACTION NEEDED: Get Voyage key from https://dash.voyageai.com/ (free tier)
+- Then: Update `/opt/spaceos/spaceos-nexus/knowledge-service/.env` with `VOYAGE_API_KEY=...`
+- Timeline: 20 min after key procurement
 
 ### Terminal Progress
 
@@ -20,14 +21,14 @@
 | Identity | GET /users?role endpoint | 🟡 ACTIVE | 05:12 | 2026-06-17 18:00 |
 | Cutting | POST /assign-batch endpoint | 🟡 ACTIVE | 05:13 | 2026-06-17 18:00 |
 | Librarian | Memory sync (5-hourly) | 🟡 ACTIVE | 05:02 | Recurring |
-| Nexus | Knowledge Service (BLOCKED) | 🔴 BLOCKED | 05:15 | Awaiting Voyage API key |
+| Nexus | Knowledge Service (Phase 1) | 🟡 AWAITING-KEY | 05:15 | VPS key setup (20 min) |
 | Conductor | Monitoring mode | ✅ READY | 05:02 | Continuous |
 
 ### Unresolved Blocks
 
-| Terminal | Block | Priority | Action |
+| Terminal | Block | Priority | Status |
 |---|---|---|---|
-| Nexus | Embedding API key (sharp CPU arch) | MEDIUM | ROOT: Get Voyage AI free tier key |
+| Nexus | Embedding API key setup | MEDIUM | 🟡 VPS key procurement pending |
 
 ### Pending DONE Messages
 
@@ -54,10 +55,28 @@ Automatic handling:
 
 ## Root Action Items
 
-1. [ ] **Voyage AI key** (URGENT for Nexus Fázis 1 continuation)
-   - https://dash.voyageai.com/
-   - Free tier: 25M tokens/month
-   - Set .env on VPS
+### 🟡 URGENT: Voyage AI Key Procurement
+**Timeline:** 20 minutes (5 min registration + 5 min key generation + 10 min VPS setup)
+
+```
+STEP 1: Register at https://dash.voyageai.com/
+  - Email + password
+  - Free tier automatically enabled
+  - 25M tokens/month (plenty for ~500K docs/knowledge)
+
+STEP 2: Generate API Key in Dashboard
+  - Copy key (format: pa-XXXXXXXXX)
+
+STEP 3: SSH to VPS and update .env
+  cd /opt/spaceos/spaceos-nexus/knowledge-service/
+  echo "VOYAGE_API_KEY=pa-<COPIED-KEY>" >> .env
+  # Verify: grep VOYAGE_API_KEY .env
+
+STEP 4: Send continuation to Nexus
+  ✅ Already created MSG-NEXUS-003 — awaiting VPS key setup
+```
+
+**After setup:** Nexus continues with `npm run index` + `npm run dev`
 
 2. [ ] **Monitor FE progress** (daily check)
    - TOP 1-2 should finish by 2026-06-19

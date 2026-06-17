@@ -4,7 +4,7 @@ from: root
 to: fe
 type: task
 priority: high
-status: UNREAD
+status: READ
 ref: MSG-PROCUREMENT-015-DONE
 created: 2026-05-29
 ---

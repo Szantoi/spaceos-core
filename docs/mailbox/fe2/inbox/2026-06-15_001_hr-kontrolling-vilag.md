@@ -4,7 +4,7 @@ from: root
 to: fe2
 type: task
 priority: high
-status: UNREAD
+status: READ
 ref: FE-Design-Requirements
 created: 2026-06-15
 ---

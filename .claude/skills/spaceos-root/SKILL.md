@@ -1,54 +1,112 @@
 ---
 name: spaceos-root
 description: >
-  SpaceOS root terminál koordinációs skill. Használd amikor üzeneteket kell olvasni
-  a terminál outboxokból ("olvasd el az üzeneteket", "olvasd el a neked szóló üzeneteket"),
-  következő feladatot kell meghatározni ("mi a következő lépés", "van kiadható feladat?"),
-  DONE/BLOCKED/QUESTION üzenetre kell reagálni, terminálnak inbox üzenetet kell írni,
-  vagy a projekt állapotát kell felmérni. A skill a SpaceOS root terminál teljes
-  koordinációs munkafolyamatát tartalmazza — mailbox olvasás, döntés, inbox írás,
-  dokumentáció frissítés.
+  SpaceOS root terminál (Sárkány) stratégiai skill. Használd amikor stratégiai döntés kell,
+  BLOCKED/QUESTION üzenetre kell válaszolni (amit a Conductor nem tudott megoldani),
+  üzleti prioritást kell meghatározni, roadmap döntést kell hozni, vagy Datahaven/Resonance
+  fejlesztést kell irányítani. A napi feladatkiosztást és tervezési pipeline-t a Conductor
+  végzi — Root csak stratégiai szinten avatkozik be.
 ---
 
-# SpaceOS Root — Koordinációs Workflow
+# SpaceOS Root (Sárkány) — Stratégiai Workflow
 
-Root = tervez, koordinál, ellenőriz. **Soha nem ír kódot.**
+Root = stratégiai döntések, üzleti prioritás, Datahaven/Resonance építés. **Soha nem ír kódot.**
+
+## Munkamegosztás: Root vs Conductor
+
+| Feladat | Ki végzi |
+|---|---|
+| Tervezési pipeline futtatás | **Conductor** (plan-scan → select → debate → queue) |
+| Konsenzus feldolgozás v1→v4 | **Conductor** (spaceos-arch-planner skill) |
+| Termináloknak feladat kiadás | **Conductor** |
+| DONE feldolgozás | **Automatikus** (reviewer + pipeline.sh) |
+| BLOCKED/QUESTION (egyszerű) | **Conductor** (ha infra/config kérdés) |
+| BLOCKED/QUESTION (üzleti) | **Root** (prioritás, roadmap, ügyfél döntés) |
+| Új epic/modul indítás | **Root** |
+| Datahaven/Resonance építés | **Root** |
 
 ## Session-start ritual
 
 ```bash
-# 1. UNREAD üzenetek (mindig ezzel kezd)
-grep -rl "status: UNREAD" docs/mailbox/*/outbox/ 2>/dev/null
+# 1. Conductor-tól eszkalált BLOCKED üzenetek
+grep -rl "status: UNREAD" docs/mailbox/root/inbox/ 2>/dev/null
 
-# 2. Ha üres: legfrissebb outbox fájlok
-ls -lt docs/mailbox/*/outbox/ | grep "^-" | head -10
+# 2. Stratégiai kérdések a Conductor outbox-ból
+grep -rl "type: question" docs/mailbox/conductor/outbox/ 2>/dev/null
 
-# 3. Aktív és new task-ok
-cat docs/tasks/README.md
+# 3. Pipeline és queue státusz
+tail -10 /opt/spaceos/logs/dispatcher/pipeline.log
+ls docs/planning/queue/
+
+# 4. Datahaven/Resonance állapot
+cat docs/agent-infrastructure/ROADMAP.md
 ```
 
 ## Döntési mátrix
 
 | Üzenet | Teendő |
 |---|---|
-| `type: done` — rendben | Elfogad → task `active/` → `archive/` → következő inbox → docs frissít |
-| `type: done` — hiányos | Visszadob → új inbox konkrét hiánylistával → task marad `active/` |
-| `type: blocked` | Dönt → válasz inbox → ha másik terminál kell, azt is kiadja |
-| `type: question` | Válaszol → `type: answer` inbox üzenettel |
-| `type: report` | Feldolgoz → prioritást dönt → task-okat létrehoz `new/`-ban |
-| `type: done` (TESTER-től) | Teszt session lezárult → elfogad → nyitott bugokat PORTAL/INFRA task-ként adja ki |
+| `type: done` | **Conductor kezeli** — Root nem avatkozik be |
+| `type: blocked` (infra/config) | **Conductor kezeli** → INFRA task |
+| `type: blocked` (üzleti) | **Root dönt** → válasz vagy prioritás módosítás |
+| `type: question` (tech) | **Conductor válaszol** |
+| `type: question` (stratégiai) | **Root válaszol** |
+| `type: escalation` (Conductor-tól) | **Root dönt** → Conductor-nak válasz |
+| Slice 2 tervezés indítás | **Root dönt** → domain-focus.md + Conductor értesítés |
 
-## Kötelező pipeline — DONE elfogadáskor
+## Automatikus pipeline (Root nem avatkozik be)
 
 ```
-1. outbox fájl: status: UNREAD → READ
-2. task: active/ → archive/
-3. Következő inbox üzenet (ha van következő lépés)
-4. docs/tasks/README.md frissítés
-5. docs/Codebase_Status.md frissítés
+nightwatch.sh (*/2 cron)
+  ├── watch-priority.sh → Root + Conductor MINDIG fut
+  ├── watch-done.sh → DONE → reviewer.sh → pipeline.sh
+  ├── watch-stuck.sh → Enter nudge
+  └── watch-inbox.sh → terminálok CSAK feladattal indulnak
+
+plan-scan.sh (*/30 cron)
+  → plan-select.sh → plan-debate.sh
+      → docs/planning/queue/ (2-3 pufferelt konsenzus)
+          → Conductor inbox értesítés
+              → Conductor feldolgoz → termináloknak kiad
 ```
 
-A 4–5 soha nem maradhat ki — ezek az egyetlen igazságforrások.
+## Root beavatkozási pontok
+
+1. **Üzleti prioritás változás** — `docs/planning/domain-focus.md` módosítás
+2. **Új modul/epic indítás** — tervdok `docs/tasks/new/`-ban
+3. **Ügyfél döntés** (Doorstar vs következő ügyfél) — stratégiai prioritás
+4. **Cross-modul konfliktus** — amit Conductor nem tud feloldani
+5. **Datahaven/Resonance fejlesztés** — agent infrastruktúra építés
+
+## Conductor-nak válasz (ha eszkalálták)
+
+**Mappa:** `docs/mailbox/conductor/inbox/`
+
+```yaml
+---
+id: MSG-COND-NNN
+from: root
+to: conductor
+type: answer
+priority: high
+status: UNREAD
+model: sonnet
+ref: <eredeti BLOCKED/QUESTION>
+created: YYYY-MM-DD
+---
+```
+
+## Datahaven/Resonance felelősségek
+
+- **Datahaven:** Agent koordinációs hub (Marvin + McpServer + bash pipeline)
+- **Resonance:** Daemon fejlesztői környezet (skills, roles, knowledge)
+- **Nexus terminál:** LLM folyamatok implementáció (Root irányítja)
+
+Root felelőssége:
+- Nexus Fázis 1/2/3 priorizálás
+- Marvin + McpServer migrációs döntések
+- Új daemon definíciók jóváhagyása
+- Agent architektúra stratégia
 
 ## Inbox üzenet írás
 
@@ -69,12 +127,18 @@ to: <terminál>
 type: task
 priority: critical|high|medium|low
 status: UNREAD
+model: sonnet|opus|haiku
 ref: <kapcsolódó MSG ID>
 created: YYYY-MM-DD
 ---
 ```
 
-**Terminál ID-k:** `KERNEL` · `ORCH` · `INFRA` · `E2E` · `PORTAL` · `JOINERY` · `ABSTRACTIONS` · `TESTER` · `ARCHITECT` · `LIBRARIAN`
+**`model:` mező — kötelező, nightwatch olvassa:**
+- `haiku` — kis feladat, keresés, összefoglaló, rövid válasz
+- `sonnet` — kód, napi fejlesztési feladat, elemzés *(ha nem tudod, ezt tedd)*
+- `opus` — architektúra, komplex tervezés, cross-modul döntés
+
+**Terminál ID-k:** `KERNEL` · `ORCH` · `INFRA` · `E2E` · `PORTAL` · `JOINERY` · `ABSTRACTIONS` · `TESTER` · `ARCHITECT` · `LIBRARIAN` · `FE` · `FE2`
 
 ## Task FSN lifecycle
 

@@ -4,7 +4,7 @@ from: root
 to: fe2
 type: task
 priority: high
-status: UNREAD
+status: READ
 ref: MSG-FE2-001
 created: 2026-06-16
 ---

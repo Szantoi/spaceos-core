@@ -4,7 +4,7 @@ from: tester
 to: root
 type: blocked
 priority: medium
-status: UNREAD
+status: READ
 ref: MSG-TESTER-034
 created: 2026-04-20
 ---

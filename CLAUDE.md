@@ -1,7 +1,37 @@
-# CLAUDE.md — SpaceOS Root terminál
+# CLAUDE.md — SpaceOS Root terminál (Sárkány)
 
-> A root terminál tervez, koordinál és ellenőriz.
-> **Soha nem ír kódot.** Kódot csak a projekt terminálok írnak.
+> A Root stratégiai döntéseket hoz, üzleti prioritásokat állít, és a Datahaven/Resonance
+> agent infrastruktúrát építi. **Kódot ír ha kell** (szkriptek, automatizáció).
+>
+> A napi feladatkiosztást és tervezési pipeline-t a **Conductor** végzi.
+> Root csak stratégiai szinten avatkozik be.
+
+---
+
+## SESSION INDÍTÁSI RUTIN
+
+**Minden session elején (vagy ha "Folytasd a munkát" üzenetet kapsz):**
+
+```bash
+# 1. Folyamatok állapota
+ls docs/planning/queue/          # Hány terv vár?
+ls docs/planning/ideas/          # Hány ötlet van?
+
+# 2. Terminál outboxok (DONE/BLOCKED)
+grep -rl "status: UNREAD" docs/mailbox/*/outbox/ 2>/dev/null
+
+# 3. Conductor állapot
+tmux capture-pane -t spaceos-conductor -p 2>/dev/null | tail -10
+
+# 4. Pipeline log
+tail -10 logs/dispatcher/pipeline.log
+tail -5 logs/dispatcher/nightwatch.log
+```
+
+**Ha probléma van:**
+- Stuck session → `tmux send-keys -t <session> "Folytasd" Enter Enter`
+- Conductor nem dolgozik → újraindítás vagy nudge
+- Queue tele → Conductor-nak inbox küldés
 
 ---
 
@@ -52,78 +82,138 @@ L1  Kernel                        .NET 8 + PostgreSQL — auth, audit, FSM, escr
 ## TERMINÁL ARCHITEKTÚRA
 
 ```
-ROOT  /opt/spaceos/                          ← ez a terminál
-  ├── KERNEL       /SpaceOS.Kernel/
-  ├── ORCH         /spaceos-orchestrator/
-  ├── PORTAL       /design-portal/           (Turborepo monorepo)
-  ├── FE           /spaceos-doorstar-portal/  (Doorstar brand portal)
-  ├── JOINERY      /spaceos-modules-joinery/
-  ├── ABSTRACTIONS /spaceos-modules-abstractions/
-  ├── CUTTING      /spaceos-modules-cutting/
-  ├── INVENTORY    /spaceos-modules-inventory/
-  ├── PROCUREMENT  /spaceos-modules-procurement/
-  ├── E2E          /e2e/
+PRIORITY (mindig fut)
+  ├── ROOT         /opt/spaceos/               ← stratégiai döntések, Datahaven/Resonance
+  └── CONDUCTOR    /opt/spaceos/spaceos-conductor/  ← feladatkiosztás, tervezési pipeline
+
+TERMÉK TERMINÁLOK (csak feladattal indulnak)
+  ├── KERNEL       /backend/spaceos-kernel/
+  ├── ORCH         /backend/spaceos-orchestrator/   (AI gateway, NEM a Conductor!)
+  ├── FE           /frontend/joinerytech-portal/
+  ├── JOINERY      /backend/spaceos-modules-joinery/
+  ├── ABSTRACTIONS /backend/spaceos-modules-abstractions/
+  ├── CUTTING      /backend/spaceos-modules-cutting/
+  ├── INVENTORY    /backend/spaceos-modules-inventory/
+  ├── PROCUREMENT  /backend/spaceos-modules-procurement/
+  ├── SALES        /backend/spaceos-modules-sales/
+  ├── IDENTITY     /backend/spaceos-modules-identity/
   ├── INFRA        /infra/
+  └── E2E          /e2e/
+
+SUPPORT (feladattal indul)
+  ├── ARCHITECT    /spaceos-architect/        (konzultatív arch partner, nem ír kódot)
   ├── LIBRARIAN    /spaceos-librarian/        (tudásbázis gondozó, nem ír kódot)
-  ├── TESTER       /tester/                   (manuális tesztelés, nem ír kódot)
-  └── ARCHITECT    /spaceos-architect/        (konzultatív arch partner, nem ír kódot)
+  └── NEXUS        /spaceos-nexus/            (LLM folyamatok fejlesztése)
 ```
 
 Minden terminálnak saját CLAUDE.md-je van. Teljes workflow: `/opt/spaceos/docs/WORKFLOW.md`
 
 ---
 
-## KÖTELEZŐ PIPELINE — ROOT FELADATOKRA
+## AUTOMATIKUS PIPELINE — CONDUCTOR VEZÉRLI
 
-⚠️ Minden lépés kötelező. Kihagyni TILOS.
+> ⚙️ **A Conductor végzi a napi koordinációt.**
+> Root csak stratégiai szinten avatkozik be.
 
 ```
-OUTBOX OLVASÁS → DÖNTÉS → INBOX ÍRÁS → CODEBASE_STATUS FRISSÍTÉS
+nightwatch.sh (*/2 cron)
+  ├── watch-priority.sh → Root + Conductor MINDIG fut
+  ├── watch-done.sh → DONE → reviewer.sh (2× Haiku) → pipeline.sh
+  ├── watch-stuck.sh → Enter nudge
+  └── watch-inbox.sh → terminálok CSAK feladattal indulnak
+
+plan-scan.sh (*/30 cron) — 30 percenként új tervezési ciklus
+  → plan-select.sh → plan-debate.sh (2× Sonnet A/B + konsenzus)
+      → docs/planning/queue/ (2-3 pufferelt konsenzus)
+          → Conductor inbox értesítés
+              → Conductor feldolgoz (spaceos-arch-planner v1→v4)
+                  → termináloknak inbox kiadás
 ```
 
-### 1. OUTBOX OLVASÁS (session elején)
-```bash
-# UNREAD keresés (minden terminál egyszerre)
-grep -rl "status: UNREAD" docs/mailbox/*/outbox/ 2>/dev/null
-
-# Manuális ellenőrzés ha szükséges
-ls docs/mailbox/kernel/outbox/
-ls docs/mailbox/orchestrator/outbox/
-ls docs/mailbox/portal/outbox/
-ls docs/mailbox/joinery/outbox/
-ls docs/mailbox/abstractions/outbox/
-ls docs/mailbox/e2e/outbox/
-ls docs/mailbox/infra/outbox/
-ls docs/mailbox/tester/outbox/
-```
-
-### 2. DÖNTÉS
-- `DONE` üzenet → elfogadás vagy visszadobás
-- `BLOCKED` üzenet → válasz a kérdésre, new inbox üzenet
-- `QUESTION` üzenet → döntés + válasz
-
-### 3. INBOX ÍRÁS (ha új feladat kell)
-- Fájlnév: `YYYY-MM-DD_NNN_[slug].md`
-- Mappa: `docs/mailbox/<projekt>/inbox/`
-- Frontmatter kötelező (id, from, to, type, priority, status: UNREAD)
-
-### 4. CODEBASE_STATUS.MD FRISSÍTÉS
-- Minden elfogadott DONE után frissítsd: `docs/Codebase_Status.md`
-- Teszt számok, sprint státusz, deployment státusz
+**Root beavatkozási pontok:**
+- **Stratégiai BLOCKED** — amit Conductor nem tud megoldani (üzleti döntés kell)
+- **Új epic/modul indítás** — domain-focus.md módosítás
+- **Roadmap prioritás** — melyik feature, melyik ügyfél
+- **Datahaven/Resonance építés** — agent infrastruktúra fejlesztés
 
 ---
 
-## FELADAT TÍPUSOK ÉS TEENDŐK
+## ROOT SESSION — STRATÉGIAI FÓKUSZ
 
-| Beérkező üzenet | Root teendő |
+### Session-start ritual
+```bash
+# 1. Conductor-tól eszkalált üzenetek
+grep -rl "status: UNREAD" docs/mailbox/root/inbox/ 2>/dev/null
+
+# 2. Planning queue és pipeline státusz
+ls docs/planning/queue/
+tail -10 logs/dispatcher/pipeline.log
+
+# 3. Datahaven/Resonance állapot
+cat docs/agent-infrastructure/ROADMAP.md
+
+# 4. Stratégiai kérdések (ha vannak)
+grep -rl "type: question" docs/mailbox/conductor/outbox/ 2>/dev/null
+```
+
+### Munkamegosztás: Root vs Conductor
+
+| Feladat | Ki végzi |
 |---|---|
-| `status: DONE` — minden OK | Elfogadás, Codebase_Status.md frissítés, következő feladat |
-| `status: DONE` — de hiányos | Visszadobás: új inbox üzenet konkrét hiánylistával |
-| `status: BLOCKED` | Döntés/válasz: új inbox üzenet a blokkolt terminálnak |
-| `status: QUESTION` | Válasz: új inbox üzenet `type: answer`-rel |
-| `type: report` (TESTER outbox) | Bug feldolgozás → prioritás → PORTAL/INFRA task kiadás |
-| `type: done` (TESTER outbox) | Teszt session lezárult → nyitott bugokat task-ként kiadja |
-| `type: response` (ARCHITECT outbox) | Spec beépítése a következő terminál inbox üzenetébe |
+| Tervezési pipeline (plan-scan → debate → queue) | **Automatikus szkriptek** |
+| Queue feldolgozás, v1→v4 pipeline | **Conductor** |
+| Termináloknak feladat kiadás | **Conductor** |
+| DONE feldolgozás | **Automatikus** (reviewer + pipeline.sh) |
+| BLOCKED/QUESTION (infra/tech) | **Conductor** |
+| BLOCKED/QUESTION (üzleti döntés) | **Root** |
+| Új epic/modul indítás | **Root** |
+| Domain fókusz változtatás | **Root** |
+| Datahaven/Resonance építés | **Root** |
+
+### Root beavatkozási mátrix
+
+| Üzenet | Teendő |
+|---|---|
+| `type: done` | **Conductor kezeli** — Root nem avatkozik be |
+| `type: blocked` (tech) | **Conductor kezeli** → INFRA task |
+| `type: blocked` (üzleti) | **Root dönt** → prioritás vagy válasz |
+| `type: escalation` (Conductor-tól) | **Root dönt** → Conductor-nak válasz |
+| `type: question` (stratégiai) | **Root válaszol** |
+| Slice 2 tervezés indítás | **Root dönt** → domain-focus.md módosítás |
+
+---
+
+## INBOX ÜZENET ÍRÁS
+
+**Fájlnév:** `YYYY-MM-DD_NNN_[slug].md`
+**Mappa:** `docs/mailbox/<projekt>/inbox/`
+**Frontmatter kötelező:**
+
+```yaml
+---
+id: MSG-<TERMINAL>-<NNN>
+from: root
+to: <terminál>
+type: task
+priority: critical|high|medium|low
+status: UNREAD
+model: sonnet|opus|haiku
+ref: <kapcsolódó MSG ID>
+created: YYYY-MM-DD
+---
+```
+
+**`model:` mező szabályai:**
+- `haiku` — kis feladat, keresés, összefoglaló, rövid válasz
+- `sonnet` — kód, napi fejlesztési feladat, elemzés *(alapértelmezett)*
+- `opus` — architektúra, komplex tervezés, cross-modul döntés
+
+A nightwatch.sh automatikusan olvassa a frontmatterből és a megfelelő modellel indítja a session-t.
+
+**NNN** = adott terminál következő sorszáma:
+```bash
+ls docs/mailbox/<terminál>/inbox/ | sort | tail -1
+```
 
 ---
 
@@ -168,10 +258,17 @@ Következő projektet csak akkor kiosztani, ha az előző DONE.
 ## FONTOS SZABÁLYOK
 
 1. **Root soha nem ír kódot** — tervez, koordinál, ellenőriz
-2. **Minden döntés dokumentált** — inbox/outbox üzenetek az audit trail
+2. **DONE-t Root nem dolgoz fel** — reviewer.sh + pipeline.sh automatikus
 3. **BLOCKED üzenet 24 órán belül választ kap** — ne hagyd függőben
-4. **Codebase_Status.md mindig naprakész** — ez az egyetlen igazságforrás
-5. **Archive**: lezárt üzeneteket `archive/` mappába mozgatni
+4. **Codebase_Status.md mindig naprakész** — pipeline.sh frissíti, Root is frissítheti
+5. **model: mező kötelező** minden inbox üzenetben — nightwatch olvassa
+
+### Automatizált lánc komponensei
+| Szkript | Mikor fut | Mit csinál |
+|---|---|---|
+| `scripts/nightwatch.sh` | cron */2 perc | DONE detektál → reviewer indít; stuck session → Enter; UNREAD nudge |
+| `scripts/reviewer.sh` | nightwatch hívja | 2× párhuzamos Haiku review → APPROVE/REJECT döntés |
+| `scripts/pipeline.sh` | reviewer hívja (dual APPROVE) | outbox READ, README+Status frissít, next inbox ír, Telegram értesít |
 
 ---
 

@@ -254,3 +254,186 @@ sudo journalctl -u <service> --since "$(sudo systemctl show <service> \
 1. Keresd meg az első `fail:` sort
 2. Az alatta lévő sor a root exception típusa és üzenete
 3. A stacktrace csak a hívási lánc — nem a hiba oka
+
+---
+
+## 11. Kernel repo név elgépelés — "Kerner" vs "Kernel"
+
+**Tünet:** git pull falál, vagy a build `directory not found` hibát ad.
+
+**Ok:** A VPS-en a Kernel repo valódi neve `/opt/spaceos/SpaceOS.Kerner/`
+(**elgépelt "Kerner", nem "Kernel"**). Az üzenetek és taskbok gyakran `SpaceOS.Kernel`-re
+hivatkoznak, amely nem létezik.
+
+**Fix:**
+- Source pull: `/opt/spaceos/SpaceOS.Kerner/` (elgépelés és minden)
+- Deploy target: `/opt/spaceos/spaceos-kernel/publish/` (másik dir!)
+
+---
+
+## 12. Kernel DB Database név
+
+**Tünet:** Migration crash, `database "spaceos_kernel" does not exist`.
+
+**Ok:** Az összes Kernel séma és tábla egyetlen `spaceos` adatbázisban van,
+nem `spaceos_kernel`-ben.
+
+**Fix:** Connection string és migration target: `Database=spaceos` (NEM `spaceos_kernel`).
+
+---
+
+## 13. PM2 (Orchestrator) PATH quirk
+
+**Tünet:** `pm2 command not found` vagy `sudo pm2 ...` nem működik.
+
+**Ok:** A PM2 **root-ként** fut (`/root/.pm2`), de a binary nincs a rendszer PATH-ban.
+A `sudo pm2` hívás az eredeti user PATH-ját használja, nem root-ét.
+
+**Fix — explicit PATH szükséges:**
+```bash
+sudo env PATH=$PATH:/root/.npm-global/bin pm2 list
+sudo env PATH=$PATH:/root/.npm-global/bin pm2 restart spaceos-orchestrator
+```
+
+**Process name:** `spaceos-orchestrator` (NEM `spaceos-orch`).
+
+---
+
+## 14. rsync nincs telepítve — cp -r + rm -rf szükséges
+
+**Tünet:** `rsync command not found`.
+
+**Ok:** A VPS szparc telepítés — rsync nem áll rendelkezésre.
+
+**Fix — manuális másolás atomosztálya:**
+```bash
+# 1. Backup az előző verzióról
+sudo cp -r /opt/spaceos/spaceos-kernel/publish \
+  /opt/spaceos/spaceos-kernel/publish.bak-$(date +%s)
+
+# 2. Új tartalom másolása temp helyről
+sudo cp -r /tmp/kernel-publish/* /opt/spaceos/spaceos-kernel/publish/
+
+# 3. Jogorvoslat
+sudo chown -R spaceos:spaceos /opt/spaceos/spaceos-kernel/publish
+sudo systemctl restart spaceos-kernel
+```
+
+---
+
+## 15. psql nem standalone — postgres user szükséges
+
+**Tünet:** `psql: command not found` vagy `psql: could not translate host name`.
+
+**Ok:** A `psql` csak a `postgres` OS user-ben áll rendelkezésre.
+Direct `psql -U postgres` nem működik.
+
+**Fix:**
+```bash
+sudo -u postgres psql -p 5433 -d spaceos -c "SELECT VERSION();"
+```
+
+---
+
+## 16. Backup konvenció — forensics helyreállítás
+
+Az atomikus deploy failure recovery-hez:
+
+| Típus | Path | Amikor |
+|---|---|---|
+| Kernel publish | `/opt/spaceos/spaceos-kernel/publish.bak-YYYYMMDD-HHMMSS` | Sikeres deploy után |
+| Broken state | `/opt/spaceos/spaceos-kernel/publish.failed-TS` | Deploy hiba, forensics |
+| Nginx config | `/etc/nginx/sites-available/spaceos.bak-TS` | Konfigváltás előtt |
+| Keycloak env | `/opt/spaceos/keycloak/.env.bak-TS` | Szenzitív change előtt |
+
+---
+
+## 17. Portok — mind loopback-only, nginx reverse proxy szükséges
+
+| Service | Port | Bindpoint | Access |
+|---|---|---|---|
+| Kernel | 5000 | 127.0.0.1 | nginx proxy-on át |
+| Joinery module | 5002 | 127.0.0.1 | nginx proxy-on át |
+| Abstractions module | 5003 | 127.0.0.1 | nginx proxy-on át |
+| Orchestrator (PM2) | 3000 | 127.0.0.1 | nginx proxy-on át |
+| Keycloak | 8080 | 127.0.0.1 | nginx proxy-on át |
+
+**PostgreSQL két példány:**
+- Native service: **5433** (mely a systemd service-ek csatlakoznak)
+- Docker (pgAdmin): 5432
+
+**Tűzfal:** Csak 80/443 nyitva külső felé — minden belső kommunikáció loopback-on.
+
+---
+
+## 18. Claude CLI session — prompt-nál elakad, dupla Enter kell
+
+**Tünet:** A tmux session-ben a Claude CLI elindul, de a `> ` prompt-nál nem reagál a beküldött üzenetre. Az üzenet a text mezőben "ragad".
+
+**Ok:** A `tmux send-keys` parancs csak beírja a szöveget, de nem küldi el. A Claude CLI interaktív prompt-ja nem az Enter billentyűre, hanem a sorbevitel befejezésére vár.
+
+**Fix — dupla Enter pattern:**
+```bash
+tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> "Üzenet szövege"
+sleep 0.5
+tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> Enter
+sleep 1
+tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> Enter
+```
+
+**Érintett scriptek:** watch-stuck.sh, watch-inbox.sh, telegram-bot.sh, telegram-datahaven-bot.sh
+
+---
+
+## 19. FE session rossz working directory — /home/gabor helyett /opt/spaceos/spaceos-doorstar-portal
+
+**Tünet:** Az FE terminál session-t elindítja a watch-inbox.sh, de a `claude --model sonnet` a `/home/gabor` mappában indul, nem a projekt mappában. A Task/Explore agent nem találja a fájlokat.
+
+**Ok:** A tmux session létrehozásakor nem lett megadva a `-c` (start-directory) opció, vagy a session már létezett korábbról rossz directory-vel.
+
+**Diagnózis:**
+```bash
+tmux -S /tmp/spaceos-tmux.sock display-message -t spaceos-fe -p "#{pane_current_path}"
+```
+
+**Fix — session létrehozás helyes directory-vel:**
+```bash
+tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-fe \
+  -c /opt/spaceos/spaceos-doorstar-portal
+```
+
+**Ha már létezik a session:** Kill és újra létrehozás, vagy explicit `cd` küldése:
+```bash
+tmux -S /tmp/spaceos-tmux.sock send-keys -t spaceos-fe \
+  "cd /opt/spaceos/spaceos-doorstar-portal" Enter
+```
+
+---
+
+## 20. Claude CLI "Noodling" / "Thinking" állapot — nem stuck, ne nudge-old
+
+**Tünet:** A session capture-pane output-ja `Noodling…` vagy `Thinking…` sort mutat, a session nem reagál az üzenetekre.
+
+**Ok:** A Claude CLI gondolkodik (reasoning mode). Ez normális működés, különösen komplex feladatoknál. A "Noodling" 1-5 percig is tarthat.
+
+**Diagnózis:**
+```bash
+tmux -S /tmp/spaceos-tmux.sock capture-pane -t <session> -p | grep -E "Noodling|Thinking"
+```
+
+**Fix:** NE küldj nudge-ot. Várd meg amíg a gondolkodás befejeződik. A watch-stuck.sh-ban exemptáld a "Noodling" és "Thinking" pattern-eket.
+
+---
+
+## 21. Session "bypass permissions" prompt — Enter szükséges
+
+**Tünet:** A session output-ja `⏵⏵ bypass permissions on (shift+tab to cycle)` sort mutat, de a session nem dolgozik.
+
+**Ok:** A Claude CLI választásra vár a permission policy-val kapcsolatban. A default "bypass" általában megfelelő, de explicit Enter szükséges a folytatáshoz.
+
+**Fix:**
+```bash
+tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> Enter
+```
+
+**watch-stuck.sh integráció:** Ha a pane tartalmazza a "shift+tab to cycle" pattern-t, küldj Enter-t.
