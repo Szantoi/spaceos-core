@@ -1,8 +1,26 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-06-16 — FE-054 DEPLOYED ✅ · 742 FE teszt · **27/27 világ LIVE** joinerytech.hu · TELJES PORTAL KÉSZ 🎉
+**Utolsó frissítés:** 2026-06-17 05:30 — **Consensus PHASE 1 APPROVED & KIADVA** · TOP 1+2 (Design→Cutting + Nesting) FE inbox aktív · TOP 3 (Machine Scheduling) Identity+Cutting inbox aktív · FE-A Slice 1 TELJES · FE-B SalesPage folyamatban
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
+
+### 🎯 2026-06-17 Stratégiai döntés — Consensus PHASE 1
+
+**Root PRE-IMPLEMENTATION ellenőrzés + feladatkiosztás** (05:30):
+- ✅ **TOP 1 + TOP 2 APPROVED & KIADVA**
+  - MSG-FE-061: TOP 1 Design→Cutting workflow (2-3 nap FE)
+  - MSG-FE-062: TOP 2 Nesting vizualizáció (3-4 nap FE)
+- ✅ **TOP 3 DEPENDENCY CHAIN AKTÍV** (1 nap BE + 4-5 nap FE)
+  - MSG-IDENTITY-006: GET /users?role={role} endpoint (0.5 nap BE)
+  - MSG-CUTTING-054: POST /assign-batch endpoint (1 nap BE)
+  - MSG-FE-063: TOP 3 Machine Scheduling UI (4-5 nap FE, után)
+
+**PRE-IMPL eredmény:**
+- ✅ cuttingList format: kompatibilis
+- ✅ Identity endpoint: kiadva (0.5 nap)
+- ✅ @dnd-kit library: install szükséges (5 perc TOP 3 FE-ben)
+- ✅ nesting CATALOG mapping: validálható
+- ✅ FSM RBAC: build után ellenőrizendő
 
 ---
 
