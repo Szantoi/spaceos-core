@@ -2,7 +2,15 @@
 
 ## Real-Time Status
 
-**Last update:** 2026-06-17 05:55 UTC
+**Last update:** 2026-06-17 06:00 UTC
+
+### 🔴 Critical Block Update
+
+**Nexus BLOCKED:** Gemini API key found (LLM, não embedding). Need Voyage AI free tier:
+- Free: 25M tokens/month
+- URL: https://dash.voyageai.com/
+- Setup: `/opt/spaceos/spaceos-nexus/knowledge-service/.env` → `VOYAGE_API_KEY=...`
+- Timeline: 20 min (key procurement + setup)
 
 ### Terminal Progress
 
