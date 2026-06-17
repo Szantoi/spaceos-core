@@ -1,17 +1,18 @@
 #!/bin/bash
 # =============================================================================
-# stop-terminals.sh — SpaceOS terminálok leállítása
+# stop-terminals.sh — SpaceOS terminálok finom leállítása
 #
 # Használat:
 #   ./stop-terminals.sh              # Minden terminál leállítása (kivéve root)
 #   ./stop-terminals.sh all          # Minden terminál leállítása (root-tal együtt)
 #   ./stop-terminals.sh fe conductor # Csak megadott terminálok leállítása
+#   ./stop-terminals.sh --force      # Azonnali kill (nem vár)
 #
 # A szkript:
-#   1. Küld egy HANDOFF üzenetet a terminálnak (context mentés)
-#   2. Vár 5 másodpercet
-#   3. Küld Ctrl+C-t
-#   4. Kilövi a tmux session-t
+#   1. Küld /handoff parancsot (context mentés)
+#   2. Küld /exit parancsot (session lezárás kérése)
+#   3. Vár amíg a session természetesen befejeződik (max 60 mp)
+#   4. Ha timeout: Ctrl+C + kill
 # =============================================================================
 
 set -euo pipefail
@@ -20,10 +21,16 @@ SCRIPTS="$(dirname "$0")"
 LOG_DIR="/opt/spaceos/logs/dispatcher"
 LOG_FILE="$LOG_DIR/stop-terminals.log"
 
+# Konfiguráció
+GRACEFUL_TIMEOUT=60    # Max várakozás másodpercben
+POLL_INTERVAL=2        # Ellenőrzési intervallum
+FORCE_MODE=false
+
 # Színek
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 log() {
@@ -31,9 +38,6 @@ log() {
     echo -e "$msg"
     echo "$msg" >> "$LOG_FILE" 2>/dev/null || true
 }
-
-# Prioritásos terminálok (root mindig utolsó, ha egyáltalán leállítjuk)
-PRIORITY_TERMINALS=("spaceos-conductor" "spaceos-root")
 
 # Összes terminál (prioritási sorrendben - root utolsó)
 ALL_TERMINALS=(
@@ -78,32 +82,89 @@ DEFAULT_TERMINALS=(
     "spaceos-conductor"
 )
 
-stop_terminal() {
+# Ellenőrzi, hogy a session még fut-e
+is_session_alive() {
+    tmux has-session -t "$1" 2>/dev/null
+}
+
+# Finom leállítás - vár amíg a session természetesen befejeződik
+graceful_stop() {
     local session="$1"
 
     # Ellenőrizzük, hogy fut-e
-    if ! tmux has-session -t "$session" 2>/dev/null; then
+    if ! is_session_alive "$session"; then
         log "${YELLOW}[SKIP]${NC} $session - nem fut"
         return 0
     fi
 
-    log "${YELLOW}[STOP]${NC} $session - leállítás..."
+    log "${CYAN}[GRACEFUL]${NC} $session - finom leállítás indítása..."
 
-    # 1. HANDOFF üzenet küldése (context mentés)
+    # 1. HANDOFF küldése (context mentés)
+    log "  → /handoff küldése..."
     tmux send-keys -t "$session" "/handoff" Enter 2>/dev/null || true
+    sleep 3
+
+    # 2. /exit küldése (session lezárás kérése)
+    log "  → /exit küldése..."
+    tmux send-keys -t "$session" "/exit" Enter 2>/dev/null || true
+
+    # 3. Várakozás a természetes befejezésre
+    local waited=0
+    log "  → Várakozás a befejezésre (max ${GRACEFUL_TIMEOUT}s)..."
+
+    while is_session_alive "$session" && [[ $waited -lt $GRACEFUL_TIMEOUT ]]; do
+        sleep $POLL_INTERVAL
+        waited=$((waited + POLL_INTERVAL))
+        # Státusz kijelzés 10 másodpercenként
+        if [[ $((waited % 10)) -eq 0 ]]; then
+            log "  → Még fut... (${waited}s/${GRACEFUL_TIMEOUT}s)"
+        fi
+    done
+
+    # 4. Ellenőrzés - sikerült-e természetesen leállni
+    if ! is_session_alive "$session"; then
+        log "${GREEN}[DONE]${NC} $session - természetesen befejeződött (${waited}s)"
+        return 0
+    fi
+
+    # 5. Timeout - kényszerített leállítás
+    log "${YELLOW}[TIMEOUT]${NC} $session - ${GRACEFUL_TIMEOUT}s után kényszerített leállítás..."
+
+    # Ctrl+C küldése
+    tmux send-keys -t "$session" C-c 2>/dev/null || true
     sleep 2
 
-    # 2. Ctrl+C küldése
+    # Még egy Ctrl+C
     tmux send-keys -t "$session" C-c 2>/dev/null || true
     sleep 1
 
-    # 3. Még egy Ctrl+C ha kell
+    # Kill session
+    if tmux kill-session -t "$session" 2>/dev/null; then
+        log "${YELLOW}[KILLED]${NC} $session - kényszerítve leállítva"
+        return 0
+    else
+        log "${RED}[FAIL]${NC} $session - nem sikerült leállítani"
+        return 1
+    fi
+}
+
+# Azonnali kill (--force mód)
+force_stop() {
+    local session="$1"
+
+    if ! is_session_alive "$session"; then
+        log "${YELLOW}[SKIP]${NC} $session - nem fut"
+        return 0
+    fi
+
+    log "${RED}[FORCE]${NC} $session - azonnali leállítás..."
+
     tmux send-keys -t "$session" C-c 2>/dev/null || true
     sleep 1
 
-    # 4. Session kilövése
     if tmux kill-session -t "$session" 2>/dev/null; then
         log "${GREEN}[DONE]${NC} $session - leállítva"
+        return 0
     else
         log "${RED}[FAIL]${NC} $session - nem sikerült leállítani"
         return 1
@@ -117,19 +178,67 @@ show_status() {
     echo ""
 }
 
+usage() {
+    echo "Használat: $0 [opciók] [terminálok...]"
+    echo ""
+    echo "Opciók:"
+    echo "  --force     Azonnali kill (nem vár a természetes befejezésre)"
+    echo "  --timeout N Graceful timeout másodpercben (alapért: 60)"
+    echo "  all         Minden terminál (root-tal együtt)"
+    echo ""
+    echo "Példák:"
+    echo "  $0                    # Minden terminál (root kivételével)"
+    echo "  $0 all                # Minden terminál (root-tal együtt)"
+    echo "  $0 fe nexus           # Csak fe és nexus"
+    echo "  $0 --force            # Azonnali kill mindenhol"
+    echo "  $0 --timeout 30 fe    # 30s timeout az fe-re"
+}
+
 main() {
+    local terminals_to_stop=()
+    local positional_args=()
+
+    # Argumentumok feldolgozása
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --force)
+                FORCE_MODE=true
+                shift
+                ;;
+            --timeout)
+                GRACEFUL_TIMEOUT="$2"
+                shift 2
+                ;;
+            --help|-h)
+                usage
+                exit 0
+                ;;
+            *)
+                positional_args+=("$1")
+                shift
+                ;;
+        esac
+    done
+
+    # Pozícionális argumentumok visszaállítása
+    set -- "${positional_args[@]:-}"
+
     log "=== SpaceOS terminálok leállítása ==="
 
-    local terminals_to_stop=()
+    if $FORCE_MODE; then
+        log "Mód: FORCE (azonnali kill)"
+    else
+        log "Mód: GRACEFUL (timeout: ${GRACEFUL_TIMEOUT}s)"
+    fi
 
     if [[ $# -eq 0 ]]; then
         # Alapértelmezett: minden terminál KIVÉVE root
         terminals_to_stop=("${DEFAULT_TERMINALS[@]}")
-        log "Mód: Alapértelmezett (root kivételével)"
+        log "Terminálok: Alapértelmezett (root kivételével)"
     elif [[ "$1" == "all" ]]; then
         # Minden terminál, beleértve root-ot is
         terminals_to_stop=("${ALL_TERMINALS[@]}")
-        log "Mód: MINDEN terminál (root-tal együtt)"
+        log "Terminálok: MINDEN (root-tal együtt)"
         echo -e "${RED}FIGYELEM: A root terminál is le lesz állítva!${NC}"
         read -p "Biztosan folytatod? (y/N) " -n 1 -r
         echo
@@ -147,15 +256,21 @@ main() {
                 terminals_to_stop+=("spaceos-$arg")
             fi
         done
-        log "Mód: Megadott terminálok: ${terminals_to_stop[*]}"
+        log "Terminálok: ${terminals_to_stop[*]}"
     fi
 
     show_status
 
     local failed=0
     for session in "${terminals_to_stop[@]}"; do
-        if ! stop_terminal "$session"; then
-            ((failed++))
+        if $FORCE_MODE; then
+            if ! force_stop "$session"; then
+                ((failed++))
+            fi
+        else
+            if ! graceful_stop "$session"; then
+                ((failed++))
+            fi
         fi
     done
 
