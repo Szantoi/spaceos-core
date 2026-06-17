@@ -4,7 +4,7 @@ from: root
 to: nexus
 type: decision
 priority: medium
-status: UNREAD
+status: READ
 model: haiku
 ref: MSG-NEXUS-006
 created: 2026-06-17

@@ -4,7 +4,7 @@ from: root
 to: nexus
 type: decision
 priority: high
-status: UNREAD
+status: READ
 ref: MSG-NEXUS-002
 created: 2026-06-17
 ---
