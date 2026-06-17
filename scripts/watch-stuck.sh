@@ -18,6 +18,11 @@ source "$(dirname "$0")/common.sh"
 for SESSION in "${!SESSIONS[@]}"; do
   TERMINAL="${SESSIONS[$SESSION]}"
 
+  # Root kihagyása — nem kap automatikus triggert
+  if [ "$SESSION" = "spaceos-root" ]; then
+    continue
+  fi
+
   if ! tmux_s has-session -t "$SESSION" 2>/dev/null; then
     continue
   fi
