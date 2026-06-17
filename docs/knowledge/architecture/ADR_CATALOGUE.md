@@ -181,8 +181,86 @@ Responsibility separation:
 
 ---
 
+## ADR-043: Marvin Orchestration Pattern
+
+**Döntés:** 2026-06-17 PROPOSED
+
+| Item | Decision |
+|---|---|
+| Planning pipeline | **Marvin (Python)** — bash script-ek helyett |
+| Thread persistence | **SQLite** — resumable threads |
+| Agent definitions | 5 agent: Scanner, Selector, Debater A/B, Synthesizer |
+| Provider | **Anthropic** via Pydantic AI backend |
+
+**Miért:**
+- Bash pipeline törékeny — crash = teljes adatvesztés
+- Marvin Thread: crash után folytatható (SQLite history)
+- Multi-agent explicit definícióval, structured output (Pydantic)
+- Parallel execution (asyncio.gather)
+
+**Alkalmazás:**
+1. Fázis 1: McpServer Knowledge Service (COMPLETE)
+2. Fázis 2: Marvin Planning Pipeline (~6-7 nap)
+3. Fázis 3: Reviewer + Nightwatch (~8-10 nap, Slice 2 előtt)
+
+**Teljes spec:** `docs/architecture/decisions/ADR-043-marvin-orchestration-pattern.md`
+
+---
+
+## ADR-044: Knowledge Service System Integration
+
+**Döntés:** 2026-06-17 PROPOSED
+
+| Item | Decision |
+|---|---|
+| Vector store | **ChromaDB** (Docker, port 8001) |
+| Embeddings | **Voyage AI** voyage-3-lite (512 dim) |
+| MCP interface | `discovery_search` tool |
+| Fallback | In-memory search (graceful degradation) |
+
+**Miért:**
+- Szemantikus keresés > keyword FTS (növekvő knowledge base)
+- Production-tested JoineryTech.McpServer referencia
+- In-memory fallback: headless scanner nem blokkolódik
+
+**Alkalmazás:**
+1. Fázis 1: Core Implementation (COMPLETE)
+2. Fázis 2: System-wide Integration (Architect, terminálok)
+3. Fázis 3: Full Datahaven/Resonance (episodic memory)
+
+**Teljes spec:** `docs/architecture/decisions/ADR-044-knowledge-service-system-integration.md`
+
+---
+
+## ADR-045: McpServer Standard Tools & RPC Interface
+
+**Döntés:** 2026-06-17 PROPOSED
+
+| Tool | Leírás | Fázis |
+|---|---|---|
+| `discovery_search` | Knowledge base keresés | COMPLETE |
+| `submitArtifact` | Idea/consensus regisztráció | Fázis 2 |
+| `getWorkflowState` | Terminál FSM state lekérdezés | Fázis 3 |
+| `updateWorkflowState` | Terminál FSM state frissítés | Fázis 3 |
+| **RbacFilter** | Tool visibility per role | Fázis 3 |
+
+**Miért:**
+- Gépi enforcement > emberi CLAUDE.md szabályok
+- Workflow state tracking: strukturált, query-elhető, audit trail
+- RbacFilter: role alapján szűrt tool visibility
+
+**Alkalmazás:**
+1. Fázis 2: submitArtifact (~2-3 nap)
+2. Fázis 3: Workflow tracking + RBAC (~4-5 nap)
+
+**Teljes spec:** `docs/architecture/decisions/ADR-045-mcpserver-standard-tools.md`
+
+---
+
 ## Referencia
 
 - Teljes vision: `docs/vision/SpaceOS_Vision_Master.md`
 - Security sprint: `docs/mailbox/kernel/outbox/` 2026-04-03 DONE messages
 - Module interfaces: `docs/knowledge/architecture/ECOSYSTEM_MODULE_ARCHITECTURE.md`
+- Agent Infrastructure: `docs/agent-infrastructure/ROADMAP.md`
+- ADR részletes fájlok: `docs/architecture/decisions/`
