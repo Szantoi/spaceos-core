@@ -10,7 +10,8 @@
 
 const VOYAGE_API_URL = 'https://api.voyageai.com/v1/embeddings';
 const VOYAGE_MODEL = 'voyage-3-lite';
-const VOYAGE_BATCH = 128;
+const VOYAGE_BATCH = 50; // Reduced for rate limiting
+const VOYAGE_DELAY_MS = 40000; // 40 seconds delay (3 RPM free tier, conservative)
 
 async function voyageEmbed(
   texts: string[],
@@ -52,9 +53,18 @@ const useVoyage = (): boolean => !!process.env.VOYAGE_API_KEY;
 export async function embedDocuments(texts: string[]): Promise<number[][] | undefined> {
   if (useVoyage()) {
     const results: number[][] = [];
+    const totalBatches = Math.ceil(texts.length / VOYAGE_BATCH);
     for (let i = 0; i < texts.length; i += VOYAGE_BATCH) {
+      const batchNum = Math.floor(i / VOYAGE_BATCH) + 1;
       const batch = texts.slice(i, i + VOYAGE_BATCH);
+      console.log(`⏳ Embedding batch ${batchNum}/${totalBatches} (${batch.length} texts)...`);
       results.push(...(await voyageEmbed(batch, 'document')));
+
+      // Rate limiting: wait before next batch (except for last batch)
+      if (i + VOYAGE_BATCH < texts.length) {
+        console.log(`   Waiting ${VOYAGE_DELAY_MS / 1000}s (rate limit)...`);
+        await new Promise(resolve => setTimeout(resolve, VOYAGE_DELAY_MS));
+      }
     }
     return results;
   }

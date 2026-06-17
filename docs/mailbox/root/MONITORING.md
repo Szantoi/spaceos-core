@@ -23,7 +23,7 @@
 | Cutting | POST /assign-batch endpoint ✅ | ✅ DONE | 05:13 | 2026-06-17 |
 | FE | TOP 3 Scheduling UI | 🟢 READY | — | Can start now |
 | Librarian | Memory sync (5-hourly) | 🟡 ACTIVE | 05:02 | Recurring |
-| Nexus | Knowledge Service (Phase 1) | 🟡 AWAITING-KEY | 05:15 | VPS key setup (20 min) |
+| Nexus | Knowledge Service (Phase 1) | ✅ DONE | 05:15 | 2026-06-17 |
 | Conductor | Monitoring mode | ✅ READY | 05:02 | Continuous |
 
 ### Unresolved Blocks
@@ -64,9 +64,22 @@
 - TOP 3 BE: ✅ DONE (both endpoints approved)
 - TOP 3 FE: 🟢 UNLOCKED (can start immediately, no blocker)
 
+- [x] **Nexus Phase 1 DONE** — Knowledge Service operational (2026-06-17)
+  - Voyage AI integration with 25 documents indexed
+  - ChromaDB vector store (port 8001) + Express server (port 3456)
+  - Health + Search endpoints working
+  - Rate limit note: Free tier limits, recommend payment method for Phase 2
+
+### Status Summary
+
+**TOTAL COMPLETED TODAY:**
+- ✅ Consensus PHASE 1: 5 items (TOP 1, TOP 2, Identity, Cutting, TOP 3 ready)
+- ✅ Nexus Phase 1: Knowledge Service live
+- **GRAND TOTAL: 6 major deliverables COMPLETE**
+
 ### Pending DONE Messages
 
-- [ ] Nexus Phase 1 Knowledge Service (⏳ AWAITING VPS KEY SETUP, parallel stream)
+None - all critical path items are DONE
 
 ---
 

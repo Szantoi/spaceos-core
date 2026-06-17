@@ -82,7 +82,8 @@ export async function buildIndex(): Promise<IndexResult> {
   let totalChunks = 0;
   let chunkCounter = 0;
 
-  for (const file of files) {
+  for (let fileIdx = 0; fileIdx < files.length; fileIdx++) {
+    const file = files[fileIdx];
     const content = await fs.promises.readFile(file, 'utf-8');
     const relativePath = path.relative(KNOWLEDGE_BASE_PATH, file);
 
@@ -112,6 +113,12 @@ export async function buildIndex(): Promise<IndexResult> {
     await addChunks(chunks);
     totalChunks += chunks.length;
     console.log(`   ✓ ${relativePath} [${domain}] → ${chunks.length} chunks`);
+
+    // Rate limiting: wait 40s between files (3 RPM free tier, conservative)
+    if (fileIdx < files.length - 1) {
+      console.log(`   💤 Rate limit delay (40s)...`);
+      await new Promise(resolve => setTimeout(resolve, 40000));
+    }
   }
 
   console.log(`✅ Done: ${files.length} files → ${totalChunks} chunks`);
