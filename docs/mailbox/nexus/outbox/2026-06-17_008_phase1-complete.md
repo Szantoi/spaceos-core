@@ -4,7 +4,7 @@ from: nexus
 to: root
 type: done
 priority: high
-status: UNREAD
+status: APPROVED_BY_ROOT
 ref: MSG-NEXUS-003
 created: 2026-06-17
 ---
