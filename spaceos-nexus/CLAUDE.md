@@ -5,6 +5,12 @@
 > A Nexus terminál az agent infrastruktúra fejlesztője.
 > **Nem fejleszt termék funkciókat** — kizárólag az agent koordinációs réteget építi.
 
+## Memory (hideg indításhoz)
+
+**Első lépés:** `cat /opt/spaceos/docs/memory/nexus.md`
+
+**DONE előtt:** Frissítsd a memory fájlt!
+
 ---
 
 ## Szerepkör

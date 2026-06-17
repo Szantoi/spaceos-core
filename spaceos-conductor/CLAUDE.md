@@ -6,6 +6,18 @@
 > vezérli a tervezési folyamatot, és termináloknak adja ki a feladatokat.
 > **Nem ír kódot** — tervez, koordinál, ellenőriz.
 
+## Memory (hideg indításhoz)
+
+**Első lépés minden session elején:** Olvasd be a memory fájlt!
+
+```bash
+cat /opt/spaceos/docs/memory/conductor.md
+```
+
+Ez tartalmazza az előző session állapotát, megoldott problémákat, és következő lépéseket.
+
+**DONE/BLOCKED előtt:** Frissítsd a memory fájlt az aktuális állapottal!
+
 ---
 
 ## Szerepkör
