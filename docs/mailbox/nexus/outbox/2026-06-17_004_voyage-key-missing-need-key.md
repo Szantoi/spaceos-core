@@ -4,7 +4,7 @@ from: nexus
 to: root
 type: question
 priority: critical
-status: UNREAD
+status: READ
 ref: MSG-NEXUS-003
 created: 2026-06-17
 ---
