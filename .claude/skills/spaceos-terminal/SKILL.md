@@ -51,7 +51,44 @@ A terminál típusától függ — a saját CLAUDE.md-ben van definiálva:
 
 **Ha a build vagy test nem zöld: NE írj DONE-t.** Javítsd, aztán futtasd újra.
 
-## 3. DONE üzenet írása
+## 3. Memory frissítése (DONE előtt kötelező)
+
+**Minden DONE/BLOCKED üzenet előtt** frissítsd a memory fájlodat:
+
+**Fájl:** `docs/memory/<terminál>.md`
+
+```markdown
+# <TERMINÁL> Memory
+
+Utolsó frissítés: YYYY-MM-DD HH:MM
+
+## Aktuális állapot
+- Mit csináltam utoljára (röviden)
+- Commit hash, érintett fájlok
+- Mi van DONE
+
+## Fontos kontextus
+- Releváns döntések amiket hoztam
+- Függőségek más termináloktól
+- Nyitott kérdések ha vannak
+
+## Következő lépések
+- Mi a TODO ha folytatom
+- Mire kell figyelni
+
+## Session tapasztalatok
+- Mi működött jól
+- Csapdák amikbe belefutottam
+```
+
+**Szabályok:**
+- Max 50 sor, lényegre törő
+- Mindig a legutóbbi session állapota
+- Következő indításkor ezt kapod vissza
+
+---
+
+## 4. DONE üzenet írása
 
 Amikor a feladat kész és a build+test gate átment:
 
@@ -99,7 +136,7 @@ Ellenőrzött pontok: input validation, auth, RLS/RBAC, nincs secret a logban.
 Ha van → status: BLOCKED és leírás. Ha nincs → "Nincsenek."
 ```
 
-## 4. BLOCKED üzenet — ha elakadsz
+## 5. BLOCKED üzenet — ha elakadsz
 
 Ha a feladatot nem tudod befejezni önállóan (hiányzó info, függőség, infrastruktúra):
 
@@ -131,7 +168,7 @@ Mit kell dönteni / kiadni ahhoz, hogy folytatni tudjam.
 
 **Soha ne folytasd találgatással.** Ha 2 próbálkozás után sem megy: BLOCKED.
 
-## 5. Mailbox elérési utak
+## 6. Mailbox elérési utak
 
 | Terminál | Inbox | Outbox |
 |---|---|---|
@@ -144,7 +181,7 @@ Mit kell dönteni / kiadni ahhoz, hogy folytatni tudjam.
 | Portal | `/opt/spaceos/docs/mailbox/portal/inbox/` | `.../portal/outbox/` |
 | Sales | `/opt/spaceos/docs/mailbox/sales/inbox/` | `.../sales/outbox/` |
 
-## 6. EF Core migration — kötelező manuális SQL eljárás
+## 7. EF Core migration — kötelező manuális SQL eljárás
 
 > ⚠️ `dotnet ef database update` **NEM megbízható** ezen a VPS-en.
 > A `~/.dotnet/tools/dotnet-ef` v10-es, de a projektek .NET 8 targetűek — inkompatibilis.
@@ -192,7 +229,7 @@ wc -l src/*/Persistence/Migrations/*ModelSnapshot.cs
 
 ---
 
-## 7. Amit soha nem szabad
+## 8. Amit soha nem szabad
 
 - DONE outbox írása build/test failure mellett
 - Találgatással folytatni, ha elakadtál (→ BLOCKED)
