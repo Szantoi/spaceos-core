@@ -1,0 +1,27 @@
+- main [ref=e3]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - img "voyageai" [ref=e8]
+      - heading "Welcome" [level=1] [ref=e9]
+      - paragraph [ref=e11]: Log in to Voyage AI
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e16]:
+          - generic [ref=e18]:
+            - generic [ref=e19]: Email address *
+            - textbox "Email address" [active] [ref=e20]
+          - generic [ref=e22]:
+            - generic [ref=e23]: Password *
+            - textbox "Password" [ref=e24]
+            - switch "Show password" [ref=e25] [cursor=pointer]
+        - paragraph [ref=e26]:
+          - link "Reset password" [ref=e27] [cursor=pointer]:
+            - /url: /u/login/password-reset-start/Username-Password-Authentication?state=hKFo2SAwVVlvOVp1dHFmN2JFci1YV2Ywb3RZeWEzWEJWVXlpc6Fur3VuaXZlcnNhbC1sb2dpbqN0aWTZIG5RLW1kRkdOZTcwYV9xMDZjLXNaM2VZc1U0RWp4bW5Lo2NpZNkgUkV6ZkZyQURCY1JHQWJjbDRMWmIwY0hieFRydVYzUXA
+        - button "Continue" [ref=e29] [cursor=pointer]
+      - paragraph [ref=e31]:
+        - text: Don't have an account?
+        - link "Sign up" [ref=e32] [cursor=pointer]:
+          - /url: /u/signup?state=hKFo2SAwVVlvOVp1dHFmN2JFci1YV2Ywb3RZeWEzWEJWVXlpc6Fur3VuaXZlcnNhbC1sb2dpbqN0aWTZIG5RLW1kRkdOZTcwYV9xMDZjLXNaM2VZc1U0RWp4bW5Lo2NpZNkgUkV6ZkZyQURCY1JHQWJjbDRMWmIwY0hieFRydVYzUXA
+      - generic [ref=e34]: Or
+      - button "Continue with Google" [ref=e37] [cursor=pointer]:
+        - generic [ref=e39]: Continue with Google

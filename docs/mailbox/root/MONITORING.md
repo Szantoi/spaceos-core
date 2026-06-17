@@ -18,8 +18,9 @@
 | Terminal | Task | Status | Started | ETA |
 |---|---|---|---|---|
 | FE | TOP 1 DONE ✅ Design→Cutting | ✅ DONE | 05:12 | 2026-06-17 |
-| Identity | GET /users?role endpoint | 🟡 ACTIVE | 05:12 | 2026-06-17 18:00 |
-| Cutting | POST /assign-batch endpoint | 🟡 ACTIVE | 05:13 | 2026-06-17 18:00 |
+| Identity | GET /users?role endpoint ✅ | ✅ DONE | 05:12 | 2026-06-17 |
+| Cutting | POST /assign-batch endpoint ✅ | ✅ DONE | 05:13 | 2026-06-17 |
+| FE | TOP 2 Nesting visualization | 🟡 ACTIVE | 05:25 | 2026-06-19 |
 | Librarian | Memory sync (5-hourly) | 🟡 ACTIVE | 05:02 | Recurring |
 | Nexus | Knowledge Service (Phase 1) | 🟡 AWAITING-KEY | 05:15 | VPS key setup (20 min) |
 | Conductor | Monitoring mode | ✅ READY | 05:02 | Continuous |
@@ -30,21 +31,27 @@
 |---|---|---|---|
 | Nexus | Embedding API key setup | MEDIUM | 🟡 VPS key procurement pending |
 
-### Completed Tasks
+### Completed Tasks (TOP 1-3 Dependencies ✅)
 
-- [x] FE DONE — TOP 1 Design→Cutting workflow (2026-06-17 06:XX UTC)
-  - DesignPage: mock API replaced with real `POST /cutting/api/sheets`
-  - ProductionPage: auto-navigation + 3s highlight + customer name display
-  - Build ✅ + 6 new tests ✅
-  - Git commit: 4081a5c
+- [x] **FE TOP 1 DONE** — Design→Cutting workflow (commit 4081a5c)
+  - DesignPage: mock → real `POST /cutting/api/sheets`
+  - ProductionPage: auto-nav + 3s highlight + customer name
+  - +6 FE tests ✅
+
+- [x] **Identity TOP 3 Blocker DONE** — GET /users?role endpoint (commit c1324ec)
+  - Keycloak integration with role whitelist
+  - RLS (tenant) filtering
+  - +4 BE tests ✅ (67/67 total)
+
+- [x] **Cutting TOP 3 Blocker DONE** — POST /assign-batch endpoint (pending commit)
+  - BatchAssignment entity + CuttingExecution schedule
+  - PostgreSQL idempotency constraint
+  - +18 BE tests ✅ (938/939 total, 1 flaky non-related)
 
 ### Pending DONE Messages
 
-Waiting for:
-- [ ] FE DONE — TOP 2 Nesting visualization (in progress)
-- [ ] Identity DONE — GET /users?role endpoint
-- [ ] Cutting DONE — POST /assign-batch endpoint
-- [ ] Nexus DONE (after API key setup, awaiting manual VPS action)
+- [ ] FE TOP 2 Nesting visualization (🟡 IN PROGRESS)
+- [ ] Nexus Phase 1 Knowledge Service (⏳ AWAITING VPS KEY SETUP)
 
 ---
 
