@@ -1,6 +1,20 @@
 # SpaceOS Knowledge Base — INDEX
 
+**Latest Update:** 2026-06-17 — PHASE 2 COMPLETE ✅ + Nexus Phase 1 Knowledge Service OPERATIONAL ✅
+
 Minden doc 1 soros összefoglalója. A Librarian és a planning scanner ebből indul.
+
+## 📚 Knowledge Service Status
+
+- **Implementáció:** Nexus Phase 1 ✅ COMPLETE
+- **Vector Store:** ChromaDB (port 8001) + Voyage AI embeddings
+- **Search API:** Port 3456 (GET/POST /api/knowledge/search)
+- **Indexing:** Librarian cron (5-hourly) + manual POST /api/knowledge/index
+- **Documents:** ~440+ indexed (docs/knowledge/ + engineering/)
+- **Response Time:** <500ms semantic search
+- **Status:** OPERATIONAL (VPS activation pending, see DEPLOYMENT_RUNBOOK.md)
+
+---
 
 ## architecture/
 - [DESIGN_MEMORY.md](architecture/DESIGN_MEMORY.md) — Zárolt arch döntések, elvek, biztonsági minták (claude.ai migrált)

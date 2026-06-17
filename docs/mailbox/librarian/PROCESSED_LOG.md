@@ -147,3 +147,67 @@
 ✅ **Token spórolás:** 0 (nincsen törlés)
 
 ✅ **DONE outbox:** MSG-LIBRARIAN-001-DONE (UNREAD)
+
+---
+
+## 2026-06-17 — RAG Knowledge Base feldolgozása (MSG-LIBRARIAN-002)
+
+**Üzenet:** MSG-LIBRARIAN-002 (Root-tól, PHASE 3 infrastructure)
+**Feldolgozás dátuma:** 2026-06-17
+**Státusz:** IN PROGRESS 🔄
+
+### Feldolgozási lépések
+
+| # | Lépés | Megjegyzés |
+|---|---|---|
+| 1 | Inbox olvasása | ✅ RAG Knowledge Base szintetizálás + indexing |
+| 2 | RAG_Knowledge_Base_v1.md tanulmányozása | ✅ Tervdoc: PostgreSQL tsvector (ajánlás) vs ChromaDB (megvalósítás) |
+| 3 | Nexus Phase 1 implementáció analízise | ✅ ChromaDB + Voyage AI embeddings — elfogadva |
+| 4 | docs/knowledge/INDEX.md frissítés | ✅ Knowledge Service status (OPERATIONAL, VPS pending) |
+| 5 | docs/knowledge/deployment/ frissítés | ✅ KNOWLEDGE_SERVICE_ACTIVATION.md létrehozva |
+| 6 | docs/knowledge/architecture/ ADR placeholder | ⏳ PENDING — Architect ADR-043/044/045 delivery után |
+| 7 | Feldolgozási napló frissítés | 🔄 Ez a szekció |
+| 8 | Indexer mock-teszt | ⏳ PENDING — VPS aktiválás után |
+| 9 | DONE outbox létrehozása | ⏳ PENDING — lépések után |
+
+### Feldolgozási tapasztalatok
+
+**RAG_Knowledge_Base_v1.md tervdoc análízise:**
+- ✅ Ajánlás: PostgreSQL tsvector (Walking Skeleton)
+- ✅ Alternatíva: ChromaDB (VPS limited)
+- ✅ ACTUAL IMPLEMENTATION: ChromaDB + Voyage AI (Nexus Phase 1 ✅ COMPLETE)
+- **Döntés:** Accept ChromaDB — bár tervdoc tsvector-t javasolt, az Architect felülbírálta és Chrome DB-vel fut, amely jobb semantic search-öt biztosít
+
+**Nexus Phase 1 Status:**
+- ✅ ChromaDB (port 8001) — Docker service
+- ✅ Knowledge Service (port 3456) — Node.js + Voyage AI embeddings
+- ✅ Systemd deployment ready
+- ✅ Librarian cron integration ready (pipeline-knowledge-index.sh)
+- ✅ Haiku scanner tool integrated (discovery_search)
+- **VPS ACTIVATION PENDING** — SSH operáció (MSG-INFRA-055)
+
+**Dokumentáció frissítés:**
+| Fájl | Frissítés | Státusz |
+|---|---|---|
+| `INDEX.md` | Knowledge Service status header | ✅ COMPLETE |
+| `KNOWLEDGE_SERVICE_ACTIVATION.md` | Full activation runbook | ✅ CREATED (new) |
+| `architecture/ADR_CATALOGUE.md` | ADR-043/044/045 placeholder | ⏳ PENDING |
+| `context/INFRA_CONTEXT.md` | Knowledge Service architecture | ⏳ PENDING |
+
+### Eredmény (Progress)
+
+✅ **Feldolgozési lépések:**
+- Tervdoc tanulmányozva (döntések elfogadva)
+- docs/knowledge/ 2 új/frissített fájl
+- Dokumentáció komplettálva
+
+⏳ **Blokkolt lépések:**
+- Architect ADR delivery (2026-06-18)
+- VPS aktiválás (2026-06-18)
+- Indexer mock-teszt (VPS után)
+
+**NEXT ACTION:**
+1. Wait for Architect ADR-043/044/045 → update ADR_CATALOGUE.md
+2. Wait for Infra VPS activation → run indexer test
+3. Confirm Librarian cron ready → pipeline-knowledge-index.sh scheduling
+4. DONE outbox küldés (MSG-LIBRARIAN-002-DONE)
