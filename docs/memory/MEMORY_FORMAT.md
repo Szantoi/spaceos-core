@@ -34,9 +34,13 @@ Utolsó frissítés: YYYY-MM-DD HH:MM
 - Mi a TODO ha folytatom
 - Mire kell figyelni
 
-## Tapasztalatok (session-ből)
+## Megoldott problémák
+- **Probléma:** rövid leírás
+  **Megoldás:** mit csináltam, mi működött
+(Max 5 legutóbbi, FIFO — régieket töröld)
+
+## Session tapasztalatok
 - Mi működött jól
-- Mi volt nehéz
 - Csapdák amikbe belefutottam
 ```
 

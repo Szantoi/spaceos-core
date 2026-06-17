@@ -76,6 +76,12 @@ Utolsó frissítés: YYYY-MM-DD HH:MM
 - Mi a TODO ha folytatom
 - Mire kell figyelni
 
+## Megoldott problémák
+- **Probléma:** rövid leírás
+  **Megoldás:** mit csináltam, mi működött
+- **Probléma:** ...
+  **Megoldás:** ...
+
 ## Session tapasztalatok
 - Mi működött jól
 - Csapdák amikbe belefutottam
