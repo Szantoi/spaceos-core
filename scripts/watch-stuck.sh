@@ -68,15 +68,9 @@ for SESSION in "${!SESSIONS[@]}"; do
       FILES_LIST=$(grep -A20 "^---" "$UNREAD_INBOX" | grep -E "^\s*-\s" | sed 's/^\s*-\s*//' | tr '\n' ' ' | head -c 500)
     fi
 
-    # Memory fájl ellenőrzése
-    MEMORY_FILE="$SPACEOS_ROOT/docs/memory/${TERMINAL}.md"
-    MEMORY_MSG=""
-    [ -f "$MEMORY_FILE" ] && MEMORY_MSG="Memory: docs/memory/${TERMINAL}.md"
-
     # Üzenet + dupla Enter — beírja és elküldi
-    STUCK_MSG="Te a ${TERMINAL^^} terminál vagy. Folytasd a munkát."
-    [ -n "$MEMORY_MSG" ] && STUCK_MSG="${STUCK_MSG} ${MEMORY_MSG}"
-    [ -n "$UNREAD_INBOX" ] && STUCK_MSG="${STUCK_MSG} Olvasd el: $(basename $UNREAD_INBOX)"
+    STUCK_MSG="Te a ${TERMINAL^^} terminál vagy. Olvasd be: MEMORY.md — Folytasd a munkát."
+    [ -n "$UNREAD_INBOX" ] && STUCK_MSG="${STUCK_MSG} Inbox: $(basename $UNREAD_INBOX)"
     [ -n "$FILES_LIST" ] && STUCK_MSG="${STUCK_MSG} Fájlok: ${FILES_LIST}"
     tmux_s send-keys -t "$SESSION" "$STUCK_MSG" 2>/dev/null
     sleep 0.5

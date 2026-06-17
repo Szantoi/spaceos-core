@@ -55,7 +55,7 @@ A terminál típusától függ — a saját CLAUDE.md-ben van definiálva:
 
 **Minden DONE/BLOCKED üzenet előtt** frissítsd a memory fájlodat:
 
-**Fájl:** `docs/memory/<terminál>.md`
+**Fájl:** `MEMORY.md` (a terminál munkakönyvtárában)
 
 ```markdown
 # <TERMINÁL> Memory

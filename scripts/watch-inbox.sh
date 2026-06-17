@@ -49,13 +49,7 @@ for SESSION in "${!SESSIONS[@]}"; do
         # Fájlok kiolvasása az inbox frontmatter-ből (files: mező)
         FILES_LIST=$(grep -A20 "^---" "$UNREAD" | grep -E "^\s*-\s" | sed 's/^\s*-\s*//' | tr '\n' ' ' | head -c 500)
 
-        # Memory fájl ellenőrzése
-        MEMORY_FILE="$SPACEOS_ROOT/docs/memory/${TERMINAL}.md"
-        MEMORY_MSG=""
-        [ -f "$MEMORY_FILE" ] && MEMORY_MSG="Memory: docs/memory/${TERMINAL}.md"
-
-        NUDGE_MSG="Te a ${TERMINAL^^} terminál vagy. Olvasd el az inbox üzenetedet: $(basename $UNREAD)"
-        [ -n "$MEMORY_MSG" ] && NUDGE_MSG="${NUDGE_MSG} ${MEMORY_MSG}"
+        NUDGE_MSG="Te a ${TERMINAL^^} terminál vagy. Olvasd be: MEMORY.md — Inbox: $(basename $UNREAD)"
         [ -n "$FILES_LIST" ] && NUDGE_MSG="${NUDGE_MSG} Fájlok: ${FILES_LIST}"
         tmux_s send-keys -t "$SESSION" "$NUDGE_MSG" 2>/dev/null
         sleep 0.5
