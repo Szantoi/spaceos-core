@@ -46,7 +46,11 @@ for SESSION in "${!SESSIONS[@]}"; do
       LAST_NUDGE=$(grep "^${NUDGE_KEY}=" "$STATE" 2>/dev/null | cut -d= -f2 || echo "0")
 
       if [ $(( NOW - LAST_NUDGE )) -gt 300 ]; then
+        # Fájlok kiolvasása az inbox frontmatter-ből (files: mező)
+        FILES_LIST=$(grep -A20 "^---" "$UNREAD" | grep -E "^\s*-\s" | sed 's/^\s*-\s*//' | tr '\n' ' ' | head -c 500)
+
         NUDGE_MSG="Te a ${TERMINAL^^} terminál vagy. Olvasd el az inbox üzenetedet: $(basename $UNREAD)"
+        [ -n "$FILES_LIST" ] && NUDGE_MSG="${NUDGE_MSG} Olvasd be: ${FILES_LIST}"
         tmux_s send-keys -t "$SESSION" "$NUDGE_MSG" 2>/dev/null
         sleep 0.5
         tmux_s send-keys -t "$SESSION" Enter 2>/dev/null

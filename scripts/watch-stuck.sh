@@ -61,8 +61,18 @@ for SESSION in "${!SESSIONS[@]}"; do
   ELAPSED=$(( NOW - LAST_SENT ))
 
   if [ "$ELAPSED" -gt 300 ]; then
+    # Inbox fájl és files: mező kiolvasása
+    UNREAD_INBOX=$(grep -rl "status: UNREAD" "$SPACEOS_ROOT/docs/mailbox/${TERMINAL}/inbox/" 2>/dev/null | sort | head -1)
+    FILES_LIST=""
+    if [ -n "$UNREAD_INBOX" ]; then
+      FILES_LIST=$(grep -A20 "^---" "$UNREAD_INBOX" | grep -E "^\s*-\s" | sed 's/^\s*-\s*//' | tr '\n' ' ' | head -c 500)
+    fi
+
     # Üzenet + dupla Enter — beírja és elküldi
-    tmux_s send-keys -t "$SESSION" "Te a ${TERMINAL^^} terminál vagy. Folytasd a munkát. Olvasd el az inbox üzenetedet." 2>/dev/null
+    STUCK_MSG="Te a ${TERMINAL^^} terminál vagy. Folytasd a munkát."
+    [ -n "$UNREAD_INBOX" ] && STUCK_MSG="${STUCK_MSG} Olvasd el: $(basename $UNREAD_INBOX)"
+    [ -n "$FILES_LIST" ] && STUCK_MSG="${STUCK_MSG} Fájlok: ${FILES_LIST}"
+    tmux_s send-keys -t "$SESSION" "$STUCK_MSG" 2>/dev/null
     sleep 0.5
     tmux_s send-keys -t "$SESSION" Enter 2>/dev/null
     sleep 1
