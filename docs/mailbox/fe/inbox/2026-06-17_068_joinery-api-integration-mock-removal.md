@@ -4,7 +4,7 @@ from: root
 to: fe
 type: task
 priority: high
-status: UNREAD
+status: READ
 model: sonnet
 created: 2026-06-17
 ---
