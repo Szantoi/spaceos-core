@@ -1,0 +1,46 @@
+# =============================================================================
+# reviewer-config.yaml — SpaceOS Dual Reviewer konfiguráció
+#
+# Minden paraméter innen jön, a szkript NEM tartalmaz hardcoded értékeket.
+# =============================================================================
+
+# Review modellek
+reviewer:
+  model_a: haiku           # Első reviewer modell
+  model_b: haiku           # Második reviewer modell
+  parallel: true           # Párhuzamos futtatás
+  require_both: true       # Mindkettőnek APPROVE kell?
+
+# Timeout és retry
+timing:
+  review_timeout: 120      # Max várakozás review-ra (másodperc)
+  file_wait: 2             # Várakozás fájl lezárására
+
+# Verdict parsing
+verdict:
+  approve_keywords:        # Ezek számítanak APPROVE-nak
+    - APPROVE
+    - APPROVED
+    - JÓVÁHAGYVA
+  reject_keywords:         # Ezek számítanak REJECT-nek
+    - REJECT
+    - REJECTED
+    - VISSZADOBVA
+
+# Fájl útvonalak (relatív SPACEOS_ROOT-hoz)
+paths:
+  prompt_template: scripts/reviewer-prompt.md
+  context_file: scripts/reviewer-context.md
+  log_dir: logs/dispatcher
+  review_dir: logs/reviews
+
+# Reject inbox generálás
+reject_inbox:
+  priority: high
+  model_fallback: sonnet   # Ha az eredeti inbox-ban nincs model
+
+# Telegram értesítések
+notifications:
+  on_approve: false        # Értesítés APPROVE-kor
+  on_reject: true          # Értesítés REJECT-kor
+  on_error: true           # Értesítés hiba esetén
