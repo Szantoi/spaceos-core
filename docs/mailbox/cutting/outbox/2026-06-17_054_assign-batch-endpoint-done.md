@@ -4,7 +4,7 @@ from: cutting
 to: root
 type: done
 ref: MSG-CUTTING-054
-status: UNREAD
+status: APPROVED_BY_ROOT
 created: 2026-06-17
 ---
 
