@@ -1,23 +1,29 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-06-17 07:25 — **🎉 CONSENSUS PHASE 1 COMPLETE ✅** · ALL 3 TOPs DONE · +47 tests · Nexus LIVE (330 docs) · Doorstar DEPLOY READY
+**Utolsó frissítés:** 2026-06-17 09:35 — **🎉 CONSENSUS PHASE 1 COMPLETE ✅** · ALL 3 TOPs DONE · +47 tests · Nexus LIVE · **PHASE 2 ACTIVATED** (Nexus+Joinery tracks) · Doorstar DEPLOY READY
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 
 ### 🎯 2026-06-17 Session Status — Consensus PHASE 1: COMPLETE ✅
 
-**Real-time terminal status** (07:00 UTC):
+**Real-time terminal status** (09:35 UTC):
 
 | Terminál | Feladat | Status | Commit | Review |
 |---|---|---|---|---|
-| **FE** | ~~TOP 1 ✅~~ ~~TOP 2 ✅~~ ~~TOP 3 ✅~~ | 🟢 **3/3 DONE** | 4081a5c + afbc201 + TOP3 | ✅ APPROVED |
+| **FE** | ~~TOP 1 ✅~~ ~~TOP 2 ✅~~ ~~TOP 3 ✅~~ \| Phase 2: Joinery integration | 🟢 **3/3 DONE** \| 🟡 **Phase 2 IN PROGRESS** | 4081a5c + afbc201 + TOP3 \| MSG-FE-068 | ✅ APPROVED |
 | **Identity** | ~~GET /users?role ✅~~ | 🟢 DONE | c1324ec | ✅ APPROVED |
 | **Cutting** | ~~POST /assign-batch ✅~~ | 🟢 DONE | e7e484f | ✅ APPROVED |
-| **Nexus** | ~~Knowledge Service Phase 1 ✅~~ | 🟢 DONE + LIVE | Port 3456 | ✅ APPROVED |
+| **Nexus** | ~~Knowledge Service Phase 1 ✅~~ \| Phase 2: Systemd+Haiku | 🟢 DONE \| 🟡 **Phase 2 QUEUED** | Port 3456 \| MSG-NEXUS-009 | ✅ APPROVED |
+| **Orch** | Phase 2: Routing verification | 🟡 **QUEUED** | — | MSG-ORCH-001 |
 | **Librarian** | Memory sync (5-hourly) | 🟡 ACTIVE | — | — |
 | **Conductor** | Monitoring mode | ✅ READY | — | — |
 
-**Milestone:** 🎉 CONSENSUS PHASE 1 COMPLETE (TOP 1+2+3 + Nexus) — Doorstar Soft Launch DEPLOY READY (+47 tests)
+**Milestones:**
+- 🎉 CONSENSUS PHASE 1 COMPLETE (TOP 1+2+3 + Nexus) — Doorstar Soft Launch DEPLOY READY (+47 tests)
+- 🟡 **PHASE 2 ACTIVATED** (2026-06-17 09:35)
+  - Track A: Nexus Phase 2 (Systemd + Librarian + Haiku) — MSG-NEXUS-009
+  - Track B: Manufacturing (Joinery integration + routing) — MSG-FE-068 + MSG-ORCH-001
+  - Timeline: Both parallel, converge ~2026-06-19
 
 ---
 
