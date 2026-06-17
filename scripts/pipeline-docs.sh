@@ -54,7 +54,8 @@ A folyamatban lévő roadmap alapján határozd meg a következő task-ot.
 
 **Routing szabály:**
 - Ha a DONE üzenet 'assignee: nexus' vagy Datahaven/Resonance témájú → inbox: $SPACEOS_ROOT/docs/mailbox/nexus/inbox/
-- Minden más esetben → inbox: $SPACEOS_ROOT/docs/mailbox/${TERMINAL}/inbox/
+- Minden más esetben → inbox: $SPACEOS_ROOT/docs/mailbox/conductor/inbox/
+  (A Conductor koordinálja a terminálokat, NEM közvetlenül a termináloknak megy az inbox)
 
 - Ha nincs következő task → jelezd: 'NEXT: NONE'
 - Ha van → hozz létre a megfelelő mailboxba: YYYY-MM-DD_NNN_slug.md
