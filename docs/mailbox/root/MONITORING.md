@@ -18,9 +18,10 @@
 | Terminal | Task | Status | Started | ETA |
 |---|---|---|---|---|
 | FE | TOP 1 DONE ✅ Design→Cutting | ✅ DONE | 05:12 | 2026-06-17 |
+| FE | TOP 2 DONE ✅ Nesting Viz | ✅ DONE | 05:25 | 2026-06-17 |
 | Identity | GET /users?role endpoint ✅ | ✅ DONE | 05:12 | 2026-06-17 |
 | Cutting | POST /assign-batch endpoint ✅ | ✅ DONE | 05:13 | 2026-06-17 |
-| FE | TOP 2 Nesting visualization | 🟡 ACTIVE | 05:25 | 2026-06-19 |
+| FE | TOP 3 Scheduling UI | 🟢 READY | — | Can start now |
 | Librarian | Memory sync (5-hourly) | 🟡 ACTIVE | 05:02 | Recurring |
 | Nexus | Knowledge Service (Phase 1) | 🟡 AWAITING-KEY | 05:15 | VPS key setup (20 min) |
 | Conductor | Monitoring mode | ✅ READY | 05:02 | Continuous |
@@ -31,27 +32,41 @@
 |---|---|---|---|
 | Nexus | Embedding API key setup | MEDIUM | 🟡 VPS key procurement pending |
 
-### Completed Tasks (TOP 1-3 Dependencies ✅)
+### Completed Tasks (Consensus PHASE 1 Critical Path ✅)
 
 - [x] **FE TOP 1 DONE** — Design→Cutting workflow (commit 4081a5c)
   - DesignPage: mock → real `POST /cutting/api/sheets`
   - ProductionPage: auto-nav + 3s highlight + customer name
   - +6 FE tests ✅
 
+- [x] **FE TOP 2 DONE** — Nesting Visualization (commit afbc201)
+  - NestingViewer.tsx: SVG canvas + stats badge + navigation
+  - API: `GET /cutting/api/cutting/sheets/{id}/nesting` integration
+  - Per-sheet navigation + hover tooltips
+  - +15 FE tests ✅
+
 - [x] **Identity TOP 3 Blocker DONE** — GET /users?role endpoint (commit c1324ec)
   - Keycloak integration with role whitelist
   - RLS (tenant) filtering
   - +4 BE tests ✅ (67/67 total)
 
-- [x] **Cutting TOP 3 Blocker DONE** — POST /assign-batch endpoint (pending commit)
+- [x] **Cutting TOP 3 Blocker DONE** — POST /assign-batch endpoint (938/939 tests)
   - BatchAssignment entity + CuttingExecution schedule
   - PostgreSQL idempotency constraint
   - +18 BE tests ✅ (938/939 total, 1 flaky non-related)
 
+### Consensus PHASE 1 Status
+
+**FULLY COMPLETE & UNBLOCKED**
+
+- TOP 1 FE: ✅ DONE (ready to deploy)
+- TOP 2 FE: ✅ DONE (ready to deploy)
+- TOP 3 BE: ✅ DONE (both endpoints approved)
+- TOP 3 FE: 🟢 UNLOCKED (can start immediately, no blocker)
+
 ### Pending DONE Messages
 
-- [ ] FE TOP 2 Nesting visualization (🟡 IN PROGRESS)
-- [ ] Nexus Phase 1 Knowledge Service (⏳ AWAITING VPS KEY SETUP)
+- [ ] Nexus Phase 1 Knowledge Service (⏳ AWAITING VPS KEY SETUP, parallel stream)
 
 ---
 
