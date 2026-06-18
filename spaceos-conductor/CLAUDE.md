@@ -8,15 +8,15 @@
 
 ## Memory (hideg indításhoz)
 
-**Első lépés minden session elején:** Olvasd be a memory fájlt!
+**Első lépés minden session elején:** Olvasd be a MEMORY.md fájlt!
 
 ```bash
-cat /opt/spaceos/docs/memory/conductor.md
+cat MEMORY.md
 ```
 
 Ez tartalmazza az előző session állapotát, megoldott problémákat, és következő lépéseket.
 
-**DONE/BLOCKED előtt:** Frissítsd a memory fájlt az aktuális állapottal!
+**DONE/BLOCKED előtt:** Frissítsd a MEMORY.md fájlt az aktuális állapottal!
 
 ---
 
@@ -105,6 +105,24 @@ Ha egy terminál BLOCKED üzenetet küld:
    ```
    docs/mailbox/root/inbox/YYYY-MM-DD_NNN_blocked-escalation.md
    ```
+4. **Telegram értesítés Gábornak** (csak kritikus esetben!):
+   ```bash
+   /opt/spaceos/scripts/critical-notify.sh escalation "Leírás: mi a probléma, mi kell"
+   ```
+
+### 4. Deploy kész értesítés
+
+Ha egy oldal/service kirakható élesbe és tesztelésre vár:
+```bash
+/opt/spaceos/scripts/critical-notify.sh deploy "Service neve" "https://url"
+```
+
+### 5. User action szükséges
+
+Ha regisztráció vagy manuális lépés kell Gábortól:
+```bash
+/opt/spaceos/scripts/critical-notify.sh user_action "Mit kell csinálni (pl. regisztráció, API key)"
+```
 
 ---
 
@@ -196,9 +214,31 @@ Feldolgoztam N konsenzust a queue-ból.
 
 ---
 
+## CONTEXT HYGIENE
+
+- Ha a session context 60%+ → kötelező kontextus vágás (összefoglalás + irreleváns részek ejtése)
+- Conductor kizárólag dokumentált forrásból dolgozik — ha hiányzik az info, NE találgass, hanem delegálj (Architect, vagy a releváns terminál)
+- State tracking checklist minden session végén:
+  - [ ] `docs/tasks/README.md` naprakész
+  - [ ] `Codebase_Status.md` tükrözi a változásokat
+  - [ ] Dependency konfliktus nincs aktív feladatok között
+  - [ ] Planning queue állapot dokumentálva
+
+---
+
 ## Kommunikáció
 
 - **Mailbox:** `docs/mailbox/conductor/inbox/` és `.../outbox/`
 - **Terminál ID:** `CONDUCTOR`
 - **Session:** `spaceos-conductor` (tmux)
-- **Telegram:** értesítések automatikusan a pipeline szkriptekből
+
+### Telegram értesítés (csak kritikus!)
+
+**NE küldj routine értesítéseket!** Csak ezekben az esetekben:
+
+| Eset | Parancs |
+|------|---------|
+| Eszkaláció | `critical-notify.sh escalation "leírás"` |
+| Deploy kész | `critical-notify.sh deploy "service" "url"` |
+| User action kell | `critical-notify.sh user_action "mit kell"` |
+| Rendszer hiba | `critical-notify.sh error "hiba"` |
