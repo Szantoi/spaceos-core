@@ -1,0 +1,16 @@
+# Telegram Bot
+python-telegram-bot[job-queue]>=21.0
+
+# Async
+asyncio
+aiohttp
+
+# Config
+python-dotenv>=1.0.0
+pyyaml>=6.0
+
+# Datahaven Core (local path or git)
+# Install separately: pip install -e /path/to/datahaven-core
+
+# Logging
+structlog>=24.0.0
