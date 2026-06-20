@@ -463,6 +463,210 @@ app.get('/api/terminals/status', (_req: Request, res: Response) => {
   res.json({ terminals: getAllStatus() });
 });
 
+// ─── Dashboard API ───────────────────────────────────────────────────────────
+
+app.get('/api/dashboard', async (_req: Request, res: Response) => {
+  try {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+
+    const projectRoot = '/opt/spaceos';
+    const mailboxRoot = path.join(projectRoot, 'docs/mailbox');
+
+    // Get all terminals status
+    const terminals: any[] = [];
+    const terminalNames = [
+      'kernel', 'orch', 'fe', 'joinery', 'abstractions', 'cutting',
+      'inventory', 'procurement', 'sales', 'identity', 'infra', 'e2e',
+      'architect', 'librarian', 'nexus', 'root', 'conductor'
+    ];
+
+    for (const terminal of terminalNames) {
+      const inboxDir = path.join(mailboxRoot, terminal, 'inbox');
+      const outboxDir = path.join(mailboxRoot, terminal, 'outbox');
+
+      let inboxCount = 0;
+      let outboxCount = 0;
+      let unreadInbox = 0;
+      let unreadOutbox = 0;
+
+      try {
+        const inboxFiles = await fs.readdir(inboxDir);
+        inboxCount = inboxFiles.filter(f => f.endsWith('.md')).length;
+        for (const file of inboxFiles.filter(f => f.endsWith('.md'))) {
+          const content = await fs.readFile(path.join(inboxDir, file), 'utf-8');
+          if (content.includes('status: UNREAD')) unreadInbox++;
+        }
+      } catch (err) { /* dir may not exist */ }
+
+      try {
+        const outboxFiles = await fs.readdir(outboxDir);
+        outboxCount = outboxFiles.filter(f => f.endsWith('.md')).length;
+        for (const file of outboxFiles.filter(f => f.endsWith('.md'))) {
+          const content = await fs.readFile(path.join(outboxDir, file), 'utf-8');
+          if (content.includes('status: UNREAD')) unreadOutbox++;
+        }
+      } catch (err) { /* dir may not exist */ }
+
+      const status = getStatus(terminal);
+
+      terminals.push({
+        name: terminal,
+        inbox: inboxCount,
+        outbox: outboxCount,
+        unreadInbox,
+        unreadOutbox,
+        status: status?.state || 'idle',
+        lastActivity: status?.lastActivity || null,
+      });
+    }
+
+    // Global metrics
+    const totalInbox = terminals.reduce((sum, t) => sum + t.inbox, 0);
+    const totalOutbox = terminals.reduce((sum, t) => sum + t.outbox, 0);
+    const totalUnread = terminals.reduce((sum, t) => sum + t.unreadInbox + t.unreadOutbox, 0);
+    const activeSessions = terminals.filter(t => t.status === 'working').length;
+
+    res.json({
+      timestamp: new Date().toISOString(),
+      metrics: {
+        totalInbox,
+        totalOutbox,
+        totalUnread,
+        activeSessions,
+        terminals: terminals.length,
+      },
+      terminals,
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: msg });
+  }
+});
+
+// ─── Kanban API ──────────────────────────────────────────────────────────────
+
+app.get('/api/kanban/snapshot', async (_req: Request, res: Response) => {
+  try {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+
+    const projectRoot = '/opt/spaceos';
+    const planningRoot = path.join(projectRoot, 'docs/planning');
+    const mailboxRoot = path.join(projectRoot, 'docs/mailbox');
+
+    // Discovery Track
+    const discovery = {
+      ideas: [],
+      selected: [],
+      debate: [],
+      consensus: [],
+      queue: [],
+      totals: { ideas: 0, selected: 0, debate: 0, consensus: 0, queue: 0 },
+    };
+
+    try {
+      const ideaFiles = await fs.readdir(path.join(planningRoot, 'ideas'));
+      discovery.totals.ideas = ideaFiles.filter(f => f.endsWith('.md')).length;
+    } catch (err) { /* dir may not exist */ }
+
+    try {
+      const queueFiles = await fs.readdir(path.join(planningRoot, 'queue'));
+      discovery.totals.queue = queueFiles.filter(f => f.endsWith('.md')).length;
+    } catch (err) { /* dir may not exist */ }
+
+    // Delivery Track
+    const terminals = [
+      'kernel', 'orch', 'fe', 'joinery', 'cutting', 'identity',
+      'infra', 'e2e', 'architect', 'librarian', 'nexus', 'conductor'
+    ];
+
+    const swimlanes: any[] = [];
+
+    for (const terminal of terminals) {
+      const inboxDir = path.join(mailboxRoot, terminal, 'inbox');
+      const outboxDir = path.join(mailboxRoot, terminal, 'outbox');
+
+      let inbox = 0;
+      let working = 0;
+      let review = 0;
+      let done = 0;
+
+      try {
+        const inboxFiles = await fs.readdir(inboxDir);
+        inbox = inboxFiles.filter(f => f.endsWith('.md')).length;
+      } catch (err) { /* dir may not exist */ }
+
+      try {
+        const outboxFiles = await fs.readdir(outboxDir);
+        done = outboxFiles.filter(f => f.endsWith('.md')).length;
+      } catch (err) { /* dir may not exist */ }
+
+      const status = getStatus(terminal);
+
+      swimlanes.push({
+        terminal,
+        sessionActive: status?.state === 'working',
+        totals: { inbox, working, review, done },
+        messages: { inbox: [], working: [], review: [], done: [] },
+      });
+    }
+
+    const delivery = {
+      swimlanes,
+      activeSessions: swimlanes.filter(s => s.sessionActive).map(s => s.terminal),
+      totals: {
+        inbox: swimlanes.reduce((sum, s) => sum + s.totals.inbox, 0),
+        working: swimlanes.reduce((sum, s) => sum + s.totals.working, 0),
+        review: swimlanes.reduce((sum, s) => sum + s.totals.review, 0),
+        done: swimlanes.reduce((sum, s) => sum + s.totals.done, 0),
+      },
+    };
+
+    res.json({ discovery, delivery });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: msg });
+  }
+});
+
+app.get('/api/kanban/metrics', async (_req: Request, res: Response) => {
+  try {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+
+    const projectRoot = '/opt/spaceos';
+    const planningRoot = path.join(projectRoot, 'docs/planning');
+
+    let discoveryWip = 0;
+    let deliveryWip = 0;
+
+    try {
+      const ideaFiles = await fs.readdir(path.join(planningRoot, 'ideas'));
+      discoveryWip += ideaFiles.filter(f => f.endsWith('.md')).length;
+    } catch (err) { /* ignore */ }
+
+    try {
+      const queueFiles = await fs.readdir(path.join(planningRoot, 'queue'));
+      discoveryWip += queueFiles.filter(f => f.endsWith('.md')).length;
+    } catch (err) { /* ignore */ }
+
+    const allStatus = getAllStatus();
+    const activeSessions = Object.values(allStatus).filter((s: any) => s.state === 'working').length;
+
+    res.json({
+      discoveryWip,
+      deliveryWip,
+      activeSessions,
+      throughput: 0,
+      cycleTime: 0,
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: msg });
+  }
+});
+
 // ─── Planning Pipeline API ───────────────────────────────────────────────────
 
 app.get('/api/planning/items', async (_req: Request, res: Response) => {
