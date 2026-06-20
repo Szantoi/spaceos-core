@@ -57,3 +57,6 @@ e2e/
 infra/
 tester/
 agent_tools/
+
+# Node modules (all subdirs)
+**/node_modules/
