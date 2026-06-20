@@ -54,6 +54,16 @@ DONE outbox → reviewer.sh (2× Haiku) → pipeline.sh → Conductor dönt
 ## Session ritual
 
 ```bash
+# 0. Datahaven státusz regisztráció — jelezd hogy dolgozol
+curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "terminal": "conductor",
+    "status": "working",
+    "currentTask": "Session started - checking planning queue"
+  }'
+
 # 1. Inbox ellenőrzés — van feldolgozandó feladat?
 ls docs/mailbox/conductor/inbox/
 
@@ -66,6 +76,44 @@ grep -rl "status: UNREAD" docs/mailbox/*/outbox/ 2>/dev/null
 # 4. Pipeline log
 tail -20 logs/dispatcher/pipeline.log
 ```
+
+**Session lezáráskor:**
+```bash
+# Datahaven státusz regisztráció — jelezd hogy befejeztél
+curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+  -H "Content-Type: application/json" \
+  -d '{"terminal":"conductor","status":"idle"}'
+```
+
+---
+
+## Datahaven Dashboard — Monitoring
+
+> **URL:** https://datahaven.joinerytech.hu
+> **Auth Token:** `dev-token-spaceos-dashboard-2026`
+
+A Conductor láthatja az összes terminál állapotát a Dashboard-on:
+
+- **Dashboard oldal (`/`)**: Melyik terminál dolgozik most? (WORKING/IDLE státusz)
+- **Kanban oldal (`/kanban`)**: Discovery track (Planning pipeline) + Delivery track (19 terminal swimlane)
+- **Planning oldal (`/planning`)**: 5-stage pipeline: Idea → Selected → Debate → Consensus → Queue
+- **Projects oldal (`/projects`)**: Gantt timeline (8 hónapos ablak)
+
+**Használat koordináció közben:**
+```bash
+# Session közben frissítheted a currentTask mezőt
+curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+  -H "Content-Type: application/json" \
+  -d '{"terminal":"conductor","status":"working","currentTask":"Processing queue item 3/5"}'
+
+# Terminálok állapotának lekérdezése
+curl -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+  https://datahaven.joinerytech.hu/api/dashboard | jq '.terminals'
+```
+
+**Teljes API dokumentáció:** `docs/WORKFLOW.md` — "Datahaven Dashboard" szakasz
 
 ---
 
