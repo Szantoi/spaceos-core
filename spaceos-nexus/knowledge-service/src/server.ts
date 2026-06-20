@@ -16,6 +16,11 @@
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import { EventEmitter } from 'events';
+import path from 'path';
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const projectRoot = '/opt/spaceos';
 
 // ─── Rate Limiting (P1 Security) ─────────────────────────────────────────────
 
@@ -825,6 +830,23 @@ function setupInboxWatcherBridge(): void {
     }
   });
 }
+
+// ─── React Frontend Serving ──────────────────────────────────────────────────
+
+// Serve React build (Datahaven Dashboard)
+const reactBuildPath = path.join(projectRoot, 'datahaven-web/client/dist');
+app.use(express.static(reactBuildPath));
+
+// SPA fallback - serve index.html for all non-API routes
+app.get('*', (req: Request, res: Response) => {
+  // Skip API routes
+  if (req.path.startsWith('/api') || req.path.startsWith('/mcp') || req.path === '/health' || req.path === '/ready') {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  // Serve React app
+  res.sendFile(path.join(reactBuildPath, 'index.html'));
+});
 
 // ─── Startup ──────────────────────────────────────────────────────────────────
 
