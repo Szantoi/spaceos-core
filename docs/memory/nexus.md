@@ -18,7 +18,8 @@ Utolsó frissítés: 2026-06-20
 - **Phase 6.5**: Dashboard & Kanban APIs — Real-time file system scanning, dual-track kanban ✅
 
 ### Service státusz
-- **Publikus URL**: `https://nexus.joinerytech.hu`
+- **Publikus URL (MCP)**: `https://nexus.joinerytech.hu`
+- **Datahaven Dashboard**: `https://datahaven.joinerytech.hu`
 - **MCP endpoint**: `https://nexus.joinerytech.hu/mcp`
 - **Health check**: `https://nexus.joinerytech.hu/health`
 - ChromaDB: `localhost:8001`
@@ -221,6 +222,8 @@ nightwatch.sh (*/2 cron)
 ## Datahaven React Dashboard (2026-06-20)
 
 **Phase 6 + 6.5** — Teljes React frontend + Backend API
+
+**🌐 Publikus URL:** https://datahaven.joinerytech.hu
 
 ### Frontend komponensek (React 19 + TypeScript 6 + Vite 8)
 
