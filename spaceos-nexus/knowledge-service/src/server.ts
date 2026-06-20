@@ -500,6 +500,40 @@ const verifyAuthToken = (req: Request, res: Response) => {
 app.get('/api/auth/verify', verifyAuthToken);
 app.post('/api/auth/verify', verifyAuthToken);
 
+// ─── Terminal Status API ─────────────────────────────────────────────────────
+
+app.post('/api/terminal/status', express.json(), async (req: Request, res: Response) => {
+  try {
+    const { terminal, status, currentTask } = req.body;
+
+    if (!terminal || typeof terminal !== 'string') {
+      return res.status(400).json({ error: 'Missing or invalid "terminal" field' });
+    }
+
+    if (!status || (status !== 'working' && status !== 'idle')) {
+      return res.status(400).json({ error: 'Invalid "status" field - must be "working" or "idle"' });
+    }
+
+    if (status === 'working') {
+      registerWorking(terminal, currentTask || 'Working');
+      res.json({
+        success: true,
+        message: `Terminal "${terminal}" registered as WORKING`,
+        currentTask: currentTask || 'Working'
+      });
+    } else {
+      registerIdle(terminal);
+      res.json({
+        success: true,
+        message: `Terminal "${terminal}" registered as IDLE`
+      });
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: msg });
+  }
+});
+
 // ─── Dashboard API ───────────────────────────────────────────────────────────
 
 app.get('/api/dashboard', async (_req: Request, res: Response) => {
