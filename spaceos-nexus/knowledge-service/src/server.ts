@@ -485,7 +485,8 @@ app.get('/api/terminals/status', (_req: Request, res: Response) => {
 // Simple auth token (no database, just static token from env)
 const DASHBOARD_TOKEN = process.env.DASHBOARD_AUTH_TOKEN || 'dev-token-spaceos-dashboard-2026';
 
-app.post('/api/auth/verify', (req: Request, res: Response) => {
+// Support both GET and POST for auth verification
+const verifyAuthToken = (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
   const token = authHeader?.replace('Bearer ', '');
 
@@ -494,7 +495,10 @@ app.post('/api/auth/verify', (req: Request, res: Response) => {
   } else {
     res.status(401).json({ valid: false, message: 'Invalid token' });
   }
-});
+};
+
+app.get('/api/auth/verify', verifyAuthToken);
+app.post('/api/auth/verify', verifyAuthToken);
 
 // ─── Dashboard API ───────────────────────────────────────────────────────────
 
