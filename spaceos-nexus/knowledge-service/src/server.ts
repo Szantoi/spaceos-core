@@ -46,7 +46,13 @@ function rateLimit(req: Request, res: Response, next: NextFunction): void {
     return;
   }
 
-  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  // Get real IP from proxy headers (nginx sets X-Real-IP)
+  const ip = (req.headers['x-real-ip'] as string) ||
+              (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
+              req.ip ||
+              req.socket.remoteAddress ||
+              'unknown';
+
   const now = Date.now();
   const entry = rateLimitStore.get(ip);
 
@@ -472,6 +478,22 @@ app.get('/api/terminal/:terminal/status', (req: Request, res: Response) => {
 
 app.get('/api/terminals/status', (_req: Request, res: Response) => {
   res.json({ terminals: getAllStatus() });
+});
+
+// ─── Auth API (for React Dashboard) ──────────────────────────────────────────
+
+// Simple auth token (no database, just static token from env)
+const DASHBOARD_TOKEN = process.env.DASHBOARD_AUTH_TOKEN || 'dev-token-spaceos-dashboard-2026';
+
+app.post('/api/auth/verify', (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.replace('Bearer ', '');
+
+  if (token === DASHBOARD_TOKEN) {
+    res.json({ valid: true, message: 'Token is valid' });
+  } else {
+    res.status(401).json({ valid: false, message: 'Invalid token' });
+  }
 });
 
 // ─── Dashboard API ───────────────────────────────────────────────────────────
