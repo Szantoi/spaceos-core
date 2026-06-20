@@ -159,6 +159,98 @@ ABSTRACTIONS  PROCUREMENT  PORTAL  FE  INFRA  E2E  TESTER
 
 ---
 
+## Datahaven Dashboard — Központi Monitoring (2026-06-20+)
+
+> **URL:** https://datahaven.joinerytech.hu
+> **Auth Token:** `dev-token-spaceos-dashboard-2026`
+> **Backend:** spaceos-nexus/knowledge-service (port 3456)
+> **Frontend:** React 19 + TypeScript 6 + Tailwind CSS 4
+
+A Datahaven Dashboard a **SpaceOS agent infrastruktúra központi monitoring és koordinációs felülete**.
+
+### 4 fő oldal
+
+| Oldal | URL | Cél |
+|---|---|---|
+| **Dashboard** | `/` | Terminálok állapota, inbox/outbox metrikák, aktív sessionök |
+| **Kanban** | `/kanban` | Dual-track board: Discovery (Planning pipeline) + Delivery (Terminal swimlanes) |
+| **Planning** | `/planning` | 5-stage pipeline láthatóvá tétele: Idea → Selected → Debate → Consensus → Queue |
+| **Projects** | `/projects` | Gantt timeline + projekt lista (8 hónapos ablak: -2 hónap / +6 hónap) |
+
+### Terminál integráció — kötelező használat
+
+**Minden terminál session indításakor:**
+1. Regisztrálja magát `WORKING` státusszal
+2. Session végén regisztrálja `IDLE` státusszal
+3. Dashboard automatikusan frissül (SSE real-time)
+
+**API endpoint a státusz regisztrációhoz:**
+```bash
+curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "terminal": "kernel",
+    "status": "working",
+    "currentTask": "E28 Dashboard Stats API implementation"
+  }'
+```
+
+**Session startup ritual (minden terminál):**
+```bash
+# 1. Regisztráld WORKING státuszt
+curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+  -H "Content-Type: application/json" \
+  -d '{"terminal":"<TERMINAL_NAME>","status":"working","currentTask":"<TASK_DESCRIPTION>"}'
+
+# 2. Olvasd inbox üzeneteket
+grep -rl "status: UNREAD" docs/mailbox/<terminal>/inbox/
+
+# 3. Folytasd a munkát (CODE→BUILD→TEST→REVIEW→SECURITY→E2E/TESTER→OUTBOX)
+```
+
+**Session shutdown ritual (minden terminál):**
+```bash
+# DONE/BLOCKED outbox írása után regisztráld IDLE státuszt
+curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+  -H "Content-Type: application/json" \
+  -d '{"terminal":"<TERMINAL_NAME>","status":"idle"}'
+```
+
+### Dashboard API reference
+
+| Endpoint | Method | Mire való |
+|---|---|---|
+| `/api/dashboard` | GET | Összes terminál metrikái (inbox/outbox/unread/session status) |
+| `/api/kanban/snapshot` | GET | Discovery track + Delivery swimlanes (19 terminál) |
+| `/api/planning/snapshot` | GET | Planning pipeline 5 stage (idea/selected/debate/consensus/queue) |
+| `/api/projects/snapshot` | GET | Projekt lista idővonalas adatokkal |
+| `/api/terminal/status` | POST | Terminál státusz regisztráció (working/idle) |
+| `/api/auth/verify` | GET/POST | Auth token validáció |
+| `/health` | GET | Health check |
+
+### Auth token kezelés
+
+- **Token:** `dev-token-spaceos-dashboard-2026`
+- **Tárolás:** Environment variable `DASHBOARD_AUTH_TOKEN` a knowledge-service-ben
+- **Használat:** `Authorization: Bearer <token>` header minden API híváshoz
+- **Frontend login:** Token beírása login oldalon → localStorage-ba mentve → minden API híváshoz csatolva
+
+### Migration status
+
+A teljes terminál migráció részletei: `docs/migration/DATAHAVEN_TERMINAL_MIGRATION.md`
+
+**Rollout plan:**
+- **Week 1:** Root + Conductor + Architect (priority terminals)
+- **Week 2:** Kernel + Orch + FE (product core)
+- **Week 3:** Joinery + Cutting + Abstractions (modules)
+- **Week 4:** Inventory + Procurement + Sales + Identity (remaining modules)
+- **Week 5:** Infra + E2E + TESTER + Librarian + Nexus (support terminals)
+
+---
+
 ## Fő folyamat
 
 ```
