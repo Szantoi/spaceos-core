@@ -13,6 +13,16 @@
 **Minden session elején (vagy ha "Folytasd a munkát" üzenetet kapsz):**
 
 ```bash
+# 0. Datahaven státusz regisztráció — jelezd hogy dolgozol
+curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "terminal": "root",
+    "status": "working",
+    "currentTask": "Session started - orchestrating terminals"
+  }'
+
 # 1. Folyamatok állapota
 ls docs/planning/queue/          # Hány terv vár?
 ls docs/planning/ideas/          # Hány ötlet van?
@@ -32,6 +42,15 @@ tail -5 logs/dispatcher/nightwatch.log
 - Stuck session → `tmux send-keys -t <session> "Folytasd" Enter Enter`
 - Conductor nem dolgozik → újraindítás vagy nudge
 - Queue tele → Conductor-nak inbox küldés
+
+**Session lezáráskor:**
+```bash
+# Datahaven státusz regisztráció — jelezd hogy befejeztél
+curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+  -H "Content-Type: application/json" \
+  -d '{"terminal":"root","status":"idle"}'
+```
 
 ---
 
@@ -107,6 +126,63 @@ SUPPORT (feladattal indul)
 ```
 
 Minden terminálnak saját CLAUDE.md-je van. Teljes workflow: `/opt/spaceos/docs/WORKFLOW.md`
+
+---
+
+## DATAHAVEN DASHBOARD — KÖZPONTI MONITORING
+
+> **URL:** https://datahaven.joinerytech.hu
+> **Auth Token:** `dev-token-spaceos-dashboard-2026`
+> **Státusz:** LIVE (2026-06-20 Phase 6+6.5 complete)
+
+A Datahaven Dashboard a **SpaceOS agent infrastruktúra központi monitoring és koordinációs felülete**.
+
+### 4 fő oldal
+
+| Oldal | URL | Mit látsz |
+|---|---|---|
+| **Dashboard** | `/` | Minden terminál állapota (WORKING/IDLE), inbox/outbox metrikák, aktív sessionök |
+| **Kanban** | `/kanban` | Dual-track board: Discovery (Planning pipeline) + Delivery (19 terminal swimlane) |
+| **Planning** | `/planning` | 5-stage planning pipeline láthatóvá téve: Idea → Selected → Debate → Consensus → Queue |
+| **Projects** | `/projects` | Gantt timeline + projekt lista (8 hónapos ablak: -2 hónap / +6 hónap) |
+
+### Root használati minták
+
+**1. Session indításkor — gyors áttekintés:**
+- Dashboard oldal: melyik terminál dolgozik most? (WORKING státusz)
+- Kanban oldal: Discovery track - hány terv van queue-ban? Delivery track - melyik terminálnak van UNREAD inbox?
+- Planning oldal: hány idea/selected/debate/consensus/queue item van?
+
+**2. Koordináció közben:**
+- Frissítsd a saját státuszt ha konkrét fázisban vagy:
+  ```bash
+  curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+    -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+    -H "Content-Type: application/json" \
+    -d '{"terminal":"root","status":"working","currentTask":"Processing Kernel DONE outbox"}'
+  ```
+- Dashboard automatikusan frissül (SSE real-time minden 2 másodpercben)
+
+**3. Terminálok státusz ellenőrzése:**
+- API-n keresztül lekérdezheted az összes terminál állapotát:
+  ```bash
+  curl -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+    https://datahaven.joinerytech.hu/api/dashboard | jq '.terminals[] | select(.sessionActive == true)'
+  ```
+
+### Migration koordináció
+
+Root felelőssége a Datahaven Dashboard rollout koordinálása:
+
+**Week 1 (2026-06-23):** Root + Conductor + Architect
+**Week 2 (2026-06-30):** Kernel + Orch + FE
+**Week 3 (2026-07-07):** Joinery + Cutting + Abstractions
+**Week 4 (2026-07-14):** Inventory + Procurement + Sales + Identity
+**Week 5 (2026-07-21):** Infra + E2E + TESTER + Librarian + Nexus
+
+**Migration tracking:** `docs/migration/DATAHAVEN_TERMINAL_MIGRATION.md` — Terminal Status Matrix
+
+**Inbox üzenetek:** Root írja minden terminálnak a migration inbox üzenetet (training + calibration)
 
 ---
 
