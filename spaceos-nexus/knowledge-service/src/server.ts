@@ -31,11 +31,17 @@ interface RateLimitEntry {
 
 const rateLimitStore = new Map<string, RateLimitEntry>();
 const RATE_LIMIT_WINDOW = 60000; // 1 minute
-const RATE_LIMIT_MAX = 100; // 100 requests per minute per IP
+const RATE_LIMIT_MAX = 500; // 500 requests per minute per IP (increased for dashboard)
 
 function rateLimit(req: Request, res: Response, next: NextFunction): void {
-  // Skip rate limiting for health checks
-  if (req.path === '/health' || req.path === '/ready') {
+  // Skip rate limiting for health checks and static assets
+  if (
+    req.path === '/health' ||
+    req.path === '/ready' ||
+    req.path.startsWith('/assets/') ||
+    req.path === '/favicon.svg' ||
+    req.path === '/icons.svg'
+  ) {
     next();
     return;
   }
