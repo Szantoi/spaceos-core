@@ -6,10 +6,66 @@
  *   GET  /api/knowledge/search?q=...&topK=5
  *   POST /api/knowledge/search   { q: string, topK?: number }
  *   POST /api/knowledge/index    (re-index docs/knowledge/)
+ *   GET  /api/mailbox/:terminal/inbox?status=UNREAD|READ|all
+ *   POST /api/mailbox/:terminal/inbox (send_message)
+ *   POST /api/mailbox/:terminal/outbox (submit_done)
+ *   GET  /api/tasks/status?task_id=...
+ *   GET  /api/mailbox/:terminal/subscribe (SSE live notifications)
  */
 
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
+import { EventEmitter } from 'events';
+
+// ─── Rate Limiting (P1 Security) ─────────────────────────────────────────────
+
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+
+const rateLimitStore = new Map<string, RateLimitEntry>();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const RATE_LIMIT_MAX = 100; // 100 requests per minute per IP
+
+function rateLimit(req: Request, res: Response, next: NextFunction): void {
+  // Skip rate limiting for health checks
+  if (req.path === '/health' || req.path === '/ready') {
+    next();
+    return;
+  }
+
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const entry = rateLimitStore.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitStore.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
+    next();
+    return;
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX) {
+    res.status(429).json({
+      error: 'Too many requests',
+      retryAfter: Math.ceil((entry.resetAt - now) / 1000),
+    });
+    return;
+  }
+
+  entry.count++;
+  next();
+}
+
+// Cleanup old entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitStore) {
+    if (now > entry.resetAt) {
+      rateLimitStore.delete(ip);
+    }
+  }
+}, 60000);
 import {
   initVectorStore,
   searchKnowledge,
@@ -18,24 +74,112 @@ import {
 } from './vectorStore';
 import { embeddingBackend } from './embeddings';
 import { buildIndex } from './indexer';
+import {
+  listInbox,
+  sendMessage,
+  submitDone,
+  getTaskStatus,
+} from './mailbox';
+import mcpRouter from './mcp';
+import { startInboxWatcher, inboxEvents, InboxEvent, scanExistingUnread } from './inboxWatcher';
+import {
+  registerWorking,
+  registerIdle,
+  heartbeat,
+  shouldWakeUp,
+  getAllStatus,
+  getStatus,
+} from './terminalStatus';
+import { startTerminalSession } from './sessionStarter';
+import {
+  validate,
+  SearchBodySchema,
+  SearchQuerySchema,
+  TerminalParamSchema,
+  InboxQuerySchema,
+  TerminalSchema,
+} from './validation';
+import { startNightwatchScheduler, stopNightwatchScheduler } from './pipeline';
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3456', 10);
 
+// ─── Event Emitter for SSE ───────────────────────────────────────────────────
+
+export const mailboxEvents = new EventEmitter();
+mailboxEvents.setMaxListeners(100); // Support many subscribers
+
+interface MailboxEventData {
+  terminal: string;
+  type: 'new_message' | 'message_sent' | 'done_submitted';
+  messageId: string;
+  timestamp: string;
+  details?: Record<string, unknown>;
+}
+
+// SSE clients per terminal
+const sseClients: Map<string, Set<Response>> = new Map();
+
+// CORS for browser clients
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(204);
+    return;
+  }
+  next();
+});
+
 app.use(express.json());
+app.use(rateLimit);
+
+// ─── MCP Protocol ─────────────────────────────────────────────────────────────
+
+app.use('/mcp', mcpRouter);
 
 // ─── Health ──────────────────────────────────────────────────────────────────
+
+// Service readiness state
+let isReady = false;
+let isShuttingDown = false;
 
 app.get('/health', async (_req: Request, res: Response) => {
   const count = await getDocumentCount();
   res.json({
-    status: 'ok',
+    status: isShuttingDown ? 'shutting_down' : 'ok',
     vectorBackend: usingChroma() ? 'chromadb' : 'memory',
     embeddingBackend: embeddingBackend(),
     documents: count,
     knowledgePath: process.env.KNOWLEDGE_BASE_PATH || '(default)',
     port: PORT,
   });
+});
+
+// Kubernetes readiness probe
+app.get('/ready', async (_req: Request, res: Response) => {
+  if (isShuttingDown) {
+    res.status(503).json({ ready: false, reason: 'shutting_down' });
+    return;
+  }
+
+  if (!isReady) {
+    res.status(503).json({ ready: false, reason: 'initializing' });
+    return;
+  }
+
+  try {
+    const count = await getDocumentCount();
+    if (count === 0) {
+      res.status(503).json({ ready: false, reason: 'no_documents' });
+      return;
+    }
+    res.json({ ready: true, documents: count });
+  } catch (err) {
+    res.status(503).json({ ready: false, reason: 'vector_store_error' });
+  }
 });
 
 // ─── Search (GET) ─────────────────────────────────────────────────────────────
@@ -60,13 +204,8 @@ app.get('/api/knowledge/search', async (req: Request, res: Response) => {
 
 // ─── Search (POST) ────────────────────────────────────────────────────────────
 
-app.post('/api/knowledge/search', async (req: Request, res: Response) => {
-  const { q, topK = 5 } = req.body as { q?: string; topK?: number };
-
-  if (!q) {
-    res.status(400).json({ error: 'q field required in request body' });
-    return;
-  }
+app.post('/api/knowledge/search', validate(SearchBodySchema), async (req: Request, res: Response) => {
+  const { q, topK } = req.body as { q: string; topK: number };
 
   try {
     const results = await searchKnowledge(q, topK);
@@ -90,6 +229,203 @@ app.post('/api/knowledge/index', async (_req: Request, res: Response) => {
   }
 });
 
+// ─── Mailbox: List Inbox ──────────────────────────────────────────────────────
+
+app.get('/api/mailbox/:terminal/inbox', validate(TerminalParamSchema, 'params'), async (req: Request, res: Response) => {
+  const terminal = String(req.params.terminal);
+  const statusParam = req.query.status as string | undefined;
+  const status = statusParam && ['UNREAD', 'READ', 'all'].includes(statusParam)
+    ? statusParam as 'UNREAD' | 'READ' | 'all'
+    : undefined;
+
+  try {
+    const messages = await listInbox(terminal, status);
+    res.json({ terminal, status: status || 'all', count: messages.length, messages });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: msg });
+  }
+});
+
+// ─── Mailbox: Send Message ────────────────────────────────────────────────────
+
+app.post('/api/mailbox/:terminal/inbox', validate(TerminalParamSchema, 'params'), async (req: Request, res: Response) => {
+  const terminal = String(req.params.terminal);
+  const { type, content, priority, ref, model } = req.body;
+
+  if (!type || !content || !priority) {
+    res.status(400).json({ error: 'type, content, and priority are required' });
+    return;
+  }
+
+  try {
+    const result = await sendMessage({
+      to: terminal,
+      type,
+      content,
+      priority,
+      ref,
+      model,
+    });
+
+    // Emit SSE event to subscribers
+    const eventData: MailboxEventData = {
+      terminal,
+      type: 'new_message',
+      messageId: result.id,
+      timestamp: new Date().toISOString(),
+      details: { type, priority, ref },
+    };
+    broadcastToTerminal(terminal, 'new_message', eventData);
+    mailboxEvents.emit('new_message', eventData);
+
+    res.json({ success: true, ...result });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: msg });
+  }
+});
+
+// ─── Mailbox: Submit DONE ─────────────────────────────────────────────────────
+
+app.post('/api/mailbox/:terminal/outbox', validate(TerminalParamSchema, 'params'), async (req: Request, res: Response) => {
+  const terminal = String(req.params.terminal);
+  const { task_id, summary, files_changed } = req.body;
+
+  if (!task_id || !summary || !files_changed) {
+    res.status(400).json({ error: 'task_id, summary, and files_changed are required' });
+    return;
+  }
+
+  try {
+    const result = await submitDone({
+      from: terminal,
+      task_id,
+      summary,
+      files_changed,
+    });
+
+    // Emit SSE event to 'root' (DONE messages go to root for review)
+    const eventData: MailboxEventData = {
+      terminal: 'root',
+      type: 'done_submitted',
+      messageId: result.id,
+      timestamp: new Date().toISOString(),
+      details: { from: terminal, task_id, summary },
+    };
+    broadcastToTerminal('root', 'done_submitted', eventData);
+    mailboxEvents.emit('done_submitted', eventData);
+
+    res.json({ success: true, ...result });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: msg });
+  }
+});
+
+// ─── Tasks: Get Status ────────────────────────────────────────────────────────
+
+app.get('/api/tasks/status', async (req: Request, res: Response) => {
+  const task_id = req.query.task_id as string | undefined;
+
+  try {
+    const tasks = await getTaskStatus(task_id);
+    res.json({ count: tasks.length, tasks });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: msg });
+  }
+});
+
+// ─── SSE: Subscribe to Inbox ─────────────────────────────────────────────────
+
+app.get('/api/mailbox/:terminal/subscribe', (req: Request, res: Response) => {
+  const terminal = String(req.params.terminal);
+
+  // Validate terminal
+  const parsed = TerminalSchema.safeParse(terminal);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Invalid terminal name' });
+    return;
+  }
+
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.flushHeaders();
+
+  // Send initial connection event
+  res.write(`event: connected\ndata: ${JSON.stringify({ terminal, timestamp: new Date().toISOString() })}\n\n`);
+
+  // Add client to subscribers
+  if (!sseClients.has(terminal)) {
+    sseClients.set(terminal, new Set());
+  }
+  sseClients.get(terminal)!.add(res);
+
+  // Also subscribe to 'all' for broadcast messages
+  if (!sseClients.has('all')) {
+    sseClients.set('all', new Set());
+  }
+  sseClients.get('all')!.add(res);
+
+  console.log(`[SSE] Client subscribed to terminal: ${terminal} (total: ${sseClients.get(terminal)?.size || 0})`);
+
+  // Keep connection alive with heartbeat every 30s
+  const heartbeat = setInterval(() => {
+    res.write(`:heartbeat\n\n`);
+  }, 30000);
+
+  // Clean up on disconnect
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    sseClients.get(terminal)?.delete(res);
+    sseClients.get('all')?.delete(res);
+    console.log(`[SSE] Client disconnected from terminal: ${terminal}`);
+  });
+});
+
+// ─── Broadcast helper ────────────────────────────────────────────────────────
+
+function broadcastToTerminal(terminal: string, event: string, data: MailboxEventData): void {
+  const clients = sseClients.get(terminal);
+  if (clients) {
+    const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+    clients.forEach(client => {
+      try {
+        client.write(message);
+      } catch {
+        // Client disconnected, will be cleaned up
+      }
+    });
+  }
+}
+
+// ─── Broadcast endpoint ──────────────────────────────────────────────────────
+
+app.post('/api/mailbox/broadcast', (req: Request, res: Response) => {
+  const { message, priority = 'info' } = req.body;
+
+  if (!message) {
+    res.status(400).json({ error: 'message is required' });
+    return;
+  }
+
+  const eventData: MailboxEventData = {
+    terminal: 'all',
+    type: 'new_message',
+    messageId: `BROADCAST-${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    details: { message, priority },
+  };
+
+  broadcastToTerminal('all', 'broadcast', eventData);
+
+  res.json({ success: true, sentTo: sseClients.get('all')?.size || 0 });
+});
+
 // ─── Error handler ────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -97,6 +433,78 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error('[ERROR]', err.message);
   res.status(500).json({ error: err.message });
 });
+
+// ─── Terminal Status API ─────────────────────────────────────────────────────
+
+app.post('/api/terminal/:terminal/status', (req: Request, res: Response) => {
+  const terminal = String(req.params.terminal);
+  const { state, taskId } = req.body as { state?: 'working' | 'idle'; taskId?: string };
+
+  if (state === 'working') {
+    registerWorking(terminal, taskId);
+    res.json({ success: true, terminal, state: 'working', taskId });
+  } else if (state === 'idle') {
+    registerIdle(terminal);
+    res.json({ success: true, terminal, state: 'idle' });
+  } else {
+    // Heartbeat if no state specified
+    heartbeat(terminal);
+    res.json({ success: true, terminal, action: 'heartbeat' });
+  }
+});
+
+app.get('/api/terminal/:terminal/status', (req: Request, res: Response) => {
+  const terminal = String(req.params.terminal);
+  const status = getStatus(terminal);
+  res.json({ terminal, status: status || { state: 'idle', lastActivity: null } });
+});
+
+app.get('/api/terminals/status', (_req: Request, res: Response) => {
+  res.json({ terminals: getAllStatus() });
+});
+
+// ─── Inbox Watcher SSE Bridge ────────────────────────────────────────────────
+
+function setupInboxWatcherBridge(): void {
+  inboxEvents.on('inbox_change', async (event: InboxEvent) => {
+    // Check if terminal should be woken up (not already working)
+    if (!shouldWakeUp(event.terminal)) {
+      console.log(`[InboxWatcher] ${event.terminal} is WORKING — not sending wake-up for ${event.messageId}`);
+      return;
+    }
+
+    // Broadcast to the specific terminal
+    const eventData: MailboxEventData = {
+      terminal: event.terminal,
+      type: 'new_message',
+      messageId: event.messageId,
+      timestamp: event.timestamp,
+      details: {
+        priority: event.priority,
+        messageType: event.messageType,
+        filePath: event.filePath,
+        source: 'file_watcher',
+      },
+    };
+
+    broadcastToTerminal(event.terminal, 'wake_up', eventData);
+    mailboxEvents.emit('new_message', eventData);
+
+    console.log(`[SSE] Wake-up sent to ${event.terminal} for ${event.messageId}`);
+
+    // Start the terminal session directly (no external daemon needed)
+    try {
+      const result = await startTerminalSession(event.terminal, event.messageId);
+      if (result.success) {
+        console.log(`[SessionStarter] ${result.message}`);
+      } else {
+        console.log(`[SessionStarter] Skip: ${result.message}`);
+      }
+    } catch (err) {
+      console.error(`[SessionStarter] Error starting ${event.terminal}:`, err);
+    }
+  });
+}
 
 // ─── Startup ──────────────────────────────────────────────────────────────────
 
@@ -113,13 +521,85 @@ async function main() {
     );
   }
 
-  app.listen(PORT, () => {
+  // Start inbox file watcher
+  startInboxWatcher();
+  setupInboxWatcherBridge();
+
+  // Log existing UNREAD messages on startup
+  const existingUnread = await scanExistingUnread();
+  if (existingUnread.length > 0) {
+    console.log(`\n📬 Found ${existingUnread.length} existing UNREAD messages:`);
+    for (const msg of existingUnread) {
+      console.log(`   - ${msg.terminal}: ${msg.messageId} (${msg.priority || 'normal'})`);
+    }
+  }
+
+  const server = app.listen(PORT, () => {
+    isReady = true;
     console.log(`\n🚀 SpaceOS Knowledge Service on port ${PORT}`);
     console.log(`   GET  /health`);
+    console.log(`   GET  /ready`);
+    console.log(`\n   Knowledge Service:`);
     console.log(`   GET  /api/knowledge/search?q=...&topK=5`);
     console.log(`   POST /api/knowledge/search   { q, topK? }`);
-    console.log(`   POST /api/knowledge/index    (re-index)\n`);
+    console.log(`   POST /api/knowledge/index    (re-index)`);
+    console.log(`\n   Mailbox Tools:`);
+    console.log(`   GET  /api/mailbox/:terminal/inbox?status=UNREAD|READ|all`);
+    console.log(`   POST /api/mailbox/:terminal/inbox   (send_message)`);
+    console.log(`   POST /api/mailbox/:terminal/outbox  (submit_done)`);
+    console.log(`\n   Tasks:`);
+    console.log(`   GET  /api/tasks/status?task_id=...`);
+    console.log(`\n   Live Notifications:`);
+    console.log(`   GET  /api/mailbox/:terminal/subscribe  (SSE wake-on-inbox)`);
+    console.log(`\n   MCP Protocol (Claude Code):`);
+    console.log(`   GET  /mcp              (server info)`);
+    console.log(`   POST /mcp              (JSON-RPC: initialize, tools/list, tools/call)\n`);
+
+    // Start Nightwatch scheduler if enabled (replaces bash cron)
+    if (process.env.ENABLE_NIGHTWATCH === 'true') {
+      const intervalMs = parseInt(process.env.NIGHTWATCH_INTERVAL || '120000', 10);
+      startNightwatchScheduler(intervalMs);
+      console.log(`   ⏰ Nightwatch Scheduler: ENABLED (every ${intervalMs / 1000}s)\n`);
+    } else {
+      console.log(`   ⏰ Nightwatch Scheduler: DISABLED (set ENABLE_NIGHTWATCH=true to enable)\n`);
+    }
   });
+
+  // Graceful shutdown (P2)
+  const gracefulShutdown = (signal: string) => {
+    console.log(`\n⏳ ${signal} received, shutting down gracefully...`);
+    isShuttingDown = true;
+    isReady = false;
+
+    // Stop Nightwatch scheduler if running
+    stopNightwatchScheduler();
+
+    // Stop accepting new connections
+    server.close(() => {
+      console.log('✅ HTTP server closed');
+
+      // Close all SSE connections
+      for (const [terminal, clients] of sseClients) {
+        for (const client of clients) {
+          client.end();
+        }
+        clients.clear();
+      }
+      console.log('✅ SSE connections closed');
+
+      console.log('👋 Goodbye!');
+      process.exit(0);
+    });
+
+    // Force exit after 10 seconds
+    setTimeout(() => {
+      console.error('⚠️ Forced exit after timeout');
+      process.exit(1);
+    }, 10000);
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }
 
 main().catch(err => {

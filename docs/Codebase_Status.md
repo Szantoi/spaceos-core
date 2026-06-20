@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-06-17 11:10 — **🎉 PHASE 3 ADR FOUNDATION APPROVED** · 3 ADRs (Marvin, RAG, MCP) ✅ · PHASE 2 ✅ COMPLETE · DOORSTAR LIVE (10:30 UTC) · 1,082+ tests · 11/11 deliverables · Orchestrator + Knowledge Service operational · **PRODUCTION OPERATIONAL**
+**Utolsó frissítés:** 2026-06-20 17:15 — **🟢 NEXUS WORK RECOVERED** · 3 DONE processed · Phase 2+3.0 complete · 108 tests passing · DOORSTAR LIVE · PRODUCTION OPERATIONAL
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 **PHASE 3 Status:** 🟢 ADR APPROVED — Implementation ready · Architect ADR review DONE (MSG-ARCH-010) · ROOT approval (MSG-ROOT-038)
@@ -14,7 +14,7 @@
 | **FE** | ~~TOP 1-3 ✅~~ ~~Joinery Phase 2 ✅~~ | 🟢 **4/4 DONE** | +77 | ✅ ROOT-029, ROOT-031 |
 | **Identity** | ~~GET /users?role ✅~~ | 🟢 DONE | 67/67 | ✅ APPROVED |
 | **Cutting** | ~~POST /assign-batch ✅~~ | 🟢 DONE | 938/939 | ✅ APPROVED |
-| **Nexus** | ~~Phase 1 ✅~~ ~~Systemd+Librarian+Haiku ✅~~ | 🟢 **2/2 DONE** | — | ✅ ROOT-034 |
+| **Nexus** | ~~Phase 1 ✅~~ ~~Phase 2 ✅~~ ~~Phase 3.0 ✅~~ | 🟢 **5/5 DONE** | 108/108 | ✅ ROOT-RECOVERED |
 | **Orch** | ~~Routing verification ✅~~ | 🟢 DONE | 4/4 routes | ✅ ROOT-033 |
 | **Conductor** | ~~Smoke test ✅~~ ~~Deployment ✅~~ ~~Activation ✅~~ | 🟢 **COMPLETE** | LIVE | ✅ ROOT-037 |
 

@@ -10,16 +10,21 @@
     "index": "ts-node src/indexer.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.105.0",
     "@chroma-core/default-embed": "^0.1.9",
     "@langchain/google-genai": "^2.1.31",
     "@langchain/textsplitters": "^1.0.1",
+    "chokidar": "^5.0.0",
     "chromadb": "^3.3.1",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
-    "sharp": "^0.35.1"
+    "gray-matter": "^4.0.3",
+    "sharp": "^0.35.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.3.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
