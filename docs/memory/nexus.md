@@ -14,6 +14,8 @@ Utolsó frissítés: 2026-06-20
 - **Phase 4.5**: HTTPS + Auth — publikus endpoint, systemd service ✅
 - **Phase 5**: TypeScript Nightwatch Scheduler — bash → TS migráció, 2 percenként fut ✅
 - **Phase 5.5**: TypeScript Reviewer Pipeline — Anthropic SDK dual review, bash reviewer.sh kiváltva ✅
+- **Phase 6**: React Datahaven Frontend — Planning + Projects pages, Gantt chart, workflow viz ✅
+- **Phase 6.5**: Dashboard & Kanban APIs — Real-time file system scanning, dual-track kanban ✅
 
 ### Service státusz
 - **Publikus URL**: `https://nexus.joinerytech.hu`
@@ -216,23 +218,94 @@ nightwatch.sh (*/2 cron)
 └── watch-idle.sh      → Költségoptimalizálás [ÚJ]
 ```
 
+## Datahaven React Dashboard (2026-06-20)
+
+**Phase 6 + 6.5** — Teljes React frontend + Backend API
+
+### Frontend komponensek (React 19 + TypeScript 6 + Vite 8)
+
+**Lokáció:** `/opt/spaceos/datahaven-web/client/`
+
+**Implementált pages:**
+- `PlanningPage.tsx` (240 lines) — Planning pipeline 5-stage workflow visualization
+- `ProjectsPage.tsx` (329 lines) — Gantt chart timeline + list view for projects
+- `DashboardPage.tsx` — Real-time metrics dashboard (17 terminals)
+- `KanbanPage.tsx` — Dual-track kanban (Discovery + Delivery)
+
+**Funkciók:**
+- 8 hónapos Gantt timeline (-2 hó → +6 hó)
+- "Today" marker a timeline-on
+- Filtering by status + priority
+- Auto-refresh minden 60 másodpercben
+- Color-coded status badges
+- Progress bars és metrics cards
+
+**Build:**
+```bash
+cd /opt/spaceos/datahaven-web/client
+npm run build
+# Bundle: 278.25 kB (83.25 kB gzip)
+```
+
+### Backend API endpoints
+
+**Lokáció:** `/opt/spaceos/spaceos-nexus/knowledge-service/src/server.ts`
+
+**Új endpoints (Phase 6 + 6.5):**
+
+#### GET /api/planning/items
+- Scans `docs/planning/{ideas,queue}/` directories
+- Returns planning items with status: idea → selected → debate → consensus → queue
+- Metrics: count per stage, last scan timestamp
+- ~70 lines, server.ts:672-738
+
+#### GET /api/projects
+- Scans `docs/tasks/{active,new,archive}/` directories
+- Returns projects with dates, progress, terminal info
+- Generates mock milestones
+- ~60 lines, server.ts:738-796
+
+#### GET /api/dashboard
+- Scans all 17 terminals' mailbox directories
+- Returns total inbox/outbox/unread counts
+- Per-terminal status with session state (WORKING/IDLE)
+- ~80 lines, server.ts:468-545
+
+#### GET /api/kanban/snapshot
+- Discovery track: scans planning/{ideas,queue}
+- Delivery track: swimlanes per terminal from mailbox
+- Real-time WIP counts across 5 stages
+- ~80 lines, server.ts:549-631
+
+#### GET /api/kanban/metrics
+- Discovery/delivery WIP calculation
+- Active session counts from terminal status
+- Throughput and cycle time placeholders
+- ~35 lines, server.ts:633-668
+
+**Architektúra:**
+- File system = real-time database
+- Markdown frontmatter parsing (YAML)
+- Recursive directory scanning
+- Status detection (UNREAD, WORKING, IDLE)
+
+### Tech stack
+- **Frontend:** React 19, TypeScript 6, Vite 8, Tailwind CSS 4
+- **Backend:** Express.js, Node.js 22, TypeScript
+- **Data source:** File system (docs/planning/, docs/tasks/, docs/mailbox/)
+- **Build tool:** Vite (HMR + fast builds)
+
 ## Következő lépések
 
-### Datahaven-web React migráció (LATER)
-- Jelenleg: vanilla HTML/CSS/JS + Express
-- Cél: React komponensek + state management
-- Közös menü/layout minden oldalon (kanban, planning, projects, flow)
-- Interaktív flow diagram az agent kommunikációról
-- **Prioritás: alacsony** — működik, csak nem szép
-
-### Phase 5: Marvin integráció
+### Phase 7: Marvin integráció
 1. Planning pipeline Marvin-nel
 2. Guardrail service bekötés
-3. Rate limiting
+3. Advanced metrics (throughput, cycle time)
 
 ### Egyéb
 - Librarian cron: indexer hívás knowledge sync után
 - Haiku scanner: `search_knowledge` tool bekötés
+- React komponens tesztek (Vitest)
 
 ## Megoldott problémák
 

@@ -1,6 +1,6 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-06-20 17:15 — **🟢 NEXUS WORK RECOVERED** · 3 DONE processed · Phase 2+3.0 complete · 108 tests passing · DOORSTAR LIVE · PRODUCTION OPERATIONAL
+**Utolsó frissítés:** 2026-06-20 17:40 — **🟢 NEXUS PHASE 6+6.5 COMPLETE** · React Datahaven frontend + Backend APIs · Planning/Projects/Dashboard/Kanban · 108 tests passing · DOORSTAR LIVE · PRODUCTION OPERATIONAL
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 **PHASE 3 Status:** 🟢 ADR APPROVED — Implementation ready · Architect ADR review DONE (MSG-ARCH-010) · ROOT approval (MSG-ROOT-038)
@@ -14,7 +14,7 @@
 | **FE** | ~~TOP 1-3 ✅~~ ~~Joinery Phase 2 ✅~~ | 🟢 **4/4 DONE** | +77 | ✅ ROOT-029, ROOT-031 |
 | **Identity** | ~~GET /users?role ✅~~ | 🟢 DONE | 67/67 | ✅ APPROVED |
 | **Cutting** | ~~POST /assign-batch ✅~~ | 🟢 DONE | 938/939 | ✅ APPROVED |
-| **Nexus** | ~~Phase 1 ✅~~ ~~Phase 2 ✅~~ ~~Phase 3.0 ✅~~ | 🟢 **5/5 DONE** | 108/108 | ✅ ROOT-RECOVERED |
+| **Nexus** | ~~Phase 1-5.5 ✅~~ **Phase 6+6.5 ✅** | 🟢 **7/7 DONE** | 108/108 | ✅ React Dashboard LIVE |
 | **Orch** | ~~Routing verification ✅~~ | 🟢 DONE | 4/4 routes | ✅ ROOT-033 |
 | **Conductor** | ~~Smoke test ✅~~ ~~Deployment ✅~~ ~~Activation ✅~~ | 🟢 **COMPLETE** | LIVE | ✅ ROOT-037 |
 
