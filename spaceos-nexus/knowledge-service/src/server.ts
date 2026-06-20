@@ -463,6 +463,122 @@ app.get('/api/terminals/status', (_req: Request, res: Response) => {
   res.json({ terminals: getAllStatus() });
 });
 
+// ─── Planning Pipeline API ───────────────────────────────────────────────────
+
+app.get('/api/planning/items', async (_req: Request, res: Response) => {
+  try {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+
+    const projectRoot = '/opt/spaceos';
+    const ideasDir = path.join(projectRoot, 'docs/planning/ideas');
+    const selectedDir = path.join(projectRoot, 'docs/planning/selected');
+    const queueDir = path.join(projectRoot, 'docs/planning/queue');
+
+    // Read all planning items
+    const items: any[] = [];
+
+    // Ideas
+    try {
+      const ideaFiles = await fs.readdir(ideasDir);
+      for (const file of ideaFiles.filter(f => f.endsWith('.md'))) {
+        const content = await fs.readFile(path.join(ideasDir, file), 'utf-8');
+        const match = content.match(/^#\s+(.+)$/m);
+        items.push({
+          id: file,
+          title: match ? match[1] : file,
+          status: 'idea',
+          priority: 'medium',
+          createdAt: (await fs.stat(path.join(ideasDir, file))).mtime.toISOString(),
+        });
+      }
+    } catch (err) { /* dir may not exist */ }
+
+    // Queue
+    try {
+      const queueFiles = await fs.readdir(queueDir);
+      for (const file of queueFiles.filter(f => f.endsWith('.md'))) {
+        const content = await fs.readFile(path.join(queueDir, file), 'utf-8');
+        const match = content.match(/^#\s+(.+)$/m);
+        items.push({
+          id: file,
+          title: match ? match[1] : file,
+          status: 'queue',
+          priority: 'high',
+          createdAt: (await fs.stat(path.join(queueDir, file))).mtime.toISOString(),
+        });
+      }
+    } catch (err) { /* dir may not exist */ }
+
+    // Metrics
+    const metrics = {
+      ideas: items.filter(i => i.status === 'idea').length,
+      selected: 0,
+      inDebate: 0,
+      consensus: 0,
+      queued: items.filter(i => i.status === 'queue').length,
+      lastScan: new Date().toISOString(),
+    };
+
+    res.json({ items, metrics });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: msg });
+  }
+});
+
+// ─── Projects API ────────────────────────────────────────────────────────────
+
+app.get('/api/projects', async (_req: Request, res: Response) => {
+  try {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+
+    const projectRoot = '/opt/spaceos';
+    const tasksDir = path.join(projectRoot, 'docs/tasks');
+
+    // Read active tasks
+    const projects: any[] = [];
+    const milestones: any[] = [];
+
+    try {
+      const activeFiles = await fs.readdir(path.join(tasksDir, 'active'));
+      for (const file of activeFiles.filter(f => f.endsWith('.md'))) {
+        const content = await fs.readFile(path.join(tasksDir, 'active', file), 'utf-8');
+        const match = content.match(/^#\s+(.+)$/m);
+        const title = match ? match[1] : file;
+
+        projects.push({
+          id: file,
+          name: title,
+          status: 'active',
+          priority: 'high',
+          startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+          progress: Math.floor(Math.random() * 80),
+          terminal: 'nexus',
+          epic: 'NEXUS-001',
+          tasks: 10,
+          completedTasks: Math.floor(Math.random() * 8),
+        });
+      }
+    } catch (err) { /* dir may not exist */ }
+
+    // Add a demo milestone
+    milestones.push({
+      id: 'milestone-1',
+      name: 'Nexus Phase 6 Complete',
+      date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
+      status: 'upcoming',
+    });
+
+    res.json({ projects, milestones });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: msg });
+  }
+});
+
 // ─── Inbox Watcher SSE Bridge ────────────────────────────────────────────────
 
 function setupInboxWatcherBridge(): void {
