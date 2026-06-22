@@ -14,6 +14,7 @@ import {
   getState,
   setState,
   getInboxModel,
+  getInboxPath,
   log,
   telegram,
   isPrioritySession
@@ -36,7 +37,7 @@ interface UnreadInfo {
 // ── Find oldest UNREAD inbox ────────────────────────────────────────────────
 
 async function findOldestUnread(terminal: string): Promise<UnreadInfo | null> {
-  const inboxPath = path.join(SPACEOS_ROOT, 'docs/mailbox', terminal, 'inbox');
+  const inboxPath = getInboxPath(terminal);
 
   try {
     const files = await fs.readdir(inboxPath);
@@ -159,12 +160,6 @@ export async function runWatchInbox(): Promise<WatchInboxResult> {
   };
 
   for (const [sessionName, terminal] of Object.entries(SESSIONS)) {
-    // Skip priority sessions - handled by watchPriority
-    if (isPrioritySession(sessionName)) {
-      result.skipped.push(sessionName);
-      continue;
-    }
-
     const unread = await findOldestUnread(terminal);
     if (!unread) {
       result.skipped.push(sessionName);
@@ -172,9 +167,10 @@ export async function runWatchInbox(): Promise<WatchInboxResult> {
     }
 
     const sessionRunning = await hasSession(sessionName);
+    const isPriority = isPrioritySession(sessionName);
 
     if (sessionRunning) {
-      // A) Session running, inbox 3+ minutes old → nudge
+      // A) Session running, inbox 3+ minutes old → nudge (both priority and non-priority)
       if (unread.age > 180) {
         const nudged = await nudgeSession(sessionName, terminal, unread);
         if (nudged) {
@@ -182,11 +178,19 @@ export async function runWatchInbox(): Promise<WatchInboxResult> {
         }
       }
     } else {
-      // B) Session not running, inbox 2+ minutes old → auto-start
-      if (unread.age >= 120) {
-        const started = await autoStartSession(sessionName, terminal, unread);
-        if (started) {
-          result.autoStarted.push(sessionName);
+      // B) Session not running
+      if (isPriority) {
+        // Priority sessions are handled by watchPriority - skip auto-start
+        // but still log that we detected UNREAD inbox
+        await log(`[WatchInbox] Priority session ${sessionName} has UNREAD inbox but not running (watchPriority will handle)`);
+        result.skipped.push(sessionName);
+      } else {
+        // Non-priority: inbox 2+ minutes old → auto-start
+        if (unread.age >= 120) {
+          const started = await autoStartSession(sessionName, terminal, unread);
+          if (started) {
+            result.autoStarted.push(sessionName);
+          }
         }
       }
     }
