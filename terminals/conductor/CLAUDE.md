@@ -8,96 +8,74 @@
 
 ---
 
-## SESSION RITUAL — Bash + Datahaven API
+## SESSION RITUAL — MCP NATIVE
 
-> ⚠️ **ELSŐ LÉPÉS - MINDIG OLVASD EL:**
-> ```bash
-> cat /opt/spaceos/terminals/conductor/STATUS.md
-> ```
+> ⚠️ **Használd az MCP toolokat közvetlenül!** Az stdio-HTTP bridge működik.
 
-### 1. SESSION START — Datahaven status regisztráció
+### 1. SESSION START — register_working
 
-**Bash tool használata curl-lel:**
+**MCP tool:**
+```
+mcp__spaceos-knowledge__register_working
+  terminal: "conductor"
+  task_id: "[opcionális MSG-ID]"
+```
+
+**Fallback (ha MCP nem elérhető):**
 ```bash
 curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
   -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
   -H "Content-Type: application/json" \
-  -d '{"terminal":"conductor","status":"working","currentTask":"Session started - orchestrating terminals"}'
+  -d '{"terminal":"conductor","status":"working","currentTask":"Session started"}'
 ```
 
-### 2. TERMINÁL KOORDINÁCIÓ — fájlrendszer + tmux
+### 2. MUNKAVÉGZÉS
 
-**Terminál outboxok ellenőrzése (DONE/BLOCKED):**
-```bash
-grep -rl "status: UNREAD" /opt/spaceos/terminals/*/outbox/ 2>/dev/null
+**Inbox olvasás (MCP):**
+```
+mcp__spaceos-knowledge__list_inbox
+  terminal: "conductor"
+  status: "UNREAD"
 ```
 
-**Planning queue állapot:**
-```bash
-ls /opt/spaceos/docs/planning/queue/
+**Üzenet küldés (MCP):**
+```
+mcp__spaceos-knowledge__send_message
+  to: "target_terminal"
+  type: "task"
+  content: "..."
+  priority: "high"
 ```
 
-**Tmux session-ök:**
-```bash
-tmux list-sessions
+**Kód írás/javítás:**
+- Read/Write/Edit toolok → kódbázis módosítás
+- Bash tool → build, test, git
+- Glob/Grep toolok → fájlkeresés
+
+### 3. SESSION END — register_idle + submit_done
+
+**DONE jelentés (MCP):**
+```
+mcp__spaceos-knowledge__submit_done
+  from: "conductor"
+  task_id: "MSG-TERMINAL-NNN"
+  summary: "..."
+  files_changed: ["file1.ts", "file2.cs"]
 ```
 
-**Terminál inbox fájlok olvasása:**
-```bash
-# Read tool használata:
-# Read file_path: /opt/spaceos/terminals/backend/inbox/YYYY-MM-DD_NNN_slug.md
+**Idle regisztráció (MCP):**
+```
+mcp__spaceos-knowledge__register_idle
+  terminal: "conductor"
 ```
 
-### 3. ÜZENET KÜLDÉS — Write tool használata
-
-**Új inbox üzenet írása terminálnak:**
-```yaml
----
-id: MSG-<TERMINAL>-<NNN>
-from: conductor
-to: <terminál>
-type: task
-priority: critical|high|medium|low
-status: UNREAD
-model: sonnet|opus|haiku
-ref: <konsenzus fájl vagy MSG ID>
-created: YYYY-MM-DD
----
-
-# [Feladat címe]
-
-[Feladat részletes leírása...]
-```
-
-**Write tool használata:**
-```
-Write
-  file_path: /opt/spaceos/terminals/<terminál>/inbox/YYYY-MM-DD_NNN_slug.md
-  content: [fenti frontmatter + tartalom]
-```
-
-### 4. SESSION END — Datahaven idle regisztráció + STATUS.md frissítés
-
-**1. STATUS.md frissítése (KÖTELEZŐ!):**
-```bash
-# Edit tool használata - frissítsd:
-# - Aktív feladatok táblázat
-# - Lezárt feladatok
-# - Backlog állapot
-```
-
-**2. Datahaven idle regisztráció:**
+**Fallback (ha MCP nem elérhető):**
 ```bash
 curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
   -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
   -H "Content-Type: application/json" \
   -d '{"terminal":"conductor","status":"idle"}'
 ```
-
-**⚠️ FONTOS:** A `STATUS.md` frissítése KÖTELEZŐ minden DONE/új feladat után!
-
----
-
 ## SZEREPKÖR
 
 A Conductor a SpaceOS agent infrastruktúra központi koordinátora:

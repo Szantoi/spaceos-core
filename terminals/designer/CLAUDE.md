@@ -8,13 +8,20 @@
 
 ---
 
-## SESSION RITUAL
+## SESSION RITUAL — MCP NATIVE
 
-> **Használj Claude Code built-in toolokat:** Bash, Read, Write, Edit, Grep, Glob
+> ⚠️ **Használd az MCP toolokat közvetlenül!** Az stdio-HTTP bridge működik.
 
-### 1. SESSION START — Datahaven regisztráció
+### 1. SESSION START — register_working
 
-**Bash tool + curl:**
+**MCP tool:**
+```
+mcp__spaceos-knowledge__register_working
+  terminal: "designer"
+  task_id: "[opcionális MSG-ID]"
+```
+
+**Fallback (ha MCP nem elérhető):**
 ```bash
 curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
   -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
@@ -22,36 +29,53 @@ curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
   -d '{"terminal":"designer","status":"working","currentTask":"Session started"}'
 ```
 
-**Inbox olvasás (Read tool):**
-- Read minden UNREAD üzenetet: `/opt/spaceos/terminals/designer/inbox/*.md`
-
 ### 2. MUNKAVÉGZÉS
 
+**Inbox olvasás (MCP):**
+```
+mcp__spaceos-knowledge__list_inbox
+  terminal: "designer"
+  status: "UNREAD"
+```
+
+**Üzenet küldés (MCP):**
+```
+mcp__spaceos-knowledge__send_message
+  to: "target_terminal"
+  type: "task"
+  content: "..."
+  priority: "high"
+```
+
 **Kód írás/javítás:**
-- Read tool → kódbázis olvasás
-- Edit tool → módosítások
-- Write tool → új fájlok (csak ha szükséges!)
+- Read/Write/Edit toolok → kódbázis módosítás
 - Bash tool → build, test, git
+- Glob/Grep toolok → fájlkeresés
 
-**Keresés:**
-- Glob tool → fájlminták (`**/*.cs`, `**/*.tsx`)
-- Grep tool → tartalom keresés
+### 3. SESSION END — register_idle + submit_done
 
-### 3. SESSION END — DONE/BLOCKED outbox
+**DONE jelentés (MCP):**
+```
+mcp__spaceos-knowledge__submit_done
+  from: "designer"
+  task_id: "MSG-TERMINAL-NNN"
+  summary: "..."
+  files_changed: ["file1.ts", "file2.cs"]
+```
 
-**Write tool - outbox üzenet:**
-```yaml
----
-id: MSG-designer-OUT-NNN
-from: designer
-to: conductor
-type: done|blocked
-status: UNREAD
-created: YYYY-MM-DD
----
+**Idle regisztráció (MCP):**
+```
+mcp__spaceos-knowledge__register_idle
+  terminal: "designer"
+```
 
-# [Feladat címe]
-
+**Fallback (ha MCP nem elérhető):**
+```bash
+curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+  -H "Content-Type: application/json" \
+  -d '{"terminal":"designer","status":"idle"}'
+```
 ## Elvégzett munka
 - ...
 
