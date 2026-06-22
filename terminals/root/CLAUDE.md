@@ -415,59 +415,6 @@ ls docs/tasks/active/
 
 ---
 
-## SESSION MANAGEMENT MCP API
-
-**⚠️ IRÁNYELV: Terminálok közötti kommunikáció mindig MCP API-n keresztül!**
-
-Az MCP API előnyei:
-- **Audit trail** — minden művelet naplózva (`/opt/spaceos/logs/sessions/`)
-- **Jogosultság ellenőrzés** — ki kit irányíthat
-- **Egységesség** — ugyanaz a logika minden terminálnál
-
-### Jogosultság mátrix
-
-| Kezdeményező | Irányíthat |
-|---|---|
-| **root** | MINDENKIT (8 terminál) |
-| **conductor** | architect, librarian, explorer, backend, frontend, designer |
-| **többi** | csak saját magát |
-
-### API endpointok (localhost:3456)
-
-```bash
-# Session indítás prompttal
-POST /api/session/start
-  { "terminal": "backend", "model": "sonnet", "prompt": "...", "fromTerminal": "root" }
-
-# Prompt injection futó session-be
-POST /api/session/inject
-  { "terminal": "backend", "prompt": "...", "fromTerminal": "root" }
-
-# Wake-up (start + inbox olvasás)
-POST /api/session/wake
-  { "terminal": "backend", "fromTerminal": "root" }
-
-# Session státusz
-GET /api/session/:terminal
-GET /api/sessions/all
-
-# Audit logok
-GET /api/sessions/logs?days=1
-```
-
-### Példa használat:
-```bash
-# Root indít backend session-t
-curl -X POST http://localhost:3456/api/session/start \
-  -H "Content-Type: application/json" \
-  -d '{"terminal":"backend","model":"sonnet","prompt":"Dolgozd fel az inbox üzeneteket","fromTerminal":"root"}'
-
-# Összes session státusz
-curl -s http://localhost:3456/api/sessions/all
-```
-
----
-
 ## KÖZÖS ERŐFORRÁSOK
 
 | Fájl | Tartalom |
