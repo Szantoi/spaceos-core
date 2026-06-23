@@ -77,13 +77,9 @@ export async function watchMcpHeartbeat(): Promise<{ processed: number; nudged: 
 
       if (elapsed <= MCP_NUDGE_COOLDOWN) continue;
 
-      // Send reminder nudge
-      const nudgeMsg = `Folytasd a munkát. Olvasd el az inbox-odat: terminals/${terminal}/inbox/`;
-
-      await sendKeys(sessionName, nudgeMsg);
-      await new Promise(r => setTimeout(r, 500));
+      // Just send Enter - no text message needed
       await sendEnter(sessionName);
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise(r => setTimeout(r, 500));
       await sendEnter(sessionName);
 
       await setState(mcpNudgeKey, String(now));

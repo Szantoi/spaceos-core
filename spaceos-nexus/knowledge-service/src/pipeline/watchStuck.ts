@@ -122,23 +122,10 @@ export async function watchStuck(): Promise<{ processed: number; nudged: StuckRe
 
     if (elapsed <= STUCK_COOLDOWN) continue;
 
-    // Get inbox info
-    const unreadInbox = await getUnreadInboxFile(terminal);
-    const filesList = unreadInbox ? await getFilesFromInbox(unreadInbox) : '';
-
-    // Build and send stuck message
-    let stuckMsg = `Folytasd a munkát.`;
-    if (unreadInbox) {
-      stuckMsg += ` Inbox: ${path.basename(unreadInbox)}`;
-    }
-    if (filesList) {
-      stuckMsg += ` Fájlok: ${filesList}`;
-    }
-
-    await sendKeys(sessionName, stuckMsg);
-    await new Promise(r => setTimeout(r, 500));
+    // Just send Enter to unstick - no text message needed
+    // The terminal already has its CLAUDE.md instructions
     await sendEnter(sessionName);
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 500));
     await sendEnter(sessionName);
 
     await setState(stuckKey, String(now));
