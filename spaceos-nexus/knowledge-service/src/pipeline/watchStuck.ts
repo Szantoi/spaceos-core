@@ -127,7 +127,7 @@ export async function watchStuck(): Promise<{ processed: number; nudged: StuckRe
     const filesList = unreadInbox ? await getFilesFromInbox(unreadInbox) : '';
 
     // Build and send stuck message
-    let stuckMsg = `Te a ${terminal.toUpperCase()} terminál vagy. Olvasd be: MEMORY.md — Folytasd a munkát.`;
+    let stuckMsg = `Folytasd a munkát.`;
     if (unreadInbox) {
       stuckMsg += ` Inbox: ${path.basename(unreadInbox)}`;
     }
