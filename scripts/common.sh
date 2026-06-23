@@ -62,9 +62,9 @@ declare -A SESSIONS=(
 )
 
 # Prioritásos session-ök — ezek indulnak ELSŐKÉNT
-# Root NINCS itt, mert stratégiai döntéseket hoz, nem kell mindig futni
-# A Conductor koordinálja a terminálokat és feldolgozza a DONE-okat
-PRIORITY_SESSIONS=("spaceos-conductor")
+# Csak a Root fut mindig — stratégiai döntések, agent infra
+# A Conductor is wake-on-inbox módban működik (2026-06-22 pivot)
+PRIORITY_SESSIONS=("spaceos-root")
 
 # Session → munkamappa hozzárendelések
 declare -A SESSION_WORKDIR=(
@@ -84,7 +84,6 @@ declare -A SESSION_WORKDIR=(
   [spaceos-nexus]="$SPACEOS_ROOT/spaceos-nexus"
 )
 
-# Terminálok amik CSAK feladattal indulnak (nem priority, nem always-on)
-# A priority session-ök (root, conductor) mindig futnak
-# A többi csak ha van UNREAD inbox üzenet
-TASK_ONLY_TERMINALS=("fe" "fe2" "kernel" "identity" "joinery" "cutting" "infra" "e2e" "nexus" "architect" "librarian" "orchestrator")
+# Terminálok amik CSAK feladattal indulnak (wake-on-inbox)
+# Csak a Root fut mindig — a többi UNREAD inbox-ra indul
+TASK_ONLY_TERMINALS=("conductor" "fe" "fe2" "kernel" "identity" "joinery" "cutting" "infra" "e2e" "nexus" "architect" "librarian" "orchestrator")

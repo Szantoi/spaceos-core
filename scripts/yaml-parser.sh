@@ -20,13 +20,14 @@ yaml_get() {
 
     if [ "$section" = "$field" ]; then
         # Egyszerű kulcs (nincs pont)
-        value=$(grep -E "^${key}:" "$file" 2>/dev/null | head -1 | sed 's/^[^:]*:\s*//' | tr -d '"'"'" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        value=$(grep -E "^${key}:" "$file" 2>/dev/null | head -1 | sed 's/^[^:]*:\s*//' | sed 's/#.*//' | tr -d '"'"'" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     else
         # Nested kulcs
         value=$(awk -v section="$section" -v field="$field" '
             /^[a-z_]+:/ { current_section = $1; gsub(/:/, "", current_section) }
             current_section == section && $1 ~ field":" {
                 gsub(/^[^:]*:\s*/, "");
+                gsub(/#.*/, "");  # Remove inline comments
                 gsub(/["'"'"']/, "");
                 gsub(/^[[:space:]]+|[[:space:]]+$/, "");
                 print;

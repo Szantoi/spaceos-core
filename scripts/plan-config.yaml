@@ -14,6 +14,14 @@ models:
   reviewer: sonnet            # plan-debate.sh — keresztértékelés
   consensus: sonnet           # plan-debate.sh — konsenzus szintézis
 
+# ── DONE Reviewer (reviewer.sh) ────────────────────────────────────────────────
+
+reviewer:
+  model_a: sonnet             # reviewer.sh — első reviewer (haiku 404 bug miatt sonnet)
+  model_b: sonnet             # reviewer.sh — második reviewer
+  parallel: true              # párhuzamos futtatás
+  require_both: true          # mindkét APPROVE kell
+
 # ── Timeout (másodperc) ──────────────────────────────────────────────────────
 
 timing:
