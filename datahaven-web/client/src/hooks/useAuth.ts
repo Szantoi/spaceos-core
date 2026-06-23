@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const AUTH_TOKEN_KEY = 'datahaven_token';
 
@@ -10,14 +10,13 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Verify token on mount
-  useEffect(() => {
-    if (authToken) {
-      verifyToken(authToken);
-    }
-  }, [authToken]);
+  const logout = useCallback(() => {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    setAuthToken(null);
+    setIsAuthenticated(false);
+  }, []);
 
-  const verifyToken = async (token: string) => {
+  const verifyToken = useCallback(async (token: string) => {
     setIsLoading(true);
     setError(null);
 
@@ -33,13 +32,21 @@ export function useAuth() {
         logout();
         setError('Invalid or expired token');
       }
-    } catch (err) {
+    } catch {
       setIsAuthenticated(false);
       setError('Connection error');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [logout]);
+
+  // Verify token on mount
+  useEffect(() => {
+    if (authToken) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      verifyToken(authToken);
+    }
+  }, [authToken, verifyToken]);
 
   const login = async (token: string): Promise<boolean> => {
     setIsLoading(true);
@@ -59,18 +66,12 @@ export function useAuth() {
         setError('Invalid token');
         return false;
       }
-    } catch (err) {
+    } catch {
       setError('Connection error');
       return false;
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const logout = () => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    setAuthToken(null);
-    setIsAuthenticated(false);
   };
 
   return {

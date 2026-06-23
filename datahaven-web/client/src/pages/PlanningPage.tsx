@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 
 interface PlanningItem {
@@ -35,14 +35,7 @@ export function PlanningPage() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
 
-  useEffect(() => {
-    loadPlanningData();
-    // Poll every 60 seconds
-    const interval = setInterval(loadPlanningData, 60000);
-    return () => clearInterval(interval);
-  }, [authToken]);
-
-  const loadPlanningData = async () => {
+  const loadPlanningData = useCallback(async () => {
     if (!authToken) return;
 
     try {
@@ -65,7 +58,15 @@ export function PlanningPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [authToken, metrics]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadPlanningData();
+    // Poll every 60 seconds
+    const interval = setInterval(loadPlanningData, 60000);
+    return () => clearInterval(interval);
+  }, [loadPlanningData]);
 
   const filteredItems = items.filter(item => {
     if (filterStatus !== 'all' && item.status !== filterStatus) return false;

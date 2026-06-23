@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import type { SSEEvent, KanbanSnapshot } from '../types/kanban';
 
 export function useSSE(
@@ -6,6 +6,7 @@ export function useSSE(
 ) {
   const [isConnected, setIsConnected] = useState(false);
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
+  const connectRef = useRef<(() => void) | undefined>(undefined);
 
   const connect = useCallback(() => {
     const url = '/api/kanban/events';
@@ -22,7 +23,7 @@ export function useSSE(
       es.close();
 
       // Reconnect after 5 seconds
-      setTimeout(connect, 5000);
+      setTimeout(() => connectRef.current?.(), 5000);
     };
 
     es.onmessage = (e) => {
@@ -52,6 +53,11 @@ export function useSSE(
     setEventSource(es);
   }, [onBoardUpdate]);
 
+  // Update the ref whenever connect changes
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
+
   useEffect(() => {
     connect();
 
@@ -60,7 +66,8 @@ export function useSSE(
         eventSource.close();
       }
     };
-  }, [connect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const disconnect = useCallback(() => {
     if (eventSource) {

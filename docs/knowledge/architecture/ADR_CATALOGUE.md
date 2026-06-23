@@ -257,6 +257,81 @@ Responsibility separation:
 
 ---
 
+## ADR-041: Graph-Based Workflow & Project Management
+
+**Döntés:** 2026-06-22 APPROVED ✅ Phase 1 COMPLETE
+
+| Item | Decision |
+|---|---|
+| Gráf reprezentáció | **Adjacency List** (blocked_by + triggers_on_done) |
+| Tárolás | **YAML fájlok** (EPICS.yaml, TASKS.yaml) |
+| Vizualizáció Phase 1 | **Mermaid.js** (STATUS.md auto-gen) |
+| Vizualizáció Phase 2+ | **React Flow** (Datahaven Dashboard) |
+| Cross-project deps | **EPICS.yaml** a `/docs/projects/` root-ban |
+| API | **Express endpoints** `/api/graph/*` |
+
+**Miért:**
+- Epic-szintű dependency tracking cross-project koordinációhoz
+- Conductor látja a teljes dependency fát → jobb parallelizáció
+- Vizualizáció: Root követheti a project progress-t
+- Blocker detection automatikus
+
+**Alkalmazás:**
+1. ✅ **Phase 1 COMPLETE:** EPICS.yaml + Mermaid MVP (2026-06-22)
+   - `epicsValidator.ts` — Schema + DAG validation
+   - `epicsLoader.ts` — YAML → WorkflowGraph
+   - `graphRoutes.ts` — 5 REST API endpoints
+   - `statusUpdater.ts` — Epic status integration
+   - E2E tests + documentation
+2. Phase 2: Dashboard vizualizáció (React Flow) (~5-6 nap)
+3. Phase 3: Workflow Builder (drag & drop) (~8-10 nap)
+4. Phase 4: Manufacturing Integration (future)
+
+**Phase 1 Deliverables:**
+- Code: `spaceos-nexus/knowledge-service/src/graph/`, `src/api/graphRoutes.ts`
+- Data: `docs/projects/EPICS.yaml` (10 epics validated)
+- Docs: `docs/knowledge/graph/GRAPH_WORKFLOW_USAGE.md`
+- Tests: 37 unit + 19 integration + 6 E2E (all passing)
+
+**Teljes spec:** `docs/architecture/decisions/ADR-041-graph-based-workflow-architecture.md`
+
+---
+
+## ADR-046: Consensus 2026-06-22 — EHS, Assembly Variance, Catalog Diff
+
+**Döntés:** 2026-06-22 PROPOSED
+
+| Item | Decision |
+|---|---|
+| **EHS Incident Report** | Event sourcing MEGTARTÁSA + `SafetyIncidentProjection` view |
+| **Assembly Variance** | Új `VarianceEvent` aggregate (event sourcing) |
+| **Catalog Diff View** | Meglévő `Version` mező + `CatalogEntryHistory` tábla |
+| Feature Prioritás | EHS → Assembly Variance → Catalog Diff |
+
+**10 Architektúra Döntés:**
+
+| # | Kérdés | Döntés |
+|---|---|---|
+| Q1 | WebSocket | SignalR Phase 2; 30s polling MVP |
+| Q2 | File storage | S3Service kiterjesztés (5MB, content-type validation) |
+| Q3 | Offline kvóta | 50MB IndexedDB, priority-based cleanup |
+| Q4 | EHS compliance | 72h sync deadline, exponential backoff |
+| Q5 | Variance threshold | 10% default, role-based override |
+| Q6 | Catalog diff scope | Full semantic diff (price, leadtime, dimensions) |
+| Q7 | Polling frekvencia | 30s, SLA 60s; WebSocket >10 users |
+| Q8 | Catalog limit | Backend-side diff >500 items |
+| Q9 | GPS adatok | Opt-in, 90 nap retention, anonymization |
+| Q10 | Variance approval | Role-based + audit trail |
+
+**API Bővítések:**
+- EHS: `/api/ehs/incidents`, `/api/ehs/events/batch`
+- Variance: `/api/joinery/work-orders/{id}/variances`, `/api/joinery/variances/{id}/approve`
+- Catalog: `/api/catalog/items/{id}/versions`, `/api/catalog/items/{id}/diff`
+
+**Teljes spec:** `docs/architecture/decisions/ADR-046-consensus-2026-06-22-ehs-assembly-catalog.md`
+
+---
+
 ## Referencia
 
 - Teljes vision: `docs/vision/SpaceOS_Vision_Master.md`

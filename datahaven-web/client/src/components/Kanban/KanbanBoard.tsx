@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { DiscoveryBoard, DeliveryBoard, DiscoveryItem, DeliveryMessage } from '../../types/kanban';
+import type { DiscoveryBoard, DeliveryBoard, DiscoveryItem, DeliveryMessage, KanbanMetrics } from '../../types/kanban';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { CardModal } from './CardModal';
@@ -8,7 +8,7 @@ import { MetricsBar } from './MetricsBar';
 interface KanbanBoardProps {
   discovery: DiscoveryBoard | null;
   delivery: DeliveryBoard | null;
-  metrics: any;
+  metrics: KanbanMetrics | null;
   onRefresh: () => void;
   onItemClick: (track: 'discovery' | 'delivery', path: string) => Promise<void>;
 }
@@ -39,9 +39,9 @@ export function KanbanBoard({ discovery, delivery, metrics, onRefresh, onItemCli
     setModalItem(null);
   };
 
-  // Calculate metrics
-  const discoveryWip = discovery ? Object.values(discovery.totals).reduce((a, b) => a + b, 0) : 0;
-  const deliveryWip = delivery ? (delivery.totals.inbox + delivery.totals.active) : 0;
+  // Calculate metrics (safely handle missing totals)
+  const discoveryWip = discovery?.totals ? Object.values(discovery.totals).reduce((a, b) => a + b, 0) : 0;
+  const deliveryWip = delivery?.totals ? (delivery.totals.inbox + delivery.totals.active) : 0;
   const activeSessions = delivery?.activeSessions?.length || 0;
 
   // Filter delivery swimlanes
@@ -117,12 +117,12 @@ export function KanbanBoard({ discovery, delivery, metrics, onRefresh, onItemCli
       />
 
       {/* Discovery Track */}
-      {(currentTrack === 'all' || currentTrack === 'discovery') && discovery && (
+      {(currentTrack === 'all' || currentTrack === 'discovery') && discovery?.columns && (
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Discovery Track</h2>
           <div className="flex gap-4 overflow-x-auto pb-4">
-            <KanbanColumn title="Ideas" count={discovery.totals.ideas}>
-              {discovery.columns.ideas.length === 0 ? (
+            <KanbanColumn title="Ideas" count={discovery.totals?.ideas || 0}>
+              {(discovery.columns.ideas?.length || 0) === 0 ? (
                 <div className="text-center text-[var(--text-muted)] py-4">No items</div>
               ) : (
                 discovery.columns.ideas.map((item) => (
@@ -134,8 +134,8 @@ export function KanbanBoard({ discovery, delivery, metrics, onRefresh, onItemCli
                 ))
               )}
             </KanbanColumn>
-            <KanbanColumn title="Selected" count={discovery.totals.selected}>
-              {discovery.columns.selected.length === 0 ? (
+            <KanbanColumn title="Selected" count={discovery.totals?.selected || 0}>
+              {(discovery.columns.selected?.length || 0) === 0 ? (
                 <div className="text-center text-[var(--text-muted)] py-4">No items</div>
               ) : (
                 discovery.columns.selected.map((item) => (
@@ -147,8 +147,8 @@ export function KanbanBoard({ discovery, delivery, metrics, onRefresh, onItemCli
                 ))
               )}
             </KanbanColumn>
-            <KanbanColumn title="Debate" count={discovery.totals.debate}>
-              {discovery.columns.debate.length === 0 ? (
+            <KanbanColumn title="Debate" count={discovery.totals?.debate || 0}>
+              {(discovery.columns.debate?.length || 0) === 0 ? (
                 <div className="text-center text-[var(--text-muted)] py-4">No items</div>
               ) : (
                 discovery.columns.debate.map((item) => (
@@ -160,8 +160,8 @@ export function KanbanBoard({ discovery, delivery, metrics, onRefresh, onItemCli
                 ))
               )}
             </KanbanColumn>
-            <KanbanColumn title="Consensus" count={discovery.totals.consensus}>
-              {discovery.columns.consensus.length === 0 ? (
+            <KanbanColumn title="Consensus" count={discovery.totals?.consensus || 0}>
+              {(discovery.columns.consensus?.length || 0) === 0 ? (
                 <div className="text-center text-[var(--text-muted)] py-4">No items</div>
               ) : (
                 discovery.columns.consensus.map((item) => (
@@ -173,8 +173,8 @@ export function KanbanBoard({ discovery, delivery, metrics, onRefresh, onItemCli
                 ))
               )}
             </KanbanColumn>
-            <KanbanColumn title="Queue" count={discovery.totals.queue}>
-              {discovery.columns.queue.length === 0 ? (
+            <KanbanColumn title="Queue" count={discovery.totals?.queue || 0}>
+              {(discovery.columns.queue?.length || 0) === 0 ? (
                 <div className="text-center text-[var(--text-muted)] py-4">No items</div>
               ) : (
                 discovery.columns.queue.map((item) => (
@@ -191,7 +191,7 @@ export function KanbanBoard({ discovery, delivery, metrics, onRefresh, onItemCli
       )}
 
       {/* Delivery Track */}
-      {(currentTrack === 'all' || currentTrack === 'delivery') && delivery && (
+      {(currentTrack === 'all' || currentTrack === 'delivery') && delivery?.swimlanes && (
         <div>
           <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Delivery Track</h2>
           <div className="space-y-4">
@@ -218,9 +218,9 @@ export function KanbanBoard({ discovery, delivery, metrics, onRefresh, onItemCli
                       </span>
                     </div>
                     <div className="text-sm text-[var(--text-secondary)] flex gap-4">
-                      <span>Inbox: {swimlane.totals.inbox}</span>
-                      <span>Active: {swimlane.totals.active}</span>
-                      <span>Archive: {swimlane.totals.archive}</span>
+                      <span>Inbox: {swimlane.totals?.inbox || 0}</span>
+                      <span>Active: {swimlane.totals?.active || 0}</span>
+                      <span>Archive: {swimlane.totals?.archive || 0}</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-4 gap-4">
@@ -228,10 +228,10 @@ export function KanbanBoard({ discovery, delivery, metrics, onRefresh, onItemCli
                       <div key={col}>
                         <div className="text-sm text-[var(--text-secondary)] mb-2 flex items-center justify-between">
                           <span className="capitalize">{col}</span>
-                          <span>{swimlane.columns[col]?.length || 0}</span>
+                          <span>{swimlane.columns?.[col]?.length || 0}</span>
                         </div>
                         <div className="space-y-2">
-                          {(swimlane.columns[col] || []).slice(0, 10).map((msg) => (
+                          {(swimlane.columns?.[col] || []).slice(0, 10).map((msg) => (
                             <KanbanCard
                               key={msg.id}
                               item={msg}
@@ -239,9 +239,9 @@ export function KanbanBoard({ discovery, delivery, metrics, onRefresh, onItemCli
                               compact
                             />
                           ))}
-                          {(swimlane.columns[col]?.length || 0) > 10 && (
+                          {(swimlane.columns?.[col]?.length || 0) > 10 && (
                             <div className="text-xs text-center text-[var(--text-muted)] py-2">
-                              +{(swimlane.columns[col]?.length || 0) - 10} more
+                              +{(swimlane.columns?.[col]?.length || 0) - 10} more
                             </div>
                           )}
                         </div>

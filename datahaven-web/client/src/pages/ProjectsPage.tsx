@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 
 interface Project {
@@ -31,13 +31,7 @@ export function ProjectsPage() {
   const [viewMode, setViewMode] = useState<'list' | 'gantt'>('gantt');
   const [timeScale, setTimeScale] = useState<'week' | 'month' | 'quarter'>('month');
 
-  useEffect(() => {
-    loadProjectsData();
-    const interval = setInterval(loadProjectsData, 60000);
-    return () => clearInterval(interval);
-  }, [authToken]);
-
-  const loadProjectsData = async () => {
+  const loadProjectsData = useCallback(async () => {
     if (!authToken) return;
 
     try {
@@ -59,7 +53,14 @@ export function ProjectsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [authToken]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadProjectsData();
+    const interval = setInterval(loadProjectsData, 60000);
+    return () => clearInterval(interval);
+  }, [loadProjectsData]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

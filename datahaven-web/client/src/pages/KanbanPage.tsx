@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { useKanban } from '../hooks/useKanban';
 import { KanbanBoard } from '../components/Kanban/KanbanBoard';
+import type { KanbanSnapshot } from '../types/kanban';
 
 interface KanbanPageProps {
   authToken: string | null;
-  updateBoard: (updates: any) => void;
+  updateBoard: (updates: Partial<KanbanSnapshot>) => void;
 }
 
 export function KanbanPage({ authToken }: KanbanPageProps) {

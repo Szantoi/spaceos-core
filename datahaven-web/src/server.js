@@ -32,7 +32,10 @@ import { createAuthMiddleware, createRateLimiter } from './middleware/auth.js';
 import statsRoutes from './routes/statsRoutes.js';
 import daemonRoutes from './routes/daemonRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
+import kanbanRoutes from './routes/kanbanRoutes.js';
 import { createKnowledgeRoutes } from './routes/knowledgeRoutes.js';
+import { createDashboardRoutes } from './routes/dashboardRoutes.js';
+import { createAutonomousRoutes } from './routes/autonomousRoutes.js';
 import sseRoutes, { startPolling } from './routes/sseRoutes.js';
 
 // =============================================================================
@@ -74,6 +77,8 @@ app.use(cors());
 app.use(express.json());
 
 // Static files (no auth required for dashboard)
+// Serve React SPA from client/dist (prioritize over legacy public folder)
+app.use(express.static(join(__dirname, '../client/dist')));
 app.use(express.static(join(__dirname, '../public')));
 
 // Rate limiting for API
@@ -98,7 +103,13 @@ app.use('/api/events', sseRoutes);
 app.use('/api/stats', authMiddleware, statsRoutes);
 app.use('/api/daemons', authMiddleware, daemonRoutes);
 app.use('/api/messages', authMiddleware, messageRoutes);
+app.use('/api/kanban', authMiddleware, kanbanRoutes);
 app.use('/api/knowledge', authMiddleware, createKnowledgeRoutes({ knowledgeUrl: config.knowledgeUrl }));
+app.use('/api/dashboard', authMiddleware, createDashboardRoutes({ knowledgeUrl: config.knowledgeUrl }));
+console.log('[SERVER] Registering /api/autonomous route...');
+const autonomousRouter = createAutonomousRoutes({ knowledgeUrl: config.knowledgeUrl });
+console.log('[SERVER] Autonomous router:', autonomousRouter);
+app.use('/api/autonomous', authMiddleware, autonomousRouter);
 
 // Legacy endpoint compatibility
 app.get('/api/inbox/:daemon', authMiddleware, (req, res, next) => {
@@ -116,7 +127,8 @@ app.get('/api/pending-by-daemon', authMiddleware, (req, res, next) => {
 // =============================================================================
 
 app.get('*', (req, res) => {
-  res.sendFile(join(__dirname, '../public/index.html'));
+  // Serve React SPA index.html for all non-API routes
+  res.sendFile(join(__dirname, '../client/dist/index.html'));
 });
 
 // =============================================================================

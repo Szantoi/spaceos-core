@@ -105,10 +105,12 @@ L1  Kernel                        .NET 8 + PostgreSQL — auth, audit, FSM, escr
 
 ```
 PRIORITY (mindig fut)
-  ├── ROOT         /opt/spaceos/                      ← stratégiai döntések, agent infra
+  └── ROOT         /opt/spaceos/                      ← stratégiai döntések, agent infra
+
+KOORDINÁTOR (wake-on-inbox — 2026-06-22 pivot)
   └── CONDUCTOR    /opt/spaceos/terminals/conductor/  ← feladatkiosztás, pipeline koordináció
 
-FEJLESZTŐ TERMINÁLOK (csak feladattal indulnak — wake-on-inbox)
+FEJLESZTŐ TERMINÁLOK (wake-on-inbox)
   ├── BACKEND      /opt/spaceos/terminals/backend/    ← .NET + Node.js backend (Kernel, Orch, Joinery, stb.)
   ├── FRONTEND     /opt/spaceos/terminals/frontend/   ← React/TS portál fejlesztés
   └── DESIGNER     /opt/spaceos/terminals/designer/   ← UI/UX, Figma integráció
@@ -342,6 +344,64 @@ Infra  párhuzamosan fut a kód tracktől
 ```
 
 Következő projektet csak akkor kiosztani, ha az előző DONE.
+
+---
+
+## GRAPH-BASED WORKFLOW (ADR-041)
+
+> **Új feature:** Epic és task dependency gráf vizualizáció és menedzsment.
+> A Conductor használja a feladat prioritizáláshoz.
+
+### EPICS.yaml — Epic dependency gráf
+
+**Lokáció:** `/opt/spaceos/docs/projects/EPICS.yaml`
+
+```yaml
+epics:
+  - id: EPIC-PORTAL-V2
+    name: "Customer Portal v2"
+    depends_on: ["EPIC-IDENTITY-V1", "EPIC-ORCH-V2"]  # blokkolt, amíg ezek nem done
+    parallel_with: ["EPIC-CUTTING-Q3"]                # párhuzamosan futhat
+    status: active    # pending | active | done | blocked
+    target_date: "2026-07-31"
+```
+
+### Graph API endpointok
+
+```bash
+# Epic gráf lekérdezés
+curl -s http://localhost:3456/api/graph/epics
+
+# Critical path (leghosszabb dependency lánc)
+curl -s http://localhost:3456/api/graph/critical-path/epic/EPICS
+
+# Mermaid diagram (vizualizáció Datahaven-en)
+curl -s http://localhost:3456/api/graph/mermaid/epic/EPICS
+
+# Validáció (ciklus detektálás)
+curl -X POST http://localhost:3456/api/graph/validate -d '{"type": "epic"}'
+```
+
+### TypeScript típusok
+
+`spaceos-nexus/knowledge-service/src/graph/types.ts`:
+
+```typescript
+interface GraphNode {
+  id: string;
+  type: 'epic' | 'task' | 'workflow_step';
+  status: 'pending' | 'active' | 'done' | 'blocked';
+  depends_on: string[];
+  triggers: string[];
+  parallel_with?: string[];
+}
+```
+
+### Root használati minták
+
+1. **Új epic hozzáadása:** Szerkeszd az `EPICS.yaml`-t, add meg a `depends_on` listát
+2. **Roadmap áttekintés:** `curl -s localhost:3456/api/graph/mermaid/epic/EPICS`
+3. **Blokkolók keresése:** `curl -s localhost:3456/api/graph/critical-path/epic/EPICS`
 
 ---
 
