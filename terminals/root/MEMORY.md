@@ -117,7 +117,204 @@ Megoldás:
 
 ---
 
-## 3. Stratégiai Döntések (Session korábbi része)
+## 3. Nexus Infrastructure Audit
+
+### Motiváció
+User kérdés: "az agent kordinációs Nexus szervere milyen infrastruktura van meg a feladathoz amit lehetne használni?"
+
+### Audit Eredmény
+
+**🟢 NAGYON JÓ ALAPOK** — spaceos-nexus/knowledge-service:
+
+**Újra használható komponensek:**
+- ✅ Express HTTP API (71KB server.ts, teljes REST API)
+- ✅ Bearer token auth (`POST /api/auth/verify`)
+- ✅ Rate limiting (500 req/min/IP, in-memory)
+- ✅ JSONL log pattern (`reviewLog.ts` - append-only, immutable)
+- ✅ SHA-256 hashing (`hashUtils.ts` - file integrity)
+- ✅ YAML config (`yamlValidator.ts` + task-types)
+- ✅ Telegram integration (`telegramBot.ts`)
+- ✅ Daily digest pattern (`hourlyDigest.ts`)
+- ✅ Project tracking (`projectMatcher.ts`, `projectDispatcher.ts`)
+- ✅ Inbox creation API (`POST /api/mailbox/:terminal/inbox`)
+- ✅ Session management (`POST /api/session/start`)
+- ✅ Audit logs (`GET /api/session/logs`)
+
+**Hiányzó komponensek (implementálni kell):**
+
+**Phase 1: Formal Review** (~1.5 óra)
+- ❌ `scripts/formal-review.sh` — automated checks (build, lint, test, git)
+- ⚠️ `reviewer.ts` módosítás — review_type routing (formal/content/manual)
+- ❌ `logs/reviews/formal.jsonl` — formal review results log
+
+**Phase 2: Task Creation Audit** (~3.5 óra)
+- ❌ `src/taskCreation.ts` — task creation module with audit
+- ❌ `src/auth.ts` — token verification + role-based scopes
+- ❌ `POST /api/task/create` endpoint
+- ❌ `config/tokens.yaml` — token database (root, conductor scopes)
+- ❌ `logs/tasks/creation.jsonl` — immutable audit log
+
+**Phase 3: Daily Report** (~2.5 óra)
+- ❌ `scripts/daily-report.sh` — JSONL query + Markdown report
+- ❌ `GET /api/tasks/daily-summary` endpoint
+- ❌ Datahaven widget — "Mit csináltunk ma?" live summary
+
+**Implementációs opciók:**
+- **Option A:** Phase 1 First (gyors win, költségmegtakarítás)
+- **Option B:** Phase 2 First (foundation, audit trail)
+- **Option C:** Hybrid (parallel, ~3 óra mindkettő)
+
+**Token storage javaslat:**
+```yaml
+# config/tokens.yaml
+tokens:
+  - holder: root
+    token_hash: sha256:abc123...
+    scopes: [task:create:*, session:*]
+  - holder: conductor
+    token_hash: sha256:def456...
+    scopes: [task:create:worker, session:start]
+```
+
+### Nyitott Kérdések
+1. Implementációs sorrend: A/B/C?
+2. Token storage: YAML / SQLite / env var?
+3. Formal review criteria: minimal / standard / full?
+4. Daily report output: docs/reports/ + git / Telegram / Datahaven API?
+
+### Dokumentáció
+📄 `/opt/spaceos/docs/agent-infrastructure/NEXUS_INFRASTRUCTURE_AUDIT.md`
+
+---
+
+## 4. JoineryTech.MCP Inspiration Audit
+
+### Motiváció
+User kérdés: "nézd meg hogy a szantoi/joinerytech.mcp git inspirácioban lett-e erre megoldás és mi az, lehet-e implementálni."
+
+### Repository: Szantoi/JoineryTech.McpServer
+
+**URL:** https://github.com/Szantoi/JoineryTech.McpServer
+**Stack:** Express, TypeScript, SQLite (better-sqlite3), ChromaDB, Node-cache
+
+**Releváns patterns Task Audit & Formal Review-hoz:**
+
+#### 1. AuditLogger Pattern (`src/metadata/auditLogger.ts`)
+
+```typescript
+✅ SHA-256 hash for input/output
+✅ setImmediate() non-blocking async logging
+✅ SQLite audit_log table
+✅ Cost tracking (ai_model, ai_tokens_used, cost_amount_usd)
+✅ Error handling without blocking main flow
+```
+
+**Adaptálható:** `taskCreation.ts` + JSONL log + optional SQLite index
+
+#### 2. RbacFilter Pattern (`src/mcp/RbacFilter.ts`)
+
+```typescript
+✅ NodeCache LRU (30 min TTL, maxKeys: 50)
+✅ Public tools (unauthenticated access)
+✅ Role-based permissions (JSON array from SQLite)
+✅ Schema version check → cache invalidation
+✅ Lazy-load from database + cache result
+```
+
+**Adaptálható:** `auth.ts` token verification with LRU cache + scopes
+
+#### 3. SessionManager Pattern (`src/mcp/SessionManager.ts`)
+
+```typescript
+✅ UUID v4 session_id (crypto.randomUUID - NOT Math.random!)
+✅ SQLite sessions table
+✅ FSM state tracking (started, active, completed, blocked)
+✅ Timestamp tracking (created_at, updated_at)
+```
+
+**Adaptálható:** Optional later - Task Execution Tracker (if long-running tasks)
+
+#### 4. WorkflowStateTracker Pattern (`src/metadata/WorkflowStateTracker.ts`)
+
+```typescript
+✅ FSM state validation (VALID_TRANSITIONS map)
+✅ State transition history table (audit trail)
+✅ Terminal states (no further transitions)
+✅ Metadata logging (JSON)
+```
+
+**Adaptálható:** Future - Multi-stage review FSM (PENDING → REVIEWING_A → REVIEWING_B → APPROVED/REJECTED/ESCALATED)
+
+### Implementálható Komponensek (Priority Order)
+
+**Week 1 (~3-4 óra):**
+
+1. **Task Creation API** (2 óra)
+   - `src/task-audit/taskCreation.ts` — creation service
+   - `src/task-audit/auth.ts` — token auth with NodeCache LRU
+   - Token scopes: `task:create:*`, `task:create:worker`
+   - JSONL audit log (`logs/tasks/creation.jsonl`)
+   - SHA-256 inbox hash
+   - Git auto-commit
+
+2. **Formal Review Script** (1 óra)
+   - `scripts/formal-review.sh` — build, lint, git check
+   - `reviewer.ts` routing (formal/content/manual)
+
+3. **Token Auth Middleware** (30 min)
+   - Express middleware
+   - Bearer token extraction
+   - Scope verification
+
+**Week 2 (later):**
+- Daily report script
+- SQLite index (optional query optimization)
+- Datahaven widget
+- Advanced FSM (multi-stage review)
+
+### Code Ready to Implement
+
+**✅ taskCreation.ts** — Full implementation példa a dokumentumban:
+- Token verification with LRU cache
+- Inbox file creation
+- SHA-256 hashing
+- JSONL logging (setImmediate, non-blocking)
+- Git auto-commit
+
+**✅ auth.ts** — Token middleware with scope checking:
+- Wildcard support (`task:create:*` matches `task:create:backend`)
+- Cache TTL 30 min
+- Negative result caching (avoid repeated token lookups)
+
+### Token Storage Javaslat
+
+```yaml
+# config/tokens.yaml
+tokens:
+  - holder: root
+    token_hash: sha256:abc123...
+    scopes: [task:create:*, session:*]
+    created: 2026-06-23
+
+  - holder: conductor
+    token_hash: sha256:def456...
+    scopes: [task:create:worker, session:start]
+    created: 2026-06-23
+```
+
+**Git tracked, YAML-based, extensible, no raw tokens stored.**
+
+### Nyitott Kérdések
+1. **Implementáljuk most?** (Phase 2a Task Creation API - 2 óra)
+2. **Token storage:** YAML vagy SQLite?
+3. **Formal review criteria:** minimal (frontmatter + git) vagy full (+ build + test)?
+
+### Dokumentáció
+📄 `/opt/spaceos/docs/agent-infrastructure/JOINERYTECH_MCP_INSPIRATION.md`
+
+---
+
+## 5. Stratégiai Döntések (Session korábbi része)
 
 ### MSG-ROOT-004: Q4 Research Assistant Budget Approval
 **Döntés:** CONDITIONAL APPROVE (Option C+)
