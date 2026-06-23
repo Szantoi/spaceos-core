@@ -897,16 +897,436 @@ export function tokenAuthMiddleware(req: Request, res: Response, next: NextFunct
 
 ---
 
-## 9. Git Commit
+## 9. Test Coverage & Patterns
 
+### Test Statistics
+
+**JoineryTech.McpServer test suite:**
+- **95 test files** across unit, integration, E2E layers
+- **Test frameworks:** Vitest (unit), Playwright (E2E), Supertest (API)
+- **Coverage tool:** @vitest/coverage-v8
+
+**Test structure:**
+```
+src/tests/
+  unit/          ← Unit tests (isolated, mocked dependencies)
+  integration/   ← Integration tests (real DB, no HTTP)
+  e2e/           ← E2E tests (full HTTP stack, Playwright)
+  fixtures/      ← Test data fixtures
+  helpers/       ← Test utilities
+  evaluator/     ← LLM compliance evaluator tests
+```
+
+### Unit Test Pattern Example (RbacFilter.test.ts)
+
+```typescript
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import NodeCache from 'node-cache';
+import { RbacFilter } from '../../mcp/RbacFilter';
+import { AgentDb } from '../../mcp/AgentDb';
+
+// Mock AgentDb
+vi.mock('../../mcp/AgentDb', () => {
+    return {
+        AgentDb: vi.fn().mockImplementation(() => {
+            return {
+                findSchemaByRoleName: vi.fn(),
+                getSchemaVersion: vi.fn().mockReturnValue(1)
+            };
+        })
+    };
+});
+
+describe('RbacFilter', () => {
+    let mockAgentDb: any;
+    let rbacFilter: RbacFilter;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockAgentDb = new AgentDb({} as any);
+        rbacFilter = new RbacFilter(mockAgentDb);
+    });
+
+    it('should return public tools for an unknown role', () => {
+        mockAgentDb.findSchemaByRoleName.mockReturnValue(null);
+        const tools = rbacFilter.getAllowedTools('unknown_role');
+
+        expect(tools.has('list_domains')).toBe(true);
+        expect(tools.has('search_knowledge')).toBe(true);
+        expect(tools.size).toBe(10); // Only public tools
+    });
+
+    it('should query AgentDb on cache miss and cache the result', () => {
+        const permissions = JSON.stringify(['tool1', 'tool2']);
+        mockAgentDb.findSchemaByRoleName.mockReturnValue({
+            role_name: 'dev',
+            mcp_tool_permissions: permissions
+        });
+
+        // First call: Cache miss
+        const tools1 = rbacFilter.getAllowedTools('dev');
+        expect(mockAgentDb.findSchemaByRoleName).toHaveBeenCalledTimes(1);
+        expect(tools1.has('tool1')).toBe(true);
+
+        // Second call: Cache hit
+        const tools2 = rbacFilter.getAllowedTools('dev');
+        expect(mockAgentDb.findSchemaByRoleName).toHaveBeenCalledTimes(1); // Still 1
+        expect(tools2).toEqual(tools1);
+    });
+
+    it('should handle malformed JSON and fallback to public tools', () => {
+        mockAgentDb.findSchemaByRoleName.mockReturnValue({
+            role_name: 'broken_role',
+            mcp_tool_permissions: 'invalid-json'
+        });
+
+        const tools = rbacFilter.getAllowedTools('broken_role');
+        expect(tools.has('list_domains')).toBe(true);
+        expect(tools.size).toBe(10); // Only public tools
+    });
+
+    it('should flush cache when schema version changes', () => {
+        mockAgentDb.getSchemaVersion.mockReturnValue(1);
+        mockAgentDb.findSchemaByRoleName.mockReturnValue({
+            role_name: 'dev',
+            mcp_tool_permissions: JSON.stringify(['tool1'])
+        });
+
+        // Populate cache
+        rbacFilter.getAllowedTools('dev');
+        expect(mockAgentDb.findSchemaByRoleName).toHaveBeenCalledTimes(1);
+
+        // Change version → cache invalidation
+        mockAgentDb.getSchemaVersion.mockReturnValue(2);
+        rbacFilter.getAllowedTools('dev');
+        expect(mockAgentDb.findSchemaByRoleName).toHaveBeenCalledTimes(2); // Cache miss
+    });
+});
+```
+
+**Tested scenarios:**
+- ✅ Unknown role → public tools only
+- ✅ Cache miss → DB query + cache result
+- ✅ Cache hit → no DB query
+- ✅ Malformed JSON → fallback to public tools
+- ✅ Schema version change → cache invalidation
+
+### E2E Test Pattern Example (mcp-rbac.test.ts)
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+const BASE = 'http://localhost:3000/mcp';
+
+async function listToolsForRole(roleHeader?: string): Promise<string[]> {
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json, text/event-stream',
+    };
+    if (roleHeader) {
+        headers['x-active-role'] = roleHeader;
+    }
+
+    // 1. Initialize session
+    const initRes = await fetch(`${BASE}/http`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'initialize',
+            params: {
+                protocolVersion: '2024-11-05',
+                capabilities: {},
+                clientInfo: { name: 'rbac-e2e-test', version: '1.0' },
+            },
+        }),
+    });
+
+    let sessionId = initRes.headers.get('mcp-session-id');
+    if (!sessionId) {
+        const body: any = await initRes.json();
+        sessionId = body?.result?.sessionId ?? body?.sessionId ?? null;
+    }
+    if (!sessionId) {
+        throw new Error(`Failed to initialize session`);
+    }
+
+    headers['mcp-session-id'] = sessionId;
+
+    // 2. Send notifications/initialized
+    await fetch(`${BASE}/http`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'notifications/initialized'
+        }),
+    });
+
+    // 3. Call tools/list
+    const toolsRes = await fetch(`${BASE}/http`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 2,
+            method: 'tools/list'
+        }),
+    });
+
+    const text = await toolsRes.text();
+    const dataLine = text.split('\n').find(l => l.startsWith('data:'));
+    const data: any = JSON.parse(dataLine.slice(5).trim());
+
+    return data.result.tools.map((t: any) => t.name);
+}
+
+test.describe('MCP Tool Surface — RBAC E2E', () => {
+
+    test('Unknown or missing role should only see public tools', async () => {
+        const toolNames = await listToolsForRole();
+
+        expect(toolNames).toContain('search_knowledge');
+        expect(toolNames).toContain('get_policy');
+
+        // These are not public
+        expect(toolNames).not.toContain('request_workflow_transition');
+        expect(toolNames).not.toContain('get_workflow_state');
+    });
+
+    test('Explorer role should see specific tools, but not mutating tools', async () => {
+        const toolNames = await listToolsForRole('explorer');
+
+        // Explorer specific
+        expect(toolNames).toContain('get_role');
+        expect(toolNames).toContain('get_workflow');
+        expect(toolNames).toContain('list_templates');
+
+        // Still public available
+        expect(toolNames).toContain('search_knowledge');
+
+        // Not allowed for explorer
+        expect(toolNames).not.toContain('request_workflow_transition');
+    });
+
+    test('Backend developer role should see state mutation tools', async () => {
+        const toolNames = await listToolsForRole('backend_developer');
+
+        // Backend developer specific
+        expect(toolNames).toContain('get_role');
+        expect(toolNames).toContain('get_workflow_state');
+        expect(toolNames).toContain('request_workflow_transition');
+        expect(toolNames).toContain('search_knowledge'); // public
+    });
+});
+```
+
+**E2E Test scenarios:**
+- ✅ Unknown role → public tools only (HTTP + JSON-RPC + SSE)
+- ✅ Explorer role → read-only tools + public tools
+- ✅ Backend developer role → mutation tools + read tools + public tools
+- ✅ Session management (mcp-session-id header)
+- ✅ Full HTTP stack (Express + MCP protocol)
+
+### Adaptálható Test Patterns SpaceOS-hoz
+
+#### 1. Task Creation API Unit Tests
+
+```typescript
+// spaceos-nexus/knowledge-service/src/__tests__/taskCreation.test.ts
+
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { TaskCreationService } from '../task-audit/taskCreation';
+
+vi.mock('fs/promises');
+
+describe('TaskCreationService', () => {
+    let service: TaskCreationService;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        service = new TaskCreationService();
+    });
+
+    it('should reject unauthorized token', async () => {
+        await expect(
+            service.createTask('invalid-token', {
+                assigned_to: 'backend',
+                task_type: 'CODE',
+                review_type: 'content',
+                priority: 'high',
+                title: 'Test task',
+                content: 'Test content'
+            })
+        ).rejects.toThrow('Unauthorized: insufficient scope');
+    });
+
+    it('should create task with valid root token', async () => {
+        const result = await service.createTask('root-token', {
+            assigned_to: 'backend',
+            task_type: 'CODE',
+            review_type: 'content',
+            priority: 'high',
+            title: 'Implement feature X',
+            content: 'Add new feature...'
+        });
+
+        expect(result.task_id).toMatch(/^MSG-BACKEND-\d{3}$/);
+        expect(result.inbox_path).toContain('terminals/backend/inbox/');
+    });
+
+    it('should reject conductor token for root-only scope', async () => {
+        await expect(
+            service.createTask('conductor-token', {
+                assigned_to: 'architect',  // conductor can't assign to architect
+                task_type: 'CODE',
+                review_type: 'content',
+                priority: 'high',
+                title: 'Test',
+                content: 'Test'
+            })
+        ).rejects.toThrow('Unauthorized');
+    });
+
+    it('should cache token permissions (LRU)', async () => {
+        const spy = vi.spyOn(service as any, 'loadTokens');
+
+        // First call
+        await service.createTask('root-token', { /* ... */ });
+        expect(spy).toHaveBeenCalledTimes(0); // Already loaded in constructor
+
+        // Second call (cache hit)
+        await service.createTask('root-token', { /* ... */ });
+        expect(spy).toHaveBeenCalledTimes(0); // Still cached
+    });
+});
+```
+
+#### 2. Token Auth Middleware E2E Tests
+
+```typescript
+// spaceos-nexus/knowledge-service/src/__tests__/e2e/taskCreation.e2e.test.ts
+
+import { test, expect } from '@playwright/test';
+import supertest from 'supertest';
+import app from '../../server';
+
+const request = supertest(app);
+
+test.describe('Task Creation API - E2E', () => {
+
+    test('POST /api/task/create without token should return 401', async () => {
+        const res = await request
+            .post('/api/task/create')
+            .send({
+                assigned_to: 'backend',
+                task_type: 'CODE',
+                title: 'Test',
+                content: 'Test content'
+            });
+
+        expect(res.status).toBe(401);
+        expect(res.body.error).toContain('Missing authorization token');
+    });
+
+    test('POST /api/task/create with invalid token should return 401', async () => {
+        const res = await request
+            .post('/api/task/create')
+            .set('Authorization', 'Bearer invalid-token-123')
+            .send({
+                assigned_to: 'backend',
+                task_type: 'CODE',
+                title: 'Test',
+                content: 'Test content'
+            });
+
+        expect(res.status).toBe(401);
+    });
+
+    test('POST /api/task/create with valid root token should succeed', async () => {
+        const res = await request
+            .post('/api/task/create')
+            .set('Authorization', 'Bearer dev-token-root-2026')
+            .send({
+                assigned_to: 'backend',
+                task_type: 'CODE',
+                review_type: 'content',
+                priority: 'high',
+                title: 'Implement feature X',
+                content: 'Add new feature...',
+                project: 'EPIC-CUTTING-Q3',
+                epic: 'Track-A'
+            });
+
+        expect(res.status).toBe(200);
+        expect(res.body.task_id).toMatch(/^MSG-BACKEND-\d{3}$/);
+        expect(res.body.inbox_path).toContain('terminals/backend/inbox/');
+    });
+
+    test('Audit log should contain task creation entry', async () => {
+        // Create task
+        await request
+            .post('/api/task/create')
+            .set('Authorization', 'Bearer dev-token-root-2026')
+            .send({ /* ... */ });
+
+        // Check JSONL log
+        const fs = require('fs/promises');
+        const log = await fs.readFile('/opt/spaceos/logs/tasks/creation.jsonl', 'utf-8');
+        const entries = log.trim().split('\n').map(line => JSON.parse(line));
+
+        const lastEntry = entries[entries.length - 1];
+        expect(lastEntry.created_by).toBe('root');
+        expect(lastEntry.task_type).toBe('CODE');
+        expect(lastEntry.inbox_hash).toMatch(/^sha256:/);
+    });
+});
+```
+
+### Test Coverage Goals
+
+**Unit tests:**
+- Token verification logic: 100%
+- Scope checking (wildcards): 100%
+- LRU cache hit/miss: 100%
+- JSONL logging: 100%
+- SHA-256 hashing: 100%
+
+**Integration tests:**
+- Inbox file creation: 100%
+- Git auto-commit: 100%
+- JSONL append: 100%
+
+**E2E tests:**
+- API endpoint auth: 100%
+- Full task creation flow: 100%
+- Error responses (401, 403, 400): 100%
+
+**Test commands:**
 ```bash
-git add docs/agent-infrastructure/JOINERYTECH_MCP_INSPIRATION.md
-git commit -m "docs(inspiration): JoineryTech.McpServer patterns for Task Audit"
+# Unit tests
+npm test
+
+# E2E tests
+npm run test:e2e
+
+# Test coverage
+npx vitest run --coverage
 ```
 
 ---
 
-## 10. Következő Lépés
+## 10. Git Commit
+
+```bash
+git add docs/agent-infrastructure/JOINERYTECH_MCP_INSPIRATION.md
+git commit -m "docs(inspiration): add test coverage & patterns from JoineryTech.MCP"
+```
+
+---
+
+## 11. Következő Lépés
 
 **Root döntés kell:**
 
