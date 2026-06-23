@@ -75,8 +75,9 @@
 - **FE2-002** ✅ — Raktár bővítés (lot+zóna+mozgások) + Szerviz világ (jegyek+garanciák+látogatások) · 742 teszt · **27/27 világ** (2026-06-16)
 - **FE-054** ✅ — **VÉGSŐ DEPLOY** · 27/27 világ LIVE · HTTP 200 · joinerytech.hu (2026-06-16)
 - **FE-059** ✅ — Slice 1C mock-mentes · Dashboard+Orders+Workflow+Settings+Analytics · SPARKS inline · EndpointPending szekciók · 725 teszt (2026-06-16)
+- **NEXUS-019** ✅ — Phase 6+6.5 Complete · React Datahaven Dashboard · 4 pages (Dashboard/Kanban/Planning/Projects) · 5 backend APIs · 1,784 lines React/TS · LIVE (2026-06-20)
 
-### Backend tesztek: ~3902 | Frontend: 725
+### Backend tesztek: ~4010 | Frontend: 725
 
 ### 🔵 Active
 
@@ -86,8 +87,11 @@
 | MSG-FE-057 | FE-A (FE-CORE) | Core | ✅ DONE — AiPage SSE (`/ai/bff/chat/stream`) · MfgPrepPage EndpointPending · 728 teszt |
 | MSG-FE2-003 | FE-B (FE-OPS) | OPS | ✅ DONE — Inventory/Procurement mock fallback törölve · warehouse/* EndpointPending |
 | MSG-FE-058 | FE-B (FE-CORE) | Core | ✅ DONE — QualityPage EndpointPending + Joinery path konfirmáció · 724 teszt |
-| MSG-FE2-004 | FE-B (FE-SALES) | Sales | 🔵 ACTIVE — SalesPage off-mock · CI-001/002/003 · SEC-FE-01 |
+| MSG-FE2-004 | FE-B (FE-SALES) | Sales | ✅ DONE — SalesPage off-mock · CI-001/002/003 · SEC-FE-01 |
 | MSG-FE-059 | FE-A (FE-CORE) | Core | ✅ DONE — Dashboard+Orders+Workflow+Settings+Analytics mock-mentes · 725 teszt · Slice 1C kész |
+| MSG-CONDUCTOR-017 | CONDUCTOR | Admin | ✅ DONE — Cleanup session complete · All inbox/outbox UNREAD processed · Monitoring mode |
+| MSG-NEXUS-019 | NEXUS | Agent Infra | ✅ DONE — Phase 6+6.5 React Dashboard + Backend APIs · 4 pages · 5 endpoints · 108 tests · LIVE
+| MSG-FE-089 | FE | Cutting UI | ✅ DONE — Nesting Viz + Design→Cutting Workflow · SVG canvas · DTO mapping · 835/846 tests (2026-06-21)
 
 ### ✅ Architect DONE (2026-06-16)
 
