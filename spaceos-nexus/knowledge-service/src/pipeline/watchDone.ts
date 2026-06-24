@@ -1,56 +1,46 @@
 // Watch Done - TypeScript equivalent of watch-done.sh
 // Scans for DONE outbox messages and triggers reviewer
+// 2026-06-24: Optimized to use messageRegistry DB instead of filesystem scan
+// 2026-06-24: Switched to terminal-based review (Architect + Librarian) instead of API calls
 
-import { promises as fs } from 'fs';
 import * as path from 'path';
 import {
-  SPACEOS_ROOT,
   getState,
   setState,
   log,
 } from './common';
 import { handleDoneReview } from './reviewer';
+import { handleTerminalReview } from './terminalReviewer';
 import { runPipeline } from './pipeline';
 
-async function findUnreadDones(): Promise<string[]> {
-  const dones: string[] = [];
-  const mailboxPath = path.join(SPACEOS_ROOT, 'docs/mailbox');
+// Use terminal-based review by default (no API key needed)
+// Set REVIEW_MODE=api to use old Anthropic API based review
+const USE_TERMINAL_REVIEW = process.env.REVIEW_MODE !== 'api';
+import { queryMessages } from '../messageRegistry';
 
-  try {
-    const terminals = await fs.readdir(mailboxPath);
+/**
+ * Find UNREAD DONE messages using DB query instead of filesystem scan.
+ * This reduces ~50 fs.readFile operations per cycle to 1 DB query.
+ */
+function findUnreadDones(): string[] {
+  // Query DB for UNREAD messages of type 'done' in outbox
+  const messages = queryMessages({
+    box: 'outbox',
+    type: 'done',
+    status: 'UNREAD',
+  });
 
-    for (const terminal of terminals) {
-      const outboxPath = path.join(mailboxPath, terminal, 'outbox');
-
-      try {
-        const files = await fs.readdir(outboxPath);
-
-        for (const file of files) {
-          if (!file.endsWith('.md')) continue;
-
-          const filePath = path.join(outboxPath, file);
-          const content = await fs.readFile(filePath, 'utf-8');
-
-          if (content.includes('status: UNREAD') && content.includes('type: done')) {
-            dones.push(filePath);
-          }
-        }
-      } catch {
-        // Outbox doesn't exist for this terminal
-      }
-    }
-  } catch {
-    // Mailbox doesn't exist
-  }
-
-  return dones;
+  // Return file paths for compatibility with existing review pipeline
+  return messages
+    .filter(m => m.filePath) // Ensure filePath exists
+    .map(m => m.filePath);
 }
 
 export async function watchDone(): Promise<{ found: number; triggered: string[] }> {
   const now = Math.floor(Date.now() / 1000);
   const triggered: string[] = [];
 
-  const unreadDones = await findUnreadDones();
+  const unreadDones = findUnreadDones(); // Now synchronous DB query
 
   if (unreadDones.length === 0) {
     return { found: 0, triggered: [] };
@@ -66,9 +56,13 @@ export async function watchDone(): Promise<{ found: number; triggered: string[] 
       await log(`[watchDone] Review triggerelve: ${basename}`);
       await setState(reviewKey, String(now));
 
-      // Run TypeScript reviewer (no longer bash)
+      // Run reviewer - terminal-based (Architect + Librarian) or API-based
       try {
-        const reviewResult = await handleDoneReview(donePath);
+        const reviewResult = USE_TERMINAL_REVIEW
+          ? await handleTerminalReview(donePath)
+          : await handleDoneReview(donePath);
+
+        await log(`[watchDone] Review mode: ${USE_TERMINAL_REVIEW ? 'terminal' : 'api'}`);
 
         if (reviewResult.approved) {
           await log(`[watchDone] APPROVED: ${basename} → running pipeline`);
