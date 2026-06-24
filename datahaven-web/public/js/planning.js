@@ -78,105 +78,252 @@ function updateHealthIndicator(metrics) {
 }
 
 // =============================================================================
-// Workflow Panel (Plan → Project/Epic tracking)
+// Focus Area Panel (Top section - dynamic load)
 // =============================================================================
 
-async function loadWorkflow() {
-  const tbody = document.getElementById('workflow-body');
-  const statsEl = document.getElementById('workflow-stats');
-
-  tbody.innerHTML = '<tr><td colspan="6" class="loading">Loading workflow...</td></tr>';
+async function loadFocusPanel() {
+  const domainSelect = document.getElementById('domain-select');
+  const criteriaDisplay = document.getElementById('criteria-display');
 
   try {
-    const data = await api('/planning/workflow');
+    const data = await api('/planning/focus');
+
+    // Update domain dropdown
+    if (domainSelect) {
+      domainSelect.value = data.currentDomain;
+    }
+
+    // Update criteria display
+    if (criteriaDisplay) {
+      criteriaDisplay.innerHTML = `
+        <ul>
+          ${data.criteria.map(criterion => `
+            <li><strong>${escapeHtml(criterion.name)}:</strong> ${escapeHtml(criterion.description)}</li>
+          `).join('')}
+        </ul>
+      `;
+    }
+  } catch (err) {
+    console.error('Failed to load focus panel:', err);
+    if (criteriaDisplay) {
+      criteriaDisplay.innerHTML = `<div class="empty">Error loading focus data: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+}
+
+function setupFocusPanelHandlers() {
+  const domainSelect = document.getElementById('domain-select');
+  const syncBtn = document.querySelector('.btn-sync');
+
+  // Sync button handler
+  if (syncBtn) {
+    syncBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      loadFocusPanel();
+    });
+  }
+
+  // Domain select change handler
+  if (domainSelect) {
+    domainSelect.addEventListener('change', async (e) => {
+      try {
+        const response = await fetch('/api/planning/focus', {
+          method: 'PUT',
+          headers: {
+            'Authorization': state.token ? `Bearer ${state.token}` : '',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ domain: e.target.value })
+        });
+
+        if (!response.ok) throw new Error('Failed to save domain');
+
+        // Reload to reflect changes
+        await loadFocusPanel();
+      } catch (err) {
+        console.error('Failed to save focus domain:', err);
+        alert('Failed to save domain: ' + err.message);
+      }
+    });
+  }
+}
+
+// =============================================================================
+// Epic Flow Panel (Mermaid Graph)
+// =============================================================================
+
+let currentEpicGraph = null;
+
+async function loadEpicFlow() {
+  const statsEl = document.getElementById('flow-stats');
+  const diagramEl = document.getElementById('mermaid-diagram');
+  const detailsEl = document.getElementById('epic-details');
+
+  diagramEl.innerHTML = '<div class="loading">Loading epic flow...</div>';
+  statsEl.innerHTML = '';
+  detailsEl.innerHTML = '';
+
+  try {
+    // Fetch epic graph and mermaid diagram
+    const [graphData, mermaidData] = await Promise.all([
+      fetch('http://localhost:3456/api/graph/epics').then(r => r.json()),
+      fetch('http://localhost:3456/api/graph/mermaid/epic/EPICS').then(r => r.json())
+    ]);
+
+    currentEpicGraph = graphData.graph || graphData;
 
     // Render stats
-    const stats = data.stats;
+    const nodes = currentEpicGraph.nodes || [];
+    const stats = calculateEpicStats(nodes);
     statsEl.innerHTML = `
-      <div class="workflow-stat draft">
-        <span class="stat-count">${stats.draft}</span>
-        <span class="stat-label">Draft</span>
+      <div class="flow-stat-item">
+        <strong>${stats.total}</strong> epics
       </div>
-      <div class="workflow-stat selected">
-        <span class="stat-count">${stats.selected}</span>
-        <span class="stat-label">Selected</span>
+      <div class="flow-stat-item">
+        <strong>${stats.done}</strong> done
       </div>
-      <div class="workflow-stat in_debate">
-        <span class="stat-count">${stats.in_debate}</span>
-        <span class="stat-label">In Debate</span>
+      <div class="flow-stat-item">
+        <strong>${stats.active}</strong> active
       </div>
-      <div class="workflow-stat approved">
-        <span class="stat-count">${stats.approved}</span>
-        <span class="stat-label">Approved</span>
+      <div class="flow-stat-item">
+        <strong>${stats.pending}</strong> pending
       </div>
-      <div class="workflow-stat implemented">
-        <span class="stat-count">${stats.implemented}</span>
-        <span class="stat-label">Implemented</span>
+      <div class="flow-stat-critical">
+        Critical Path: ${stats.criticalPath.join(' → ')}
       </div>
     `;
 
-    // Render table rows
-    if (data.items.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty">No workflow items</td></tr>';
-      return;
-    }
+    // Render Mermaid diagram
+    const mermaidCode = mermaidData.mermaid || mermaidData.diagram;
+    const uniqueId = 'mermaid-' + Date.now();
+    diagramEl.innerHTML = `<div class="mermaid" id="${uniqueId}">${escapeHtml(mermaidCode)}</div>`;
 
-    tbody.innerHTML = data.items.map(item => `
-      <tr class="workflow-row status-${item.workflowStatus}" onclick="showItem('${escapeHtml(item.path)}', '${item.workflowStage}')">
-        <td class="workflow-title">
-          <span class="item-title">${escapeHtml(item.title)}</span>
-          <span class="item-filename">${escapeHtml(item.filename)}</span>
-        </td>
-        <td>
-          <span class="workflow-status-badge ${item.workflowStatus}">${getStatusLabel(item.workflowStatus)}</span>
-        </td>
-        <td>
-          ${item.priority ? `<span class="badge badge-priority-${item.priority}">${escapeHtml(item.priority)}</span>` : '-'}
-        </td>
-        <td>
-          ${item.domain ? `<span class="badge badge-domain">${escapeHtml(item.domain)}</span>` : '-'}
-        </td>
-        <td class="workflow-outcome">
-          ${renderOutcome(item)}
-        </td>
-        <td class="workflow-date">${formatDate(item.updated)}</td>
-      </tr>
+    // Render with Mermaid
+    await mermaid.run({ nodes: [document.getElementById(uniqueId)] });
+
+    // Render epic details list
+    detailsEl.innerHTML = `
+      <div class="epic-list">
+        <h3>Epic Details</h3>
+        ${nodes.map(epic => `
+          <div class="epic-item" data-epic="${escapeHtml(epic.id)}">
+            <div class="epic-header">
+              <span class="epic-id">${escapeHtml(epic.id)}</span>
+              <span class="epic-status status-${epic.status}">${escapeHtml(epic.status)}</span>
+            </div>
+            <div class="epic-meta">
+              ${epic.depends_on?.length ? `<div>Depends on: ${epic.depends_on.join(', ')}</div>` : ''}
+              ${epic.parallel_with?.length ? `<div>Parallel: ${epic.parallel_with.join(', ')}</div>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+  } catch (err) {
+    diagramEl.innerHTML = `<div class="empty">Error: ${escapeHtml(err.message)}</div>`;
+    console.error('Failed to load epic flow:', err);
+  }
+}
+
+function calculateEpicStats(nodes) {
+  const stats = {
+    total: nodes.length,
+    done: nodes.filter(n => n.status === 'done').length,
+    active: nodes.filter(n => n.status === 'active').length,
+    pending: nodes.filter(n => n.status === 'pending').length,
+    criticalPath: ['KERNEL', 'JOINERY', 'ORCH', 'PORTAL'] // Simplified
+  };
+  return stats;
+}
+
+async function exportMermaid() {
+  try {
+    const data = await fetch('http://localhost:3456/api/graph/mermaid/epic/EPICS').then(r => r.json());
+    await navigator.clipboard.writeText(data.mermaid || data.diagram);
+    alert('Mermaid diagram copied to clipboard!');
+  } catch (err) {
+    alert('Failed to export: ' + err.message);
+  }
+}
+
+// =============================================================================
+// Focus Panel
+// =============================================================================
+
+let currentFocus = null;
+
+async function loadFocus() {
+  const domainSelect = document.getElementById('focus-domain');
+  const domainsList = document.getElementById('focus-domains-list');
+  const criteriaList = document.getElementById('focus-criteria');
+
+  domainSelect.innerHTML = '<option value="">Loading...</option>';
+
+  try {
+    const data = await api('/planning/focus');
+    currentFocus = data;
+
+    // Render domain select
+    domainSelect.innerHTML = data.domains.map(d => `
+      <option value="${d.value}" ${d.value === data.currentDomain ? 'selected' : ''}>
+        ${d.label}
+      </option>
+    `).join('');
+
+    // Render domains list
+    domainsList.innerHTML = data.domains.map(d => `
+      <div class="domain-item ${d.value === data.currentDomain ? 'active' : ''}">
+        <strong>${d.value}</strong> — ${d.description}
+      </div>
+    `).join('');
+
+    // Render criteria
+    criteriaList.innerHTML = data.criteria.map(c => `
+      <div class="criteria-item">
+        <strong>${c.name}:</strong> ${c.description}
+      </div>
     `).join('');
 
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty">Error: ${escapeHtml(err.message)}</td></tr>`;
+    domainSelect.innerHTML = '<option value="">Error loading</option>';
+    console.error('Failed to load focus:', err);
   }
 }
 
-function getStatusLabel(status) {
-  const labels = {
-    'draft': 'Draft',
-    'selected': 'Selected',
-    'in_debate': 'In Debate',
-    'approved': 'Approved',
-    'implemented': 'Implemented',
-    'archived': 'Archived'
-  };
-  return labels[status] || status;
-}
+async function saveFocus() {
+  const domainSelect = document.getElementById('focus-domain');
+  const newDomain = domainSelect.value;
 
-function renderOutcome(item) {
-  if (!item.outcome && !item.outcomePath) {
-    if (item.workflowStatus === 'implemented') {
-      return '<span class="outcome-pending">Link pending</span>';
+  if (!newDomain) {
+    alert('Please select a domain');
+    return;
+  }
+
+  try {
+    const headers = {};
+    if (state.token) {
+      headers['Authorization'] = `Bearer ${state.token}`;
     }
-    return '-';
+    headers['Content-Type'] = 'application/json';
+
+    const response = await fetch('/api/planning/focus', {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ domain: newDomain })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save focus');
+    }
+
+    alert('Domain focus updated successfully!');
+    loadFocus(); // Reload to reflect changes
+
+  } catch (err) {
+    alert('Failed to save: ' + err.message);
+    console.error('Failed to save focus:', err);
   }
-
-  const type = item.outcomeType || 'project';
-  const icon = type === 'epic' ? '📦' : type === 'project' ? '📁' : '✅';
-  const path = item.outcomePath || '';
-
-  return `
-    <a href="/projects.html#${escapeHtml(path)}" class="outcome-link" onclick="event.stopPropagation()">
-      ${icon} ${escapeHtml(item.outcome || path)}
-    </a>
-  `;
 }
 
 // =============================================================================
@@ -399,7 +546,8 @@ function switchStage(stage) {
 
   // Load data for the stage
   switch (stage) {
-    case 'workflow': loadWorkflow(); break;
+    case 'workflow': loadEpicFlow(); break;
+    case 'focus': loadFocus(); break;
     case 'ideas': loadIdeas(); break;
     case 'selected': loadSelected(); break;
     case 'debate': loadDebate(); break;
@@ -460,7 +608,9 @@ function formatDate(dateStr) {
 // =============================================================================
 
 async function init() {
+  setupFocusPanelHandlers();
   await loadPipeline();
+  await loadFocusPanel();
   loadIdeas();
 
   // Refresh periodically
