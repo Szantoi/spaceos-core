@@ -48,8 +48,36 @@ const epicManager_1 = require("../conductor/epicManager");
 const TERMINALS_DIR = '/opt/spaceos/terminals';
 const MONITOR_INBOX = path.join(TERMINALS_DIR, 'monitor', 'inbox');
 const TMUX_SOCKET = '/tmp/spaceos.tmux';
+const CYCLE_STATE_FILE = '/opt/spaceos/logs/dispatcher/.monitor-cycle-state';
 // Track cycles to run every 5th one (10 minutes with 2-min interval)
+// Persisted to file to survive service restarts
 let cycleCount = 0;
+// ─── Persistent Cycle Counter Helpers ──────────────────────────────────────
+/**
+ * Load cycle count from persistent file
+ * Returns 0 if file doesn't exist or is invalid
+ */
+async function loadCycleCount() {
+    try {
+        const content = await fs.readFile(CYCLE_STATE_FILE, 'utf-8');
+        const count = parseInt(content.trim(), 10);
+        return isNaN(count) ? 0 : count;
+    }
+    catch {
+        return 0;
+    }
+}
+/**
+ * Save cycle count to persistent file
+ */
+async function saveCycleCount(count) {
+    try {
+        await fs.writeFile(CYCLE_STATE_FILE, String(count), 'utf-8');
+    }
+    catch (error) {
+        console.error('[watchMonitor] Failed to save cycle count:', error);
+    }
+}
 // ─── ADR-053: Mode-Aware Health Check Builder ──────────────────────────────
 /**
  * Build mode-aware health check prompt for Monitor
@@ -225,13 +253,16 @@ Lásd: logs/dispatcher/nightwatch.log az err-ért.
     }
 }
 async function watchMonitor() {
+    // Load persistent cycle count
+    cycleCount = await loadCycleCount();
     cycleCount++;
+    await saveCycleCount(cycleCount);
     // Only run every 5th cycle (10 minutes)
     if (cycleCount % 5 !== 0) {
-        await (0, common_1.log)(`[watchMonitor] Cycle ${cycleCount}/5 - skipping`);
+        await (0, common_1.log)(`[watchMonitor] Cycle ${cycleCount}/5 - skipping (persistent)`);
         return { triggered: false, reason: `Skipping (cycle ${cycleCount}/5)` };
     }
-    await (0, common_1.log)(`[watchMonitor] Cycle ${cycleCount} - checking triggers`);
+    await (0, common_1.log)(`[watchMonitor] Cycle ${cycleCount} - checking triggers (5th cycle!)`);
     // Skip if monitor session already running
     try {
         (0, child_process_1.execSync)(`tmux -S ${TMUX_SOCKET} has-session -t spaceos-monitor 2>/dev/null`, { stdio: 'pipe' });
@@ -297,6 +328,7 @@ ${modeAwarePrompt}
     return { triggered: true, reason: 'Mode-aware health check scheduled', messageId };
 }
 // Reset cycle count (useful for testing)
-function resetMonitorCycle() {
+async function resetMonitorCycle() {
     cycleCount = 0;
+    await saveCycleCount(0);
 }
