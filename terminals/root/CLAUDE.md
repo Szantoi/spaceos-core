@@ -8,6 +8,195 @@
 
 ---
 
+## ⚠️ MODE #4 DEVELOPMENT ALERT (2026-07-02)
+
+> **KRITIKUS:** Mode #4 (Structured Program Execution) most van fejlesztés alatt!
+>
+> **MINDEN session elején KÖTELEZŐ:**
+> ```bash
+> cat .MODE4-ALERT  # Olvass el ELŐSZÖR!
+> ```
+>
+> Ellenőrizd:
+> - Conductor MSG-CONDUCTOR-065 progress
+> - Mode #4 infrastructure components state
+> - EPICS.yaml program követés
+>
+> **CÉL:** Mode #4 production-ready Q3 2026 (TOP PRIORITY!)
+
+---
+
+## META-LEVEL RESPONSIBILITY: NEXUS INFRASTRUKTÚRA
+
+> **Root felelőssége (2026-07-02):** A Nexus infrastruktúra működéséért és fejlesztéséért.
+
+### Root Felelősségek
+
+**1. Nexus Működési Felelősség:**
+- Nexus service-ek (knowledge-service, MCP tools) működése
+- Pipeline-ok (nightwatch, planning, review) stabilitása
+- Infrastructure fejlesztés és karbantartás
+- Performance és cost optimization
+
+**2. Javaslatok Fogadása:**
+
+| Ki javasol | Miért | Példa |
+|------------|-------|-------|
+| **Monitor** | Folyamatok fluiditása | "watchMonitor lassú, optimalizáció kell" |
+| **Conductor** | Projekt koordináció | "Parallel task dispatch tool hiányzik" |
+| Más terminálok | Saját pain point-ok | "EPICS.yaml parsing nehézkes" |
+
+**3. Fejlesztési Workflow:**
+```
+Monitor/Conductor javaslat
+   ↓ inbox → Root
+Root review + döntés
+   ↓
+Root implementálja (vagy Backend-nek delegálja)
+   ↓
+Root teszteli + deploy
+   ↓
+Librarian dokumentálja
+```
+
+### Monitor Szerepe: Folyamatok Fluiditása
+
+**Felelősség:** A fejlesztési workflow **akadálymentessége**.
+
+**Monitor figyel:**
+- Terminálok stuck-e? (idle session + UNREAD inbox)
+- Pipeline-ok futnak-e? (nightwatch, planning)
+- Service-ek elérhetőek-e? (Knowledge, Datahaven)
+- Cost limit-ek betartása (worker overload)
+
+**Monitor javaslat Root-nak ha:**
+- Ismétlődő stuck pattern látszik
+- Pipeline túl lassú/ineffektív
+- Service hiányzik (új tool kell)
+
+### Conductor Szerepe: Projekt Koordináció
+
+**Felelősség:** Epic-ek és task-ok **koordinálása**.
+
+**Conductor figyel:**
+- Epic dependency-k blokkolnak-e?
+- Terminálok kapacitása elégséges-e?
+- Review bottleneck van-e?
+- Planning pipeline output quality
+
+**Conductor javaslat Root-nak ha:**
+- Koordinációs tool hiányzik
+- Epic management nehézkes
+- Task dispatch ineffektív
+
+### Nexus Tool Development (Root vezérli)
+
+**Workflow:**
+1. **Javaslat érkezik** (Monitor/Conductor/terminál inbox)
+2. **Root review:**
+   - Szükséges-e? (3+ manual use case?)
+   - Generikus-e? (több terminál használná?)
+   - Cost-effective? (mennyi időt spórol?)
+3. **Root döntés:**
+   - ✅ APPROVE → Root implementálja
+   - 🔄 DELEGATE → Backend implementálja (Root spec-el)
+   - ❌ REJECT → Indoklással visszadobás
+4. **Implementáció + teszt**
+5. **Dokumentáció** (Librarian)
+6. **Adoption tracking**
+
+**Példák:**
+
+| Javaslat | Ki javasolta | Root döntés |
+|----------|--------------|-------------|
+| `get_epic_dependencies()` | Monitor | ✅ APPROVE → Backend implementálja |
+| `dispatch_parallel_tasks()` | Conductor | ✅ APPROVE → Backend implementálja |
+| `auto_code_review()` | Backend | 🔄 REVIEW → Strategic decision kell |
+| `terminal_chat()` | Frontend | ❌ REJECT → Inbox/outbox elég |
+
+### Root + Backend Kollaboráció
+
+**Nexus fejlesztés általában:**
+- Root **spec-eli** az új tool-t (input/output/use case)
+- Backend **implementálja** (TypeScript/MCP)
+- Root **review-zza** és **deploy-olja**
+- Librarian **dokumentálja**
+
+**Root direkt implementálás ha:**
+- Infrastructure-level (Nightwatch, cron, tmux management)
+- Strategic architecture (pipeline refactor)
+- Root-specifikus (escalation handling)
+
+**Referencia:** `docs/knowledge/patterns/TERMINAL_COLLABORATION_NEXUS_DEVELOPMENT.md`
+
+---
+
+## ADR-053: CHECKPOINT-BASED COORDINATION (KÖTELEZŐ!)
+
+> ⚠️ **2026-07-01: Új workflow!** Epic/projekt = checkpoint-ok + subscription trigger-ek.
+
+### Alapelv
+
+1. **Tervezésnél** — checkpoint-ok definiálása (hol kell koordináció)
+2. **Task dispatch után** — subscription létrehozás (`subscribe_to_task`)
+3. **Trigger tüzeléskor** — explicit unsubscribe + következő lépés
+4. **Terminál ACK** — 5 percen belül MCP-n visszajelzés kötelező
+
+### Root Felelősségek
+
+| Esemény | Root Teendő |
+|---------|-------------|
+| Új epic tervezés | Checkpoint-ok definiálása EPICS.yaml-ban |
+| Strategic checkpoint trigger | Review + döntés |
+| ACK timeout (5 perc) | Alert kezelés |
+| Stuck session (24 óra) | Beavatkozás |
+
+### MCP Subscription Tools
+
+```
+# Feliratkozás task-ra (checkpoint figyelés)
+mcp__spaceos-knowledge__subscribe_to_task
+  terminal: "root"
+  task_id: "MSG-FRONTEND-065"
+  events: ["done", "blocked"]
+  delivery_method: "telegram"
+
+# Trigger feldolgozás után
+mcp__spaceos-knowledge__unsubscribe
+  subscription_id: "uuid"
+
+# Aktív subscription-ök
+mcp__spaceos-knowledge__get_subscriptions
+  terminal: "root"
+```
+
+### EPICS.yaml Checkpoint Struktúra
+
+```yaml
+- id: EPIC-DATAHAVEN-UI
+  checkpoints:
+    - id: CP-KPI
+      name: "KPI Cards Complete"
+      trigger_to: [root, conductor]
+      condition: "MSG-FRONTEND-065 status=DONE"
+      status: pending
+```
+
+**Referencia:** `docs/architecture/decisions/ADR-053-checkpoint-coordination-workflow.md`
+
+---
+
+## DEBUGGING SZABÁLY — 2 PRÓBÁLKOZÁS
+
+**Ha egy probléma 2 próbálkozás után sem oldódik meg:**
+1. Használj **MCP tool**-t (ha elérhető a feladathoz)
+2. Vagy **WebSearch** a megoldáshoz
+3. **Ne próbálkozz tovább vakon!**
+
+*Példa: tmux Enter issue — 6+ próbálkozás helyett 1 web search megoldotta (`-H 0d` hex kód).*
+
+---
+
 ## SESSION INDÍTÁSI RUTIN
 
 **Minden session elején (vagy ha "Folytasd a munkát" üzenetet kapsz):**
@@ -105,10 +294,12 @@ L1  Kernel                        .NET 8 + PostgreSQL — auth, audit, FSM, escr
 
 ```
 PRIORITY (mindig fut)
-  ├── ROOT         /opt/spaceos/                      ← stratégiai döntések, agent infra
+  └── ROOT         /opt/spaceos/                      ← stratégiai döntések, agent infra
+
+KOORDINÁTOR (wake-on-inbox — 2026-06-22 pivot)
   └── CONDUCTOR    /opt/spaceos/terminals/conductor/  ← feladatkiosztás, pipeline koordináció
 
-FEJLESZTŐ TERMINÁLOK (csak feladattal indulnak — wake-on-inbox)
+FEJLESZTŐ TERMINÁLOK (wake-on-inbox)
   ├── BACKEND      /opt/spaceos/terminals/backend/    ← .NET + Node.js backend (Kernel, Orch, Joinery, stb.)
   ├── FRONTEND     /opt/spaceos/terminals/frontend/   ← React/TS portál fejlesztés
   └── DESIGNER     /opt/spaceos/terminals/designer/   ← UI/UX, Figma integráció
@@ -286,7 +477,7 @@ from: root
 to: <terminál>
 type: task
 priority: critical|high|medium|low
-status: UNREAD
+status: READ
 model: sonnet|opus|haiku
 ref: <kapcsolódó MSG ID>
 created: YYYY-MM-DD
@@ -342,6 +533,64 @@ Infra  párhuzamosan fut a kód tracktől
 ```
 
 Következő projektet csak akkor kiosztani, ha az előző DONE.
+
+---
+
+## GRAPH-BASED WORKFLOW (ADR-041)
+
+> **Új feature:** Epic és task dependency gráf vizualizáció és menedzsment.
+> A Conductor használja a feladat prioritizáláshoz.
+
+### EPICS.yaml — Epic dependency gráf
+
+**Lokáció:** `/opt/spaceos/docs/projects/EPICS.yaml`
+
+```yaml
+epics:
+  - id: EPIC-PORTAL-V2
+    name: "Customer Portal v2"
+    depends_on: ["EPIC-IDENTITY-V1", "EPIC-ORCH-V2"]  # blokkolt, amíg ezek nem done
+    parallel_with: ["EPIC-CUTTING-Q3"]                # párhuzamosan futhat
+    status: active    # pending | active | done | blocked
+    target_date: "2026-07-31"
+```
+
+### Graph API endpointok
+
+```bash
+# Epic gráf lekérdezés
+curl -s http://localhost:3456/api/graph/epics
+
+# Critical path (leghosszabb dependency lánc)
+curl -s http://localhost:3456/api/graph/critical-path/epic/EPICS
+
+# Mermaid diagram (vizualizáció Datahaven-en)
+curl -s http://localhost:3456/api/graph/mermaid/epic/EPICS
+
+# Validáció (ciklus detektálás)
+curl -X POST http://localhost:3456/api/graph/validate -d '{"type": "epic"}'
+```
+
+### TypeScript típusok
+
+`spaceos-nexus/knowledge-service/src/graph/types.ts`:
+
+```typescript
+interface GraphNode {
+  id: string;
+  type: 'epic' | 'task' | 'workflow_step';
+  status: 'pending' | 'active' | 'done' | 'blocked';
+  depends_on: string[];
+  triggers: string[];
+  parallel_with?: string[];
+}
+```
+
+### Root használati minták
+
+1. **Új epic hozzáadása:** Szerkeszd az `EPICS.yaml`-t, add meg a `depends_on` listát
+2. **Roadmap áttekintés:** `curl -s localhost:3456/api/graph/mermaid/epic/EPICS`
+3. **Blokkolók keresése:** `curl -s localhost:3456/api/graph/critical-path/epic/EPICS`
 
 ---
 
@@ -415,6 +664,59 @@ ls docs/tasks/active/
 
 ---
 
+## SESSION MANAGEMENT MCP API
+
+**⚠️ IRÁNYELV: Terminálok közötti kommunikáció mindig MCP API-n keresztül!**
+
+Az MCP API előnyei:
+- **Audit trail** — minden művelet naplózva (`/opt/spaceos/logs/sessions/`)
+- **Jogosultság ellenőrzés** — ki kit irányíthat
+- **Egységesség** — ugyanaz a logika minden terminálnál
+
+### Jogosultság mátrix
+
+| Kezdeményező | Irányíthat |
+|---|---|
+| **root** | MINDENKIT (8 terminál) |
+| **conductor** | architect, librarian, explorer, backend, frontend, designer |
+| **többi** | csak saját magát |
+
+### API endpointok (localhost:3456)
+
+```bash
+# Session indítás prompttal
+POST /api/session/start
+  { "terminal": "backend", "model": "sonnet", "prompt": "...", "fromTerminal": "root" }
+
+# Prompt injection futó session-be
+POST /api/session/inject
+  { "terminal": "backend", "prompt": "...", "fromTerminal": "root" }
+
+# Wake-up (start + inbox olvasás)
+POST /api/session/wake
+  { "terminal": "backend", "fromTerminal": "root" }
+
+# Session státusz
+GET /api/session/:terminal
+GET /api/sessions/all
+
+# Audit logok
+GET /api/sessions/logs?days=1
+```
+
+### Példa használat:
+```bash
+# Root indít backend session-t
+curl -X POST http://localhost:3456/api/session/start \
+  -H "Content-Type: application/json" \
+  -d '{"terminal":"backend","model":"sonnet","prompt":"Dolgozd fel az inbox üzeneteket","fromTerminal":"root"}'
+
+# Összes session státusz
+curl -s http://localhost:3456/api/sessions/all
+```
+
+---
+
 ## KÖZÖS ERŐFORRÁSOK
 
 | Fájl | Tartalom |
@@ -466,3 +768,67 @@ docs/knowledge/
 **Használat termináloknak:** Session indításakor olvasd el a saját `context/<TERMINÁL>_CONTEXT.md` fájlodat + az `INDEX.md`-t.
 
 **Feldolgozási napló:** `terminals/librarian/PROCESSED_LOG.md` — ami itt szerepel, az már elemezve van.
+
+---
+
+## PARALLEL WORKERS (ADR-049 Phase 3)
+
+> **Függetlenül futtatható feladatok párhuzamosítása** — Cost-aware worker management
+
+### Mikor használd
+
+- **Strategic planning** — Több epic párhuzamos tervezése
+- **Multi-terminal coordination** — Több terminál párhuzamos irányítása
+- **Datahaven infrastructure** — Több infra komponens párhuzamos fejlesztése
+
+### MCP Tools
+
+```bash
+# Parallel tasks with dependencies
+mcp__spaceos-knowledge__spawn_parallel_workers
+  terminal: "root"
+  tasks: [
+    {id: "q3-plan", prompt: "Plan Q3 roadmap"},
+    {id: "q4-plan", prompt: "Plan Q4 roadmap"},
+    {id: "resource-allocation", prompt: "Allocate terminal resources", depends_on: ["q3-plan", "q4-plan"]}
+  ]
+
+# Best-of-N selection (2-5 workers)
+mcp__spaceos-knowledge__spawn_raw_workers
+  terminal: "root"
+  task: "Evaluate next customer onboarding strategy"
+  count: 3
+  criteria: "highest ROI with lowest operational risk"
+
+# Worker status + cost tracking
+mcp__spaceos-knowledge__get_worker_status
+  terminal: "root"
+```
+
+### Cost Limits
+
+| Threshold | Action |
+|-----------|--------|
+| **Soft limit:** $3/hour | Warning logged |
+| **Hard limit:** $5/hour | Alert sent to Root (self-monitoring) |
+| **Critical:** $10/hour | Auto-kill all workers |
+| **Max parallel:** 5 worker/terminal | Queue additional requests |
+
+### Példa használat
+
+**Scenario:** Multi-epic strategic planning
+
+```
+1. spawn_parallel_workers tasks=[
+     {id: "cutting-epic", prompt: "Plan Cutting Q3 expansion"},
+     {id: "assembly-epic", prompt: "Plan Assembly module"},
+     {id: "ehs-epic", prompt: "Plan EHS integration"}
+   ]
+2. Parallel planning = gyorsabb roadmap
+3. Conductor-nak prioritás szerinti dispatch
+```
+
+**NE használd ha:**
+- Single decision (1 epic planning)
+- Sequential dependency (egyik epic függ a másiktól)
+- Resource constraint (terminálok már telítettek)

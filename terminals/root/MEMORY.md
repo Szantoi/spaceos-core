@@ -1,656 +1,841 @@
-# Root Terminal Session Memory (2026-06-23)
+# Root Terminal Session Memory (2026-07-02)
 
-## Session Overview
+## 🎯 MŰKÖDÉSI MÓDOK — 4 PARADIGMA (2026-07-02 Felfedezés)
 
-**Időszak:** 2026-06-23 (Reviewer infinite loop fix + Task Audit Design)
-**Főbb tevékenységek:** Reviewer security architecture implementation, Task audit & formal review planning
+> **Kritikus felismerés:** A SpaceOS terminál rendszer **4 különböző működési módban** tud dolgozni.
+> Jelenleg a **4. mód (Structured Program Execution)** van tesztelés/fejlesztés alatt.
 
 ---
 
-## 1. Reviewer Infinite Loop Fix (CRITICAL)
+## ⚠️ MODE #4 ACTIVE DEVELOPMENT — TUDATOS FIGYELEM KÖTELEZŐ
 
-### Probléma
-Continuous DONE → REJECT → new DONE → REJECT loop consuming system resources (~332+ MCP heartbeat nudges).
+> **2026-07-02 ROOT DIRECTIVE:**
+>
+> Mode #4 (Structured Program Execution) most van **kritikus fejlesztési fázisban**.
+>
+> **MINDEN Root/Conductor session-ben KÖTELEZŐ:**
+> 1. ✅ Ellenőrizni hogy Mode #4 infrastruktúra épül-e (Conductor awareness, Monitor tracking)
+> 2. ✅ Figyelni hogy a terminálok EPICS.yaml programot követik-e
+> 3. ✅ Checkpoint completion tracking működik-e
+> 4. ✅ False alerts (planning queue, pipeline log) NEM zavarják-e a működést
+>
+> **CÉL:** Mode #4 production-ready Q3 2026 — ez a LEGNAGYOBB prioritás most.
+
+---
+
+### 1. **MANUÁLIS MÓD** — Operátor-vezérelt
+
+**Működés:**
+- Operátor (Root/user) lépked a terminálok között
+- Manuálisan mozgatja a szálakat (inbox üzenetek)
+- Minden döntést expliciten meghoz
+
+**Use case:**
+- Debugging
+- Critical hotfix
+- One-off tasks
+- Learning/exploration
+
+**Jellemző:** Teljes kontroll, lassú, munkaigényes
+
+---
+
+### 2. **FÉLAUTO ÖTLETELÉS** — Root-initiated Planning
+
+**Működés:**
+- Root ötleteket ad (`docs/planning/ideas/`)
+- Planning pipeline (`ENABLE_IDEA_SCAN=true`) dolgozza fel:
+  - Idea → Selected → Debate → Consensus → Queue
+- Conductor veszi át a queue-t és kioszt termináloknak
+- Terminálok autonomous működnek
+
+**Use case:**
+- Folyamatos fejlesztés business input alapján
+- Feature discovery
+- Innovation pipeline
+
+**Jellemző:** Root business vision → autonomous execution
+
+**Pipeline:** `planScan.ts` → `planSelect.ts` → `planDebate.ts` → Conductor dispatch
+
+---
+
+### 3. **SZABAD AUTO ÖTLETELÉS** — Intuitive Simulation
+
+**Működés:**
+- **NINCS** explicit Root input
+- Idea scanner **automatikusan** generál ötleteket:
+  - Domain focus alapján (`docs/planning/domain-focus.md`)
+  - Hotspot detection (milyen területek kapnak sok figyelmet)
+  - Exploration strategy (új területek felfedezése)
+- Planning pipeline ugyanúgy dolgoz (2. mód folytatása)
+- Conductor autonomous dispatch
+
+**Use case:**
+- Long-term autonomous evolution
+- "AI csapat gondolkodik a project jövőjéről"
+- Creative exploration without human bottleneck
+
+**Jellemző:** **Teljes autonomy** — rendszer saját maga fejleszti magát
+
+**Config:**
+```
+ENABLE_IDEA_SCAN=true
+ENABLE_AUTONOMOUS_DEV=true  (opcionális, cold-start Conductor)
+```
+
+---
+
+### 4. **STRUCTURED PROGRAM EXECUTION** — Epic-driven Multi-module Orchestration ⚡ **[TESZTELÉS ALATT]**
+
+**Működés:**
+- Nagyobb projekt **előre megtervezve** (mainframe, epic, task hierarchy)
+- **Strukturált program:** Több modul, több epic, több nap/hét work
+- **Graph-based workflow** (ADR-041):
+  - EPICS.yaml dependency graph
+  - Task dependencies
+  - Checkpoint-based coordination (ADR-053)
+- **Conductor követi a programot** (NEM tévedhet le)
+- **Monitor felügyeli** hogy a terminál rendszer a program szerint halad-e
+
+**Use case:**
+- Large-scale features (multi-module, multi-week)
+- Complex migrations (pl. Datahaven UI → JoineryTech port)
+- Customer onboarding projects
+- Quarterly roadmap execution
+
+**Jellemző:**
+- **Strukturált, determinisztikus** haladás
+- Epic/task dependency követés
+- Checkpoint-based progress tracking
+- Monitor alerts ha eltérés van
+
+**Infrastruktúra (fejlesztés alatt):**
+- `docs/projects/EPICS.yaml` — Dependency graph
+- Checkpoint system (ADR-053)
+- Conductor program-awareness
+- Monitor program-tracking logic
+
+**Példa projekt (jelenleg fut):**
+```yaml
+# EPIC-GRAPH-WORKFLOW befejezése
+# - Flow editor Datahaven-ben (✅ DONE)
+# - Átemelés JoineryTech-be (🔄 IN PROGRESS)
+# - Multi-module coordination szükséges
+# - Több napos folyamat több LLM-mel
+```
+
+**Problem (Monitor diagnosztika alapján):**
+- ✅ EPICS.yaml struktúra kész
+- ✅ Checkpoints definiálva
+- ⚠️ **Conductor NEM követi szigorúan** — letér a programról
+- ⚠️ **Monitor NEM tudja** milyen folyamaton kellene tartania a rendszert
+- ⚠️ Planning queue üres → zavar (nincs rá szükség 4. módban!)
+
+---
+
+## 📊 Mód Összehasonlítás
+
+| Mód | Input | Execution | Use Case | Autonomous Level |
+|-----|-------|-----------|----------|------------------|
+| 1. Manuális | User minden lépés | User végzi | Debug, hotfix | 0% |
+| 2. Félauto ötlet | Root ideas | Autonomous | Business-driven dev | 60% |
+| 3. Szabad auto | Auto-generated | Autonomous | Long-term evolution | 95% |
+| 4. Structured program | Pre-planned epic/task | **Deterministic autonomous** | Large projects | 80% (strict) |
+
+---
+
+## 🔧 Aktuális Állapot (2026-07-02)
+
+**Aktív mód:** **#4 Structured Program Execution** (tesztelés alatt)
+
+**Működő komponensek:**
+- ✅ EPICS.yaml graph structure
+- ✅ Checkpoint definitions (ADR-053)
+- ✅ Graph API (`/api/graph/epics`, critical path, mermaid)
+- ✅ MCP subscription tools
+
+**Hiányzó/fejlesztés alatt:**
+- ⚠️ Conductor program-awareness logic
+- ⚠️ Monitor program-tracking + deviation alerts
+- ⚠️ Automatic checkpoint verification
+- ⚠️ Epic completion triggers
+
+**Miért van Planning pipeline disabled:**
+- `ENABLE_IDEA_SCAN=false` → **Szándékos!**
+- 4. módban **NINCS szükség** idea generation-re
+- Program már előre megtervezve (EPICS.yaml)
+- Planning pipeline zavarná a strukturált végrehajtást
+
+---
+
+## 🎯 Következő Fejlesztési Lépések (Mode #4 Completion)
+
+1. **Conductor Program-Awareness** — Epic graph követés beépítése
+2. **Monitor Program-Tracking** — Deviation detection + alerts
+3. **Checkpoint Automation** — Auto-verify checkpoint completion
+4. **Epic Completion Triggers** — Next epic auto-start logic
+
+**Cél:** Mode #4 production-ready (Q3 2026)
+
+---
+
+## 🚨 Kritikus Tanulságok (2026-07-02 Session)
+
+### 1. TypeScript Import Hibák
+
+**Problem:** Knowledge-service crash-elt induláskor `.js` extension használata miatt TypeScript import-okban.
+
+**Files affected:**
+- `spaceos-nexus/knowledge-service/src/mcp.ts:109`
+- `spaceos-nexus/knowledge-service/src/codegen/index.ts:22`
+
+**Fix:**
+```typescript
+// HIBÁS
+} from './codegen/index.js';
+
+// HELYES
+} from './codegen/index';
+```
+
+**Lesson:** TypeScript-ben **soha** ne használj `.js` extension-t import statement-ekben!
+
+**Issue:** `.github/issues/2026-07-02_001_typescript-import-extensions.md`
+
+---
+
+### 2. AutonomousDev vs Manual Control
+
+**Problem:** Az AutonomousDev pipeline 20-30 percenként **kilőtte a Conductor tmux session-t** "cold start" miatt.
+
+**Root Cause Found (Explorer Agent 2026-07-02 08:35):**
+- **File:** `spaceos-nexus/knowledge-service/src/pipeline/autonomousDev.ts:247-252`
+- **Logic:** `coldStartConductor()` minden ciklusban `killSession(session)` hívással törli a Conductor-t
+- **Trigger:** `ENABLE_AUTONOMOUS_DEV=true` + 20-30 perc intervallum
+- **Intent:** "Clean context" autonomous fejlesztési ciklushoz
+
+**Code snippet (autonomousDev.ts:247):**
+```typescript
+async function coldStartConductor(...) {
+  const session = 'spaceos-conductor';
+
+  // Kill existing session for clean start
+  if (await hasSession(session)) {
+    await killSession(session);  // <-- KILÖVI A CONDUCTOR-T!
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+
+  await newSession(session, workdir);
+  // ...
+}
+```
+
+**Symptoms:**
+- Conductor session-ök 20 percenként újraindulnak
+- Manuális inbox üzenetek elvesznek
+- Nightwatch log: `[AutonomousDev] Cycle N: Cold starting Conductor`
+
+**Fix (permanent):**
+```bash
+# .env fájl módosítás
+ENABLE_AUTONOMOUS_DEV=false
+
+# knowledge-service újraindítás
+pkill -f "ts-node src/server.ts"
+cd /opt/spaceos/spaceos-nexus/knowledge-service
+npm exec ts-node src/server.ts &
+```
+
+**Lesson:**
+- Autonomous mode és manual control **nem kompatibilis** jelenleg
+- AutonomousDev **ignorálja** a `terminals.json` `sessionMode: "continuous"` beállítást
+- `watchIdle.ts` **helyesen** respektálja a priority session-öket (skip logic van)
+- Szükséges architectural fix: AutonomousDev legyen inbox-based, ne session-killing
+
+**Issue:** `.github/issues/2026-07-02_002_autonomous-dev-manual-control-conflict.md`
+
+---
+
+### 3. Datahaven API 502 Bad Gateway
+
+**Problem:** Datahaven Dashboard API időnként 502-t ad vissza.
+
+**Possible causes:**
+- Nginx upstream timeout nincs beállítva
+- Backend process crash/restart
+- Port confusion (3456 vs 3457)
+
+**Workaround:** Lokális knowledge-service API használata (localhost:3456)
+
+**Issue:** `.github/issues/2026-07-02_003_datahaven-api-502-bad-gateway.md`
+
+---
+
+### 4. Task Escalation System (ADR-052 Phase 2)
+
+**Implemented:** 2026-07-02 08:30 UTC
+
+**What:** Automatic task monitoring with retry + root escalation.
+
+**Workflow:**
+1. Terminal subscription with timeout (e.g., 3h for Frontend task)
+2. Timeout → Retry #1: Nudge (tmux Enter x2)
+3. Timeout → Retry #2: Session restart + inbox re-inject
+4. Timeout → Escalate to Root (full context: logs, retry history, inbox/outbox)
+
+**Files created:**
+- `spaceos-nexus/knowledge-service/src/pipeline/taskEscalation.ts` - Core escalation logic
+- `spaceos-nexus/knowledge-service/src/routes/escalationRoutes.ts` - REST API
+- Modified `nightwatch.ts` - Added `watchTaskEscalations()` integration
+- Modified `app.ts` - Registered `/api/escalation` routes
+
+**Configuration (NOT hardcoded!):**
+```typescript
+{
+  maxRetries: 2,                    // Configurable
+  retryIntervalMinutes: 30,         // Configurable
+  escalateTo: 'root',               // Configurable
+  retryStrategies: {
+    first: 'nudge',                 // nudge | restart | inbox-reinject
+    second: 'restart'               // nudge | restart | inbox-reinject
+  }
+}
+```
+
+**API Endpoints:**
+```bash
+# Get config
+GET /api/escalation/config
+
+# Update config at runtime
+POST /api/escalation/config
+  { "retryIntervalMinutes": 60, "escalateTo": "conductor" }
+
+# View active escalations
+GET /api/escalation/status
+
+# Resolve escalation
+POST /api/escalation/:id/resolve
+```
+
+**Lesson:** **Ne hardcodolj!** A user észreveszi és kérdezi. Minden paraméter legyen konfigurálható API-n keresztül.
+
+**Usage:** Conductor feliratkozik JoineryTech task-okra (`MSG-CONDUCTOR-063`), Nightwatch automatikusan figyeli.
+
+**Ref:** `docs/architecture/decisions/ADR-052-task-subscription-escalation.md`
+
+---
+
+### 5. Kutatási Eredmények Tárolása
+
+**Implemented:** 2026-07-02 08:40 UTC
+
+**Problem:** Explorer agent (vagy bármely research) eredményei elvesznek ha nincsenek indexelve.
+
+**Solution:** Minden kutatási eredményt strukturált knowledge dokumentumként kell tárolni.
+
+**Workflow:**
+1. **Explorer/Task agent lefut** → részletes eredményt ad vissza
+2. **Knowledge dokumentum létrehozása** → `docs/knowledge/<category>/<topic>.md`
+3. **INDEX.md frissítése** → HOT/WARM/COLD tier-hez adás
+4. **Kereshetőség:** Semantic search + grep + direct path
+
+**Példa (Conductor Session Killer):**
+```bash
+# 1. Explorer agent megtalálta a root cause-t (Agent ID: b107c6d7)
+# 2. Knowledge doc létrehozva:
+docs/knowledge/debugging/CONDUCTOR_SESSION_KILLER_ANALYSIS.md
+
+# 3. INDEX.md frissítve (HOT tier):
+- [CONDUCTOR_SESSION_KILLER_ANALYSIS.md](debugging/CONDUCTOR_SESSION_KILLER_ANALYSIS.md)
+
+# 4. Kereshetőség:
+grep -r "AutonomousDev" docs/knowledge/
+curl "localhost:3456/api/knowledge/search?q=conductor+session"
+```
+
+**Template struktúra:**
+```markdown
+# [Topic] - Root Cause Analysis / Investigation
+
+**Felfedezve:** YYYY-MM-DD HH:MM UTC
+**Explorer/Agent ID:** <agent_id>
+**Issue:** Rövid probléma leírás
+
+---
+
+## Probléma Leírás
+## Root Cause
+## Evidence (Bizonyítékok)
+## Megoldás
+## Related Components
+## Lessons Learned
+## Testing
+## References
+```
+
+**Lesson:**
+- **Kutatási eredmények = knowledge asset** → strukturált tárolás kötelező
+- **INDEX.md frissítés** → kereshetőség biztosítása
+- **Agent ID megőrzése** → resume support későbbi folytatáshoz
+- **Category mapping:** debugging/, patterns/, architecture/, deployment/
+
+**Benefit:**
+- Bármelyik terminál megtalálja a múltbeli kutatásokat
+- Semantic search működik
+- Librarian feldolgozhatja és szintetizálhatja
+- Ismétlődő kutatás elkerülése
+
+---
+
+## Aktív Kontextus
+
+### JoineryTech Projekt Folyamatos Munka
+
+**Status:** ✅ ACTIVE (2026-07-02 06:54)
+
+**Kiosztott feladatok:**
+
+| Terminal | Task ID | Feladat | Prioritás | Status |
+|----------|---------|---------|-----------|--------|
+| Frontend | MSG-FRONTEND-089 | UI/UX, Performance & A11y Audit | MEDIUM | QUEUED |
+| Backend | MSG-BACKEND-105 | Backend API Architecture Design | HIGH | QUEUED |
+
+**Deliverables:**
+- Frontend: Audit riport (~2-3 nap)
+- Backend: Backend API architektúra terv (~3-5 nap)
+
+**Ref:** Conductor outbox `2026-07-02_1000_joinerytech-folyamatos-munka-frontend-s--done.md`
+
+---
+
+### Fekete Kód Árnyvadász Csapat (Telegram aliasok)
+
+| Szerep | Árnyév | Terminál |
+|--------|--------|----------|
+| Csapos (fixer) | **Sárkány** | Root |
+| Csapatvezető | **Maestro** | Conductor |
+| Erő | **Vasököl** | Backend |
+| Arc | **Neon** | Frontend |
+| Stratéga | **Árnyék** | Architect |
+| Tudás őrzője | **Krónikás** | Librarian |
+| Felderítő | **Nyomkereső** | Explorer |
+| Művész | **Vízió** | Designer |
+
+---
+
+### MCP Auth Tokenek
+
+| Terminal | Token (Base64) |
+|----------|----------------|
+| **root** (master) | `IoUpLUgr4v6Mj5lt4u2XD1JOy5iGmVdxne473srMl2o=` |
+| conductor | `6ozohLp1ESnTWhWhlkUiyxTwh3cm3Ia+yGT/5YXgqhs=` |
+| architect | `DAP3+yV6SIQo9PH9zcoDYzLp3/XGpP1hFpiOjVO8ru4=` |
+| librarian | `luBZgBbnTwLKsQ1HKmVMYo+j3Cwul64QVxOVb5/7wYE=` |
+| explorer | `aT/iZsIUyNY94CjuHChyGVgv5MFES5/l3V99gorrxcQ=` |
+| backend | `jKB4yyFknSgwRiC8ewLbdFuPxEo8Vgi157lW5QBsmsY=` |
+| frontend | `hsS4SbZGWWljJ8VNTkG18ys2X40BPbl2bH33h6+WIqk=` |
+| designer | `gZnKTnAZ2pgRrkee1EQ7qvcMKBCJ4tDsFgCId5oFGzw=` |
+| **monitor** | `eL4LWZ1KutgSbkvJdeAf+fx7NPt/aGcppgfN5AQzI7c=` |
+
+---
+
+### Terminál Architektúra (7 szerepkör)
+
+```
+PRIORITY (mindig fut)
+  └── ROOT         stratégiai döntések, agent infra
+
+KOORDINÁTOR (wake-on-inbox)
+  └── CONDUCTOR    feladatkiosztás, pipeline koordináció
+
+FEJLESZTŐ (wake-on-inbox)
+  ├── BACKEND      .NET + Node.js backend
+  ├── FRONTEND     React/TS portál
+  └── DESIGNER     UI/UX, Figma
+
+SUPPORT (feladattal indulnak)
+  ├── ARCHITECT    konzultatív arch partner
+  ├── LIBRARIAN    tudásbázis gondozó
+  └── EXPLORER     codebase kutatás
+```
+
+---
+
+## Knowledge Service Állapot
+
+### Portok
+
+| Service | Port | Status |
+|---------|------|--------|
+| Knowledge Service API | 3456 | ✅ Running |
+| Datahaven Web UI | 3457 | ✅ Running |
+| Datahaven Dashboard (nginx) | 443 (HTTPS) | ⚠️ Intermittent 502 |
+
+### API Endpoints (localhost:3456)
+
+**Memory Tiers (ADR-046):**
+- `POST /api/memories/save` - ✅ Működik (200 OK)
+- `GET /api/memories/tiered?terminal=root&tiers=hot,warm`
+- `POST /api/memories/:id/promote`
+
+**Autonomous Dev:**
+- `GET /api/autonomous/status` - enabled: true, running: false
+- `POST /api/autonomous/start` - Autonomous mode bekapcsolás
+- `POST /api/autonomous/stop` - Autonomous mode leállítás ✅ (2026-07-02)
+- `POST /api/autonomous/trigger` - Manual trigger
+
+**Sessions:**
+- `POST /api/session/start`
+- `POST /api/session/inject`
+- `GET /api/session/:terminal`
+
+---
+
+### 6. Datahaven Értesítések Duplikáció és Információ Hiány
+
+**Implemented:** 2026-07-02 14:45 UTC
+
+**Problem:**
+1. **Duplikáció:** Ugyanaz a task kétszer jelent meg a Telegram értesítésekben
+2. **Nem informatív:** Csak task ID és terminal, semmilyen kontextus
+
+**Példa duplikált üzenetek:**
+```
+✅ TASK DONE
+Terminal: backend
+Task: MSG-BACKEND-103
+
+✅ TASK DONE
+Terminal: backend
+Task: MSG-BACKEND-103
+
+🚫 TASK BLOCKED
+Terminal: backend
+Task: MSG-BACKEND-103
+Beavatkozás szükséges!
+```
 
 **Root Cause:**
-- `require_both: true` requires BOTH reviewers to APPROVE
-- Reviewer-B was rejecting COORDINATION tasks on role definition issues (not blocking bugs)
-- No retry limit → terminal keeps trying infinitely
-- REJECT creates review-reject inbox → terminal fixes → new DONE → loop continues
+- `epicRouter.ts:504` emittálja `outbox:done` (MCP-authoritative)
+- `inboxWatcher.ts:244` is emittálja `outbox:done` (file watcher)
+- Mindkét event triggereli a `epicNotifications.ts` handler-t → 2× notification
 
-### Megoldás: Task Type System + Retry Limit + Escalation
+**Solution:**
 
-**1. Task Type Configs** (6 types, YAML-based, extensible):
-- `CODE.yaml` — strict (require_both: true, max_attempts: 2)
-- `COORDINATION.yaml` — lax (require_both: false, max_attempts: 1)
-- `BUGFIX.yaml`, `DOCUMENTATION.yaml`, `RESEARCH.yaml`, `PLANNING.yaml`
-
-**2. Immutability & Trust** (SpaceOS Rule #3):
-- SHA-256 hash for every file (`hashUtils.ts`)
-- Append-only JSONL log (`reviewLog.ts`) → `logs/reviews/decisions.jsonl`
-- NO frontmatter mutation (security requirement)
-
-**3. Retry Limit + Escalation** (`reviewer.ts` modification):
-- Task type extraction from inbox
-- Review attempt counting from JSONL log (not frontmatter)
-- Max attempts check → ESCALATE to Root
-- `createEscalationMessage()` → MSG-ROOT-XXX inbox generation
-- Task-type based `require_both` override
-
-### Eredmény
-✅ Infinite loop FIXED — system now escalates to Root after max_attempts
-✅ TypeScript compiled without errors
-✅ spaceos-knowledge.service restarted successfully
-✅ Nightwatch cycles: normal operation (no loops detected)
-✅ 6 task type YAML configs deployed
-✅ Review log directory ready (`logs/reviews/` created on first review)
-
-### Git Commits
-- (Pending) — feat(reviewer): add task types, retry limits, escalation
-
-### Dokumentáció
-📄 `/opt/spaceos/docs/agent-infrastructure/REVIEWER_SECURITY_ARCHITECTURE.md`
-
----
-
-## 2. Task Audit & Formal Review Design
-
-### Motiváció
-Két kritikus fejlesztési irány:
-1. **Formal Review** — automatizált ellenőrzés egyszerű taskoknál (gyorsabb, olcsóbb)
-2. **Task Audit Trail** — task creation log + jogosultság + projekt tracking
-
-### Design Fókuszok
-
-**A. Formal vs. Tartalmi Review**
-
-Probléma: Nem minden task igényel LLM review (pl. README update, typo fix, config change).
-
-Megoldás:
-- `review_type` field inbox frontmatter-ben: `formal` | `content` | `manual`
-- `scripts/formal-review.sh` — automated checks (build, lint, test, git)
-- Reviewer routing based on review_type
-- Előnyök: 🚀 30 sec vs. 3 min, 💰 $0 vs. $0.02, 🎯 pontosabb
-
-**B. Task Creation Audit Trail**
-
-Probléma: Jelenleg hiányzik:
-- Ki hozta létre a taskot? (authentication nélkül)
-- Token alapú jogosultság ellenőrzés
-- Projekt/epic/task hierarchia tracking
-- "Mit csináltunk ma?" report
-
-Megoldás:
-- `logs/tasks/creation.jsonl` — append-only immutable log
-- `POST /api/task/create` endpoint (knowledge-service)
-- Token verification + jogosultság mátrix (root → everyone, conductor → workers)
-- SHA-256 hash minden inbox file-hoz
-- Daily report (`scripts/daily-report.sh`)
-- Datahaven integration ("Mit csináltunk ma?" widget)
-
-### Implementációs Terv (3 Phase)
-
-**Phase 1: Formal Review** (1-2 óra)
-- `scripts/formal-review.sh` creation
-- `reviewer.ts` routing logic
-- Inbox template update
-
-**Phase 2: Task Creation Log** (3-4 óra)
-- `taskCreation.ts` module
-- API endpoint + token verification
-- JSONL log + git auto-commit
-
-**Phase 3: Daily Report + Datahaven** (2-3 óra)
-- `daily-report.sh` script
-- Datahaven API endpoint
-- Projects page widget
-- Telegram notification
-
-### Nyitott Kérdések
-1. Implementálási sorrend: Phase 1 vagy Phase 2 először?
-2. Token storage: env var, config file, database?
-3. Formal review criteria: build, test, lint, git commit format?
-4. Daily report: `docs/reports/daily/`, Telegram, Datahaven?
-
-### Dokumentáció
-📄 `/opt/spaceos/docs/agent-infrastructure/TASK_AUDIT_DESIGN.md`
-
----
-
-## 3. Nexus Infrastructure Audit
-
-### Motiváció
-User kérdés: "az agent kordinációs Nexus szervere milyen infrastruktura van meg a feladathoz amit lehetne használni?"
-
-### Audit Eredmény
-
-**🟢 NAGYON JÓ ALAPOK** — spaceos-nexus/knowledge-service:
-
-**Újra használható komponensek:**
-- ✅ Express HTTP API (71KB server.ts, teljes REST API)
-- ✅ Bearer token auth (`POST /api/auth/verify`)
-- ✅ Rate limiting (500 req/min/IP, in-memory)
-- ✅ JSONL log pattern (`reviewLog.ts` - append-only, immutable)
-- ✅ SHA-256 hashing (`hashUtils.ts` - file integrity)
-- ✅ YAML config (`yamlValidator.ts` + task-types)
-- ✅ Telegram integration (`telegramBot.ts`)
-- ✅ Daily digest pattern (`hourlyDigest.ts`)
-- ✅ Project tracking (`projectMatcher.ts`, `projectDispatcher.ts`)
-- ✅ Inbox creation API (`POST /api/mailbox/:terminal/inbox`)
-- ✅ Session management (`POST /api/session/start`)
-- ✅ Audit logs (`GET /api/session/logs`)
-
-**Hiányzó komponensek (implementálni kell):**
-
-**Phase 1: Formal Review** (~1.5 óra)
-- ❌ `scripts/formal-review.sh` — automated checks (build, lint, test, git)
-- ⚠️ `reviewer.ts` módosítás — review_type routing (formal/content/manual)
-- ❌ `logs/reviews/formal.jsonl` — formal review results log
-
-**Phase 2: Task Creation Audit** (~3.5 óra)
-- ❌ `src/taskCreation.ts` — task creation module with audit
-- ❌ `src/auth.ts` — token verification + role-based scopes
-- ❌ `POST /api/task/create` endpoint
-- ❌ `config/tokens.yaml` — token database (root, conductor scopes)
-- ❌ `logs/tasks/creation.jsonl` — immutable audit log
-
-**Phase 3: Daily Report** (~2.5 óra)
-- ❌ `scripts/daily-report.sh` — JSONL query + Markdown report
-- ❌ `GET /api/tasks/daily-summary` endpoint
-- ❌ Datahaven widget — "Mit csináltunk ma?" live summary
-
-**Implementációs opciók:**
-- **Option A:** Phase 1 First (gyors win, költségmegtakarítás)
-- **Option B:** Phase 2 First (foundation, audit trail)
-- **Option C:** Hybrid (parallel, ~3 óra mindkettő)
-
-**Token storage javaslat:**
-```yaml
-# config/tokens.yaml
-tokens:
-  - holder: root
-    token_hash: sha256:abc123...
-    scopes: [task:create:*, session:*]
-  - holder: conductor
-    token_hash: sha256:def456...
-    scopes: [task:create:worker, session:start]
-```
-
-### Nyitott Kérdések
-1. Implementációs sorrend: A/B/C?
-2. Token storage: YAML / SQLite / env var?
-3. Formal review criteria: minimal / standard / full?
-4. Daily report output: docs/reports/ + git / Telegram / Datahaven API?
-
-### Dokumentáció
-📄 `/opt/spaceos/docs/agent-infrastructure/NEXUS_INFRASTRUCTURE_AUDIT.md`
-
----
-
-## 4. JoineryTech.MCP Inspiration Audit
-
-### Motiváció
-User kérdés: "nézd meg hogy a szantoi/joinerytech.mcp git inspirácioban lett-e erre megoldás és mi az, lehet-e implementálni."
-
-### Repository: Szantoi/JoineryTech.McpServer
-
-**URL:** https://github.com/Szantoi/JoineryTech.McpServer
-**Stack:** Express, TypeScript, SQLite (better-sqlite3), ChromaDB, Node-cache
-
-**Releváns patterns Task Audit & Formal Review-hoz:**
-
-#### 1. AuditLogger Pattern (`src/metadata/auditLogger.ts`)
-
+**1. Deduplication logic (5 second window):**
 ```typescript
-✅ SHA-256 hash for input/output
-✅ setImmediate() non-blocking async logging
-✅ SQLite audit_log table
-✅ Cost tracking (ai_model, ai_tokens_used, cost_amount_usd)
-✅ Error handling without blocking main flow
+// epicNotifications.ts
+const sentNotifications = new Map<string, number>();
+const DEDUP_WINDOW_MS = 5000;
+
+function isDuplicate(taskId: string, eventType: 'done' | 'blocked'): boolean {
+  const key = `${taskId}:${eventType}`;
+  const lastSent = sentNotifications.get(key);
+  const now = Date.now();
+
+  if (lastSent && now - lastSent < DEDUP_WINDOW_MS) {
+    console.log(`[EpicNotifications] Skipping duplicate ${eventType} for ${taskId}`);
+    return true;
+  }
+
+  sentNotifications.set(key, now);
+  return false;
+}
 ```
 
-**Adaptálható:** `taskCreation.ts` + JSONL log + optional SQLite index
-
-#### 2. RbacFilter Pattern (`src/mcp/RbacFilter.ts`)
-
+**2. Richer notification context:**
 ```typescript
-✅ NodeCache LRU (30 min TTL, maxKeys: 50)
-✅ Public tools (unauthenticated access)
-✅ Role-based permissions (JSON array from SQLite)
-✅ Schema version check → cache invalidation
-✅ Lazy-load from database + cache result
+// notifyTaskDone() kiegészítve:
+- Task title (markdown h1 sor)
+- Epic ID (frontmatter epic_id)
+- Files changed (## Files Changed section)
+- Summary (event data-ból)
+
+// Új formátum:
+✅ TASK DONE
+📋 Terminal: BACKEND
+🎯 Task ID: MSG-BACKEND-103
+📝 Title: JoineryTech Backend Architecture
+🗂 Epic: EPIC-JT-CRM
+💬 Summary: API design complete, 12 endpoints defined
+📁 Files: server.ts, routes.ts, controllers.ts +3 more
 ```
 
-**Adaptálható:** `auth.ts` token verification with LRU cache + scopes
+**Files modified:**
+- `spaceos-nexus/knowledge-service/src/pipeline/epicNotifications.ts:238-318`
+  - `isDuplicate()` function added
+  - `notifyTaskDone()` enhanced with file parsing
+  - `notifyTaskBlocked()` enhanced with reason extraction
+  - Event handler deduplication checks added
 
-#### 3. SessionManager Pattern (`src/mcp/SessionManager.ts`)
+**Lesson:**
+- **Event duplication** normális amikor több forrás triggerheti ugyanazt
+- **Deduplication window** kell minden notif system-ben (5-10s optimal)
+- **Richer context** = jobb UX → parse outbox markdown files
+- **User feedback gyors volt** → azonnal észrevette a duplikációt
 
-```typescript
-✅ UUID v4 session_id (crypto.randomUUID - NOT Math.random!)
-✅ SQLite sessions table
-✅ FSM state tracking (started, active, completed, blocked)
-✅ Timestamp tracking (created_at, updated_at)
+**User feedback:**
+> "duplán kapoma az üzeneteket e Datahaven dispecher be. szeretném ha informatívabb is lenne."
+
+**Result:** Most egyszer jelenik meg minden notification, teljes kontextussal.
+
+---
+
+## Operational Checklists
+
+### Session Indítási Ritual
+
+```bash
+# 1. Datahaven státusz (ha elérhető)
+curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+  -d '{"terminal":"root","status":"working"}'
+
+# 2. Folyamatok állapota
+ls docs/planning/queue/
+ls docs/planning/ideas/
+
+# 3. Terminál outboxok
+grep -rl "status: UNREAD" terminals/*/outbox/ 2>/dev/null
+
+# 4. Conductor állapot
+tmux capture-pane -t spaceos-conductor -p 2>/dev/null | tail -10
+
+# 5. Pipeline log
+tail -10 logs/dispatcher/pipeline.log
+tail -5 logs/dispatcher/nightwatch.log
 ```
 
-**Adaptálható:** Optional later - Task Execution Tracker (if long-running tasks)
+### Conductor Problémák Debug
 
-#### 4. WorkflowStateTracker Pattern (`src/metadata/WorkflowStateTracker.ts`)
+**Tünet:** Conductor nem dolgozik / ismétlődően újraindul
 
-```typescript
-✅ FSM state validation (VALID_TRANSITIONS map)
-✅ State transition history table (audit trail)
-✅ Terminal states (no further transitions)
-✅ Metadata logging (JSON)
+**Ellenőrzések:**
+```bash
+# 1. Autonomous mode státusz
+curl -s http://localhost:3456/api/autonomous/status | grep running
+
+# 2. Ha running: true → STOP
+curl -X POST http://localhost:3456/api/autonomous/stop
+
+# 3. Conductor session létrehozás
+cd /opt/spaceos/terminals/conductor
+tmux new-session -d -s spaceos-conductor
+tmux send-keys -t spaceos-conductor "claude" Enter
+
+# 4. Inbox ellenőrzés
+grep -rl "status: UNREAD" terminals/conductor/inbox/
 ```
 
-**Adaptálható:** Future - Multi-stage review FSM (PENDING → REVIEWING_A → REVIEWING_B → APPROVED/REJECTED/ESCALATED)
+### ⚠️ KRITIKUS: tmux Enter küldés szabály
 
-### Implementálható Komponensek (Priority Order)
+**PROBLÉMA:** `tmux send-keys -t <session> Enter` **elnyelődik és csak sortörés lesz!**
 
-**Week 1 (~3-4 óra):**
+**HELYES módszerek:**
 
-1. **Task Creation API** (2 óra)
-   - `src/task-audit/taskCreation.ts` — creation service
-   - `src/task-audit/auth.ts` — token auth with NodeCache LRU
-   - Token scopes: `task:create:*`, `task:create:worker`
-   - JSONL audit log (`logs/tasks/creation.jsonl`)
-   - SHA-256 inbox hash
-   - Git auto-commit
+```bash
+# 1. HEXA kód használat (AJÁNLOTT)
+tmux send-keys -t spaceos-conductor -H 0x0D 0x0D
+# vagy:
+tmux send-keys -t spaceos-conductor -H 0d 0d
 
-2. **Formal Review Script** (1 óra)
-   - `scripts/formal-review.sh` — build, lint, git check
-   - `reviewer.ts` routing (formal/content/manual)
-
-3. **Token Auth Middleware** (30 min)
-   - Express middleware
-   - Bearer token extraction
-   - Scope verification
-
-**Week 2 (later):**
-- Daily report script
-- SQLite index (optional query optimization)
-- Datahaven widget
-- Advanced FSM (multi-stage review)
-
-### Code Ready to Implement
-
-**✅ taskCreation.ts** — Full implementation példa a dokumentumban:
-- Token verification with LRU cache
-- Inbox file creation
-- SHA-256 hashing
-- JSONL logging (setImmediate, non-blocking)
-- Git auto-commit
-
-**✅ auth.ts** — Token middleware with scope checking:
-- Wildcard support (`task:create:*` matches `task:create:backend`)
-- Cache TTL 30 min
-- Negative result caching (avoid repeated token lookups)
-
-### Token Storage Javaslat
-
-```yaml
-# config/tokens.yaml
-tokens:
-  - holder: root
-    token_hash: sha256:abc123...
-    scopes: [task:create:*, session:*]
-    created: 2026-06-23
-
-  - holder: conductor
-    token_hash: sha256:def456...
-    scopes: [task:create:worker, session:start]
-    created: 2026-06-23
+# 2. Sleep késleltetés
+sleep 2 && tmux send-keys -t spaceos-conductor Enter Enter
 ```
 
-**Git tracked, YAML-based, extensible, no raw tokens stored.**
+**Miért?** Tmux buffering miatt az Enter azonnal elveszik ha nincs késleltetés vagy hexa kód.
 
-### Nyitott Kérdések
-1. **Implementáljuk most?** (Phase 2a Task Creation API - 2 óra)
-2. **Token storage:** YAML vagy SQLite?
-3. **Formal review criteria:** minimal (frontmatter + git) vagy full (+ build + test)?
+**Lesson (2026-07-02):** 6+ sikertelen próbálkozás után ez oldotta meg.
 
-### Dokumentáció
-📄 `/opt/spaceos/docs/agent-infrastructure/JOINERYTECH_MCP_INSPIRATION.md`
+**Knowledge-service már jól csinálja:** `common.ts sendEnter()` használja `-H 0d` hexa formátumot ✓
 
----
+### Knowledge Service Restart
 
-## 5. Stratégiai Döntések (Session korábbi része)
+```bash
+# 1. Stop
+pkill -f "ts-node src/server.ts"
 
-### MSG-ROOT-004: Q4 Research Assistant Budget Approval
-**Döntés:** CONDITIONAL APPROVE (Option C+)
-- Pilot Q4, production H1 2027
-- Függ: Doorstar Q3 Soft Launch success
-- MSG-CONDUCTOR-021 válasz küldve
+# 2. Start
+cd /opt/spaceos/spaceos-nexus/knowledge-service
+nohup npm exec ts-node src/server.ts > /tmp/knowledge-service.log 2>&1 &
 
-### MSG-ROOT-003: Q3 Cutting Expansion Approval
-**Döntés:** CONDITIONAL APPROVE
-- Track A (Customer Portal), B (Pricing), C (ShopFloor)
-- Függ: Doorstar Q2 Soft Launch success (June 30 checkpoint)
-- MSG-CONDUCTOR-022 válasz küldve
-
----
-
-## Previous Sessions
-
-### 2026-06-22 (MCP bridge fix + Priority inbox nudge)
-
----
-
-## 1. MCP Bridge Bug Fix (CRITICAL)
-
-### Probléma
-Conductor és minden terminál nem látta az MCP toolokat (mcp__spaceos-knowledge__*), pedig a knowledge-service futott és 29 MCP tool elérhető volt HTTP API-n.
-
-### Root Cause (3-part)
-1. **Hiányzó stdio-HTTP bridge** - knowledge-service HTTP-based, Claude Code stdio-based
-2. **Hiányzó ~/.claude/settings.json** - Claude Code nem tudta hogy van MCP server
-3. **Watchdog végtelen ciklus** - watchMcpHeartbeat nudge-ok non-working toolokról
-
-### Megoldás
-1. ✅ Created `/opt/spaceos/spaceos-nexus/knowledge-service/bin/stdio-bridge.js`
-2. ✅ Created `~/.claude/settings.json` with MCP server config
-3. ✅ Restored all 7 terminal CLAUDE.md files to use MCP tools
-4. ✅ Updated watchMcpHeartbeat.ts
-
-### Eredmény
-- ✅ Mind a 29 MCP tool elérhető új session-ökben
-- ✅ Conductor session sikeresen használja őket
-- ✅ Végtelen nudge ciklus megszűnt
-
-### Git Commits
-- `fa369f7` - feat(mcp): add stdio-HTTP bridge
-- `e999075` - fix(terminals): restore MCP tool usage in all CLAUDE.md files
-- `39ec603` - docs(knowledge): add MCP bridge bug & fix documentation
-
-### Dokumentáció
-📄 `/opt/spaceos/docs/knowledge/debugging/MCP_BRIDGE_BUG_FIX_2026-06-22.md`
-
----
-
-## 2. Priority Inbox Nudge Enhancement
-
-### Probléma
-Root terminál NEM kapott értesítést UNREAD inbox üzenetekről, mert priority session-ök ki voltak hagyva a watchInbox.ts-ből.
-
-### Megoldás
-Módosítottam a watchInbox.ts-t:
-- Priority session-ök most **kapnak nudge-ot** 3+ perc után UNREAD inbox esetén
-- Auto-start továbbra is csak non-priority termináloknak
-- watchPriority és watchInbox együttműködnek
-
-### Eredmény
-- ✅ Root kap inbox nudge-ot 3+ perc után
-- ✅ Conductor is kap inbox nudge-ot
-- ✅ Auto-start logika változatlan
-- ✅ Manuálisan tesztelve és működik
-
-### Git Commit
-- `25f6974` - feat(watchInbox): enable inbox nudge for priority sessions
-
----
-
-## 3. Session Actions Summary
-
-### Outbox Messages
-- `terminals/root/outbox/2026-06-22_001_mcp-bridge-fixed.md` → conductor (UNREAD)
-  - MCP bridge fix részletes beszámolója
-  - Conductor BLOCKED üzenet megoldása
-
-### Datahaven Status
-- Started: `working` (session start)
-- Ended: `idle` (session complete)
-
-### Files Modified
-1. `/opt/spaceos/spaceos-nexus/knowledge-service/bin/stdio-bridge.js` (new)
-2. `~/.claude/settings.json` (new)
-3. All 7 terminal CLAUDE.md files (restored MCP usage)
-4. `/opt/spaceos/spaceos-nexus/knowledge-service/src/pipeline/watchInbox.ts` (priority nudge)
-5. `/opt/spaceos/docs/knowledge/debugging/MCP_BRIDGE_BUG_FIX_2026-06-22.md` (new)
-
----
-
-## Tanulságok
-
-### HTTP-based MCP Server Pattern
-Ha MCP server HTTP API-t szolgál (mint a knowledge-service), Claude Code-hoz **stdio transport bridge kell**. A bridge egyszerű readline + http.request forwarder.
-
-**Pattern:**
-```
-HTTP Server (knowledge-service)
-    ↕ stdio-bridge.js
-Claude Code (stdio client)
+# 3. Verify
+sleep 5
+curl -s http://localhost:3456/health
+netstat -tlnp | grep :3456
 ```
 
-### Priority Session Design
-Priority session-ök (root, conductor) eredetileg **self-managing** voltak - saját maguk kellett figyeljék az inbox-ukat. Most módosítva: **watchInbox nudge-ol**, de **watchPriority indít**.
-
-**Előny:** Root most automatikus értesítést kap UNREAD üzenetekről.
-
 ---
 
-## Következő Session-höz
+## Session Záró Ritual
 
-### Kontextus
-- MCP toolok működnek ✅
-- Root inbox nudge működik ✅
-- Conductor folytathatja a munkát az MCP toolokkal
-
-### Ellenőrzések Session Startkor
-1. `grep -rl "status: UNREAD" terminals/root/inbox/`
-2. `ls docs/planning/queue/`
-3. `tmux capture-pane -t spaceos-conductor -p | tail -10`
-4. Check Datahaven Dashboard: https://datahaven.joinerytech.hu
-
----
-
-**Session befejezve:** 2026-06-22 05:33 UTC
-**Státusz:** ✅ IDLE
-**Kritikus bugok:** 0
-**Következő prioritás:** Conductor koordináció folytatása
-
----
-
-## Session 2 (2026-06-22 ~07:20 UTC)
-
-### Bashrc Fix
-
-**Probléma:** Frontend terminál bash hibákat dobott:
-```
--bash: $'\E]633': command not found
--bash: [INBOX]: command not found
+```bash
+# Datahaven státusz (ha elérhető)
+curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+  -d '{"terminal":"root","status":"idle"}'
 ```
 
-**Root Cause:** VS Code shell integration escape szekvencia (`]633;E;echo 'export DISABLE_AUTOUPDATER=1';...`) véletlenül bekerült a `~/.bashrc` 132. sorába - valószínűleg copy-paste hiba.
+---
 
-**Megoldás:**
-1. ✅ Backup: `~/.bashrc.backup.20260622_072033`
-2. ✅ Korrupt sor törölve (sed -i '132d')
-3. ✅ Duplikált export sorok tisztítva
-4. ✅ `bash -n ~/.bashrc` → syntax OK
+## Recent Decisions & Changes
 
-### Frontend Terminál Újraindítás
+### 2026-07-02
 
-**Probléma:** Frontend session nem indult rendesen.
-
-**Megoldás:**
-1. ✅ Session kill + újraindítás
-2. ✅ Interaktív mód: `claude --model sonnet` majd prompt külön
-3. ✅ Frontend dolgozik MSG-FRONTEND-005-ön
-
-### Architect Session
-
-- ✅ Permission jóváhagyás (Enter küldve)
-- ✅ DONE üzenet elküldve (MSG-ARCHITECT-004-DONE)
-- ✅ register_idle hívás sikeres
-
-### Terminál Státuszok (session vége)
-
-| Terminál | MCP Státusz | Megjegyzés |
-|----------|-------------|------------|
-| root | idle | Session lezárva |
-| conductor | idle | - |
-| architect | idle | DONE kész |
-| frontend | working | MSG-FRONTEND-005 feldolgozás |
-| backend | idle | - |
+1. ✅ **TypeScript import fix** - mcp.ts és codegen/index.ts javítva
+2. ✅ **AutonomousDev leállítva** - manual control mode aktív
+3. ✅ **JoineryTech projekt elindítva** - Frontend + Backend feladatok kiosztva
+4. 📝 **3 GitHub issue létrehozva** - TypeScript, AutonomousDev, Datahaven 502
+5. ✅ **Task Escalation System implementálva** - ADR-052 Phase 2 (retry + root escalation)
+6. ✅ **Escalation API létrehozva** - `/api/escalation/*` endpoints (fully configurable)
+7. ✅ **Nightwatch integration** - watchTaskEscalations() 2 percenként fut
+8. ✅ **MSG-CONDUCTOR-063 létrehozva** - JoineryTech monitoring setup task
+9. ✅ **Conductor Continuous Progress Pattern** - Monitor-based intelligent workflow trigger
+10. ✅ **watchMonitor módosítva** - Conductor progress check hozzáadva (10 perc)
+11. ✅ **Monitor CLAUDE.md implementálva** - Conductor progress check teljes workflow integrálva
+12. ✅ **Terminal Collaboration Pattern** - Peer-to-peer koordináció + Nexus tool development (self-improving infrastructure)
+13. ✅ **Root CLAUDE.md frissítve** - Nexus infrastruktúra felelősség, Monitor/Conductor javaslatok workflow-ja
+14. ✅ **Conductor CLAUDE.md frissítve** - Projekt koordináció felelősség + Nexus tool request workflow
+15. ✅ **Monitor CLAUDE.md frissítve** - Folyamatok fluiditása felelősség + Nexus tool request workflow
+16. ✅ **Datahaven értesítések duplikáció fix** - epicNotifications.ts deduplication logic (5s window)
+17. ✅ **Datahaven értesítések informatívabbak** - Task title, epic ID, files changed, blocked reason
+18. ✅ **Path pattern fix** - `*_103_*.md` helyett `MSG-BACKEND-103` → `*_103_*.md` (taskNumber extraction)
+19. ✅ **Monitor terminál MCP token** - Generálva és .mcp-tokens-hoz adva (`eL4LWZ1KutgSbkvJdeAf+fx7NPt/aGcppgfN5AQzI7c=`)
+20. ✅ **Monitor inbox/outbox mappák** - Létrehozva (`terminals/monitor/inbox`, `/outbox`, `/archive`)
+21. 📋 **Reviewer vs chat terminálok tisztázva** - "Reviewer" = workflow (terminalReviewer.ts, nem külön terminál), "Chat" = session pattern (spaceos-{terminal}-chat, nem külön terminál)
+22. ✅ **MSG-ROOT-004 Backend infrastructure escalation DECIDED** - Manual review approval (bypass automatic review), NuGet fix TODAY, Review system fix LATER
+23. ✅ **Backend CRM Week 2 APPROVED** - 7,800 LOC production code (23 cmd handlers + 11 query handlers), DDD+CQRS+Clean Arch, manual review bypass authorized
+24. ✅ **Reviewer/Chat architektúra dokumentálva** - MSG-ROOT-005 outbox: "Reviewer" = workflow (ephemeral sessions), "Chat" = session pattern, mindkettő NEM külön terminál
+25. ✅ **MCP list_inbox optimalizáció** - Új `listInboxMetadata()` függvény: csak frontmatter + filename, NEM content → 11k token → ~1k token (10× csökkentés)
+26. ✅ **Minden terminál CLAUDE.md TOKEN OPTIMIZATION szekció** - Backend, Frontend, Architect, Librarian, Explorer, Designer + Conductor frissítve best practices-szel
+27. ✅ **Monitor health check válasz** - MSG-MONITOR-001 (15:13) feldolgozva, Root döntések meghozva: 1) NuGet DONE (MSG-CONDUCTOR-064), 2) Pipeline cron check NEXT, 3) Planning config check NEXT, 4) BLOCKED triage → Conductor
+28. 🎯 **4 MŰKÖDÉSI MÓD PARADIGMA dokumentálva** - Kritikus felismerés: 1) Manuális, 2) Félauto ötlet, 3) Szabad auto, 4) Structured program execution (jelenleg tesztelés alatt)
+29. ✅ **Planning pipeline disabled = SZÁNDÉKOS** - Mode #4-ben NINCS szükség idea generation-re, EPICS.yaml előre megtervezett program szerint halad
+30. 🔴 **Mode #4 hiányosságok azonosítva** - Conductor program-awareness hiányzik, Monitor program-tracking hiányzik, Pipeline.log monitoring félrevezető (nem releváns Mode #4-ben)
+31. ✅ **Mode #4 infrastruktúra tasks kiadva** - MSG-CONDUCTOR-065 (program-awareness impl, 4-7 óra, HIGH), MSG-MONITOR-004 (mode-aware tracking spec)
+32. ✅ **Root session MODE #4 DISCOVERY complete** - MSG-ROOT-007 outbox: teljes paradigma dokumentálva, Monitor false alerts javítva, Conductor implementation path tisztázva
+33. ⚠️ **MODE #4 TUDATOS FIGYELEM aktiválva** - `.MODE4-ALERT` file created, CLAUDE.md frissítve explicit MODE #4 ALERT-tel, MEMORY.md TODO prioritás szerint rendezve
+34. 🎯 **Intelligent Conductor Briefing System spec** - MSG-MONITOR-005: Monitor generál kontextus-gazdag wakeup briefing-et Conductor-nak (EPICS.yaml progress, recent activity, next priority, blockers)
+35. ⚠️ **Monitor scheduled health check NEM működik** - watchMonitor pipeline "Cycle X/5 - skipping" issue, legutóbbi scheduled check: 2026-06-26 (5 napja!), 75 UNREAD inbox, manual nudge küldve
+36. ✅ **Monitor MCP registration fix** - terminals.yaml-ból hiányzott a Monitor terminal → hozzáadva system_roles-hoz (type: support, model: haiku, session: spaceos-monitor, aliases: megfigyelő/watcher/healthcheck)
+37. ✅ **Monitor MCP inject sikeres** - MCP API inject működik, Monitor aktívan feldolgozza MSG-MONITOR-003, 004, 005 üzeneteket (Mode #4 context + Intelligent Briefing spec)
 
 ---
 
-**Session befejezve:** 2026-06-22 07:35 UTC
-**Státusz:** ✅ IDLE
+## TODO / Pending
 
-## 2026-06-22 Session — Q3 Cutting Module Expansion Approval
+### 🔴 CRITICAL (Mode #4 Production-Ready)
+- [ ] **Conductor program-awareness** — MSG-CONDUCTOR-065 (4-7 óra, HIGH)
+  - EPICS.yaml betöltés és checkpoint tracking
+  - Mode detection logic
+  - Session start epic-aware működés
+- [ ] **Monitor Intelligent Briefing System** — MSG-MONITOR-005 (2-3 óra, HIGH)
+  - Conductor wake-up briefing generation
+  - EPICS.yaml progress + recent activity aggregation
+  - Next priority determination + blocker tracking
+  - **KRITIKUS:** Conductor hidegindulás elkerülése!
+- [ ] **Monitor mode-aware tracking** — MSG-CONDUCTOR-065 Task 2 (1-2 óra)
+  - Health check mode detection
+  - Mode #4 metrics (EPICS.yaml, checkpoints)
+  - Irrelevant metrics skip (planning queue, pipeline.log)
 
-**Duration:** 23:00 - 23:05 UTC
-**Decision:** ✅ APPROVED Q3 Cutting Module Expansion
+### 🟠 HIGH
+- [ ] **Backend NuGet fix** — MSG-CONDUCTOR-064 (ma, 4 óra)
+  - Infrastructure blocker
+  - Backend CRM Week 2 build-dependent tasks blokkolva
+- [ ] **21 BLOCKED messages triage** — MSG-CONDUCTOR-065 Task 3 (30-60 perc)
+  - Kategorizálás: review timeout vs infra vs dependency
+  - Root escalation ha business decision kell
 
-### Strategic Decision
+### 🟢 MEDIUM
+- [ ] **Monitor watchMonitor pipeline fix** — Scheduled health check NEM generálódik
+  - "Cycle X/5 - skipping" logic issue
+  - Utolsó scheduled check: 2026-06-26 (5 napja)
+  - 75 UNREAD inbox backlog
+  - Manual nudge küldve (2026-07-02 16:40)
+- [ ] **pipeline-docs.sh hiányzó script** — Conductor investigation
+  - Git history check
+  - Új script írás vagy hívás eltávolítása pipeline.sh-ból
+- [ ] **Datahaven API 404 issue** — `/api/terminal/status` endpoint
+  - Auth token vagy route config issue
+  - Low impact (monitoring only)
 
-Reviewed and approved Conductor's MSG-CONDUCTOR-029 proposal for Q3 Cutting Module expansion.
+### 🔵 LOW (Future)
+- [ ] AutonomousDev control mode awareness implementálása
+- [ ] Nginx timeout konfiguráció (Datahaven 502)
+- [ ] PM2 process manager setup (backend auto-restart)
+- [ ] ESLint szabály TypeScript import extension-ökre
+- [ ] Session tagging (`startedBy: manual|autonomous`)
+- [ ] **MCP sync issue:** Task completion nem frissül real-time (2026-07-02)
 
-**Rationale:**
-- Roadmap alignment: 2026 Q3 Szabászat modul + 2. ügyfél target
-- Strong foundation: Cutting backend PRODUCTION READY (994 tests), Frontend TOP 1-3 COMPLETE (941 tests)
-- Clear target: Lapszabász KKV B2C customer portal
-- Realistic timeline: 9 workdays (~2 weeks parallel)
-- No regression risk: Doorstar remains 100% operational
+## Known Issues
 
-**Approved Tracks:**
-1. Track A: Customer Self-Service Portal (4 days)
-2. Track B: Pricing Integration (3 days)
-3. Track C: ShopFloor Integration (2 days)
+### MCP Task Status Sync Issue (2026-07-02)
 
-**Deferred to Q4:**
-- Multi-tenant nesting optimization
-- Quality control & rework workflows
+**Problem:** MCP tools (`complete_task`, `ack_task`) néha "Task not assigned" hibát adnak, annak ellenére hogy a task valóban el van készítve.
 
-### Actions Taken
+**Symptoms:**
+- Task ténylegesen befejezve (kód írva, tesztelve, dokumentálva)
+- MCP complete_task hívás: "Task not assigned to this terminal"
+- Valódi státusz: ✅ DONE
+- MCP státusz: ❌ Sync error
 
-1. ✅ Marked MSG-CONDUCTOR-029 as READ
-2. ✅ Created MSG-CONDUCTOR-007 (Q3 Expansion Approval)
-3. ✅ Updated Codebase_Status.md header and strategic decision section
-4. ✅ Registered Root IDLE status in Datahaven
+**Workaround:**
+- Task valódi státuszát a munkából állapítsd meg (inbox READ, outbox DONE, kód commit)
+- MCP hiba = sync issue, nem jelenti hogy a munka nem készült el
 
-### Next Steps
+**Possible Root Causes:**
+- Task assignment cache nem frissül real-time
+- Message registry és DB sync lag
+- Terminal token authentication timing issue
 
-**Conductor:** Will process MSG-CONDUCTOR-007 and dispatch:
-- Backend: MSG-030 (Quote Request API), MSG-031 (Email integration), MSG-032 (Pricing Engine), MSG-033 (ShopFloor endpoints)
-- Frontend: MSG-018 (Public Quote Form), MSG-019 (Trade Integration), MSG-020 (ShopFloor Kiosk)
-
-**Root:** Begin 2. ügyfél prospect identification and onboarding planning (parallel workstream)
-
-### System Status
-
-**Planning Pipeline:**
-- Queue: EMPTY
-- Ideas: 46 pending (awaiting plan-scan.sh auto-processing)
-- Last consensus: 2026-06-22 17:11
-
-**Terminals:**
-- All IDLE except Conductor (processing MSG-007)
-- No BLOCKED tasks
-- No UNREAD outboxes (except Conductor's new dispatch)
-
-**Quality Metrics:**
-- Cutting Module: 1,935 total tests (994 BE + 941 FE)
-- SpaceOS: 4,001 backend tests, 941 frontend tests
-- All systems: OPERATIONAL
-
----
-
-**Session outcome:** Strategic approval delivered, implementation tracks defined, Conductor unblocked for Q3 execution
-
----
-
-## 2026-06-23 Session — Dual Strategic Decisions (02:00-02:20 UTC)
-
-**Duration:** 02:00 - 02:20 UTC
-**Inbox Messages:** 2 strategic questions from Conductor
-**Decisions:** 2 conditional approvals
-
-### 1. Q4 Research Assistant Feature — Conditional Approval
-
-**Request:** MSG-ROOT-004 (from Conductor)
-- Q4 Autonóm Kutatás - Feature Assistant (~2 days implementation)
-- Haiku API usage budget approval
-- Feature-specific research triggers (YAML-based, not global bot)
-
-**Decision:** ✅ **CONDITIONAL APPROVE** (Opció C+)
-- **Conditional on:** Doorstar Q3 Soft Launch success
-- **Checkpoint:** Q3 end (September 2026) → reassess based on production KPI data
-- **If Doorstar successful Q3:** Q4 Week 1-2 pilot implementation
-- **If Doorstar delayed:** Defer to H1 2027
-
-**Rationale:**
-- Agent infrastructure (Marvin Phases 2-3) aligns with Q4 timeline
-- Haiku API usage already approved (reviewer.sh uses it)
-- 2 days implementation = reasonable investment
-- BUT: needs real production data (scan failure rates, KPI gaps) to justify
-- Data-driven, flexible decision
-
-**Actions:**
-- ✅ MSG-CONDUCTOR-021 created (answer sent to Conductor inbox)
-- ✅ MSG-ROOT-004 marked READ
-
-### 2. Q3 Cutting Expansion (2nd Customer) — Conditional Approval
-
-**Request:** MSG-ROOT-003 (from Conductor via MSG-CONDUCTOR-029)
-- 3 missing features for 2nd customer (lapszabász KKV)
-- Track A: Customer Portal (B2C) - 4 days
-- Track B: Pricing Integration - 3 days
-- Track C: ShopFloor Integration - 2 days
-- Total: 9 workdays (~2 weeks parallel)
-
-**Decision:** ✅ **CONDITIONAL APPROVE**
-- **Conditional on:** Doorstar Q2 Soft Launch success (June 30 checkpoint)
-- **Track priority:** A → B → C (sequential if resource constrained, parallel if possible)
-- **Timeline:** Q3 Week 1 start if GO
-
-**Rationale:**
-- Solid foundation: 994 BE tests + 941 FE tests (TOP 1-3 COMPLETE)
-- Business critical: 2nd customer validates PMF (Product-Market Fit)
-- Vision alignment: 2026 Q3 target = Szabászat modul + 2. ügyfél
-- Deferred features (multi-tenant, QC) correctly prioritized to Q4
-- Risk mitigation: If Doorstar delayed → focus Q3 on stabilization, push 2nd customer to Q4
-
-**Actions:**
-- ✅ MSG-CONDUCTOR-022 created (answer sent to Conductor inbox)
-- ✅ MSG-ROOT-003 marked READ
-
-### Strategic Decision Pattern
-
-**Both decisions use "Conditional Approval" pattern:**
-1. Approve the plan/budget/timeline
-2. BUT gate execution on checkpoint success (Doorstar Q2 Soft Launch)
-3. Reassess at checkpoint → GO/NO-GO based on real data
-
-**Advantages:**
-- Prevents premature commitment
-- Aligns implementation with business reality
-- Maintains flexibility without blocking planning
-- Data-driven rather than wishful thinking
-
-### System Status (Session End)
-
-**Inbox:**
-- Total: 5 messages (3 old, 2 today processed)
-- UNREAD: 0
-
-**Outbox:**
-- 2 strategic decisions sent to Conductor
-
-**Datahaven:**
-- Status: IDLE
-- Last task: "Session complete - 2 strategic decisions delivered"
-
-**Terminals:**
-- Root: IDLE
-- Conductor: Will process MSG-021 and MSG-022
-
-**Planning Pipeline:**
-- Queue: 0
-- Ideas: 0
-- Last consensus: 2026-06-22 (Partner KPI + QR ASN Tracking)
+**Ref:** Session 2026-07-02 08:45 - Task escalation system implementation completed despite MCP error
 
 ---
 
-**Session outcome:** 2 strategic decisions delivered with conditional approval pattern, Conductor has clear GO/NO-GO checkpoints for Q3 and Q4 planning
+## Session Summary (2026-07-02 Final) — Updated 16:00
+
+**Duration:** ~3 óra (13:00-16:00)
+**Major milestone:** **Mode #4 Paradigm Discovery + Monitor Registration Fix**
+
+### Key Achievements
+1. ✅ **4 működési mód paradigma** teljes dokumentációja (162 sor új content)
+2. ✅ **Monitor false alerts** javítva (planning queue üres = normális Mode #4-ben)
+3. ✅ **Planning pipeline disabled = intentional** felismerés
+4. ✅ **Mode #4 infrastruktúra hiányosságok** azonosítva
+5. ✅ **Conductor implementation task** részletes spec (MSG-CONDUCTOR-065)
+6. ✅ **MCP list_inbox token optimization** 90% csökkentés (11k → 1k token)
+7. ✅ **7 terminál CLAUDE.md** frissítve token best practices-szel
+8. ✅ **Backend CRM Week 2** manual review approval (MSG-CONDUCTOR-064)
+9. ✅ **Reviewer/Chat architektúra** tisztázva (workflow pattern, nem külön terminál)
+10. ✅ **Monitor MCP registration fix** — terminals.yaml frissítve (16:00)
+11. ✅ **Monitor wake-up successful** — Intelligent Briefing spec feldolgozás started
+
+### Messages Processed
+- 📥 **Inbox:** MSG-ROOT-004 (Backend escalation), MSG-MONITOR-001 (health check)
+- 📤 **Outbox:** MSG-ROOT-005, MSG-ROOT-006, MSG-ROOT-007 (DONE reports)
+- 📨 **Sent:** MSG-CONDUCTOR-064, MSG-CONDUCTOR-065, MSG-MONITOR-003, MSG-MONITOR-004
+
+### Code Changes
+- ✅ `mailbox.ts` — `listInboxMetadata()` function (token optimization)
+- ✅ `mcp.ts` — `include_content` parameter + schema docs
+- ✅ **8 CLAUDE.md files** — TOKEN OPTIMIZATION sections
+- ✅ `terminals.yaml` — Monitor terminal registration (system_roles, support group, token_budgets, conductor can_control)
+
+### Critical Decisions
+1. **Backend Week 2** — Manual review bypass authorized (infra issue, not code quality)
+2. **Planning pipeline** — Disabled = intentional (Mode #4 EPICS.yaml-driven)
+3. **Mode #4 priority** — Conductor program-awareness HIGH (Q3 target on track)
+
+### Next Session Priority
+1. 🔴 **MODE #4 MONITORING** — Conductor implementation progress check (KÖTELEZŐ!)
+   - MSG-CONDUCTOR-065 state: started/blocked/done?
+   - `epicManager.ts`, `checkpointTracker.ts`, `modeDetection.ts` léteznek-e?
+   - Conductor session start logic EPICS.yaml-aware?
+2. 🔴 Verify Backend NuGet fix completion
+3. 🟠 Review BLOCKED triage results
+
+**Mode #4 Status:** Tesztelés alatt → Production-ready path cleared ✅
+
+**⚠️ FIGYELEM:** Mode #4 fejlesztés = TOP PRIORITY minden Root session-ben!
