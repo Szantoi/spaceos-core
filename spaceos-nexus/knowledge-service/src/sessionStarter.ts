@@ -21,6 +21,7 @@ import { getUnreadMessages, updateStatus } from './messageRegistry';
 import { detectOperationMode, getModeDescription } from './conductor/modeDetection';
 import { loadActiveEpic, getNextCheckpoint } from './conductor/epicManager';
 import { checkCheckpointCompletion } from './conductor/checkpointTracker';
+import { generateAndDeliverBriefing } from './conductor/conductorBriefing';
 
 const execAsync = promisify(exec);
 
@@ -894,6 +895,14 @@ A token az MCP regisztrációdban van, automatikusan autentikált.`;
 
       // Wait for mode context to be processed
       await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Generate and deliver intelligent briefing (MSG-CONDUCTOR-066)
+      try {
+        const { messageId: briefingId } = await generateAndDeliverBriefing();
+        console.log(`[SessionStarter] ✓ Generated briefing ${briefingId} for ${sessionName}`);
+      } catch (error) {
+        console.error(`[SessionStarter] Failed to generate briefing for ${sessionName}:`, error);
+      }
     }
 
     // Inject task assignment prompt (Smart 2026-06-26 + ADR-049 - reuses extracted content)
