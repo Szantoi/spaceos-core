@@ -5,25 +5,37 @@
 
 ## Prioritás: CRITICAL (Aktív)
 
-### 0. JoineryTech Wave 2 Implementation (Aktív)
-**Státusz:** 🟡 75% COMPLETE (2026-07-02 21:15 UTC)
-**Leírás:** 3/4 task befejezve, Frontend performance optimization in progress
+### 0. JoineryTech Wave 2 Implementation (Aktív — UNBLOCKED)
+**Státusz:** 🟢 ALL TERMINALS ACTIVE — Path to 100% Clear (2026-07-02 22:22 UTC)
+**Leírás:** Minden blocker feloldva, Backend + Frontend folytatja implementációt
 
 **Wave 1 (Audit/Planning):**
 - ✅ MSG-FRONTEND-089 DONE - UI/UX/Performance/A11y audit
 - ✅ MSG-BACKEND-105 DONE - Backend architecture plan (5,200+ sor)
 
-**Wave 2 (Implementation) - 75% DONE:**
+**Wave 2 (Implementation) - ALL ACTIVE:**
 - ✅ MSG-BACKEND-120 DONE - Mode #4 Program-Awareness (524 LOC TypeScript, 3 modulok)
 - ✅ MSG-BACKEND-121 DONE - JoineryTech Week 1 Foundation (1,109 LOC, PostgreSQL + entities)
 - ✅ MSG-DESIGNER-023 DONE - UI/UX Coordination (WCAG AAA guidance, design system alignment)
-- 🟡 MSG-FRONTEND-092 IN PROGRESS - Performance P0 quick wins (store splitting + lazy loading)
+- 🟢 MSG-FRONTEND-092 ACTIVE - Phase 1-B approved (Custom Observer Pattern, 2-3 days)
+
+**Backend Status:**
+- ✅ MSG-BACKEND-103 (7,800 LOC CRM) — APPROVED by Architect
+- ✅ MSG-BACKEND-117 (16,000 LOC Infrastructure) — APPROVED by Architect
+- 🟢 Week 3 Infrastructure implementation ACTIVE
+
+**Frontend Status:**
+- ✅ MSG-FRONTEND-090 blocker RESOLVED (OpenAPI spec available)
+- ✅ MSG-FRONTEND-095 decision APPROVED (Phase 1-B Custom Observer)
+- 🟢 Phase 1-B integration implementation ACTIVE (2-3 day timeline)
 
 **Coordination:**
 - outbox MSG-CONDUCTOR-1007 (Wave 2 dispatch)
 - outbox MSG-CONDUCTOR-1008 (Terminal activation monitoring)
 - outbox MSG-CONDUCTOR-1009 (Mode #4 Monitor implementation done)
 - outbox MSG-CONDUCTOR-1010 (Wave 2 progress: 3/4 tasks complete)
+- outbox MSG-CONDUCTOR-1012 (Critical blockers escalation)
+- outbox MSG-CONDUCTOR-1013 (JoineryTech unblocked — all terminals active)
 
 ### 0a. JoineryTech CRM Backend Infrastructure Unblock
 **Státusz:** ✅ DONE (2026-07-02)
@@ -60,6 +72,37 @@
 - Mode #4 infrastructure COMPLETE ✅
 
 **Ref:** MSG-MONITOR-005, ADR-053
+
+### 0d. JoineryTech Critical Unblocking (7 Minutes)
+**Státusz:** ✅ DONE (2026-07-02 20:15-20:22 UTC)
+**Outbox:** `terminals/conductor/outbox/2026-07-02_1012_critical-blockers-3-messages-escalation.md`
+**Outbox:** `terminals/conductor/outbox/2026-07-02_1013_joinerytech-unblocked-all-terminals-active.md`
+**Leírás:** 3 BLOCKED message feloldva, review infrastruktúra helyreállítva, minden terminál aktív.
+
+**Actions Taken:**
+1. ✅ Architect session start (spaceos-architect, Opus, 22:17:11)
+2. ✅ Librarian session start (spaceos-librarian, Sonnet, 22:17:22)
+3. ✅ Backend review completion — Architect manual review:
+   - MSG-BACKEND-103 (7,800 LOC CRM) — APPROVED
+   - MSG-BACKEND-117 (16,000 LOC Infrastructure) — APPROVED
+   - MSG-BACKEND-118 (Acknowledgment) — ACKNOWLEDGED
+4. ✅ Frontend MSG-090 unblock (OpenAPI spec ready notification)
+5. ✅ Frontend MSG-092 decision (Phase 1-B Custom Observer approved)
+
+**Blockers Resolved:**
+- ❌→✅ Backend: Review infrastructure collapse (23,800 LOC approved)
+- ❌→✅ Frontend: OpenAPI spec "missing" (spec exists, notified)
+- ❌→✅ Frontend: Phase 1-B decision (Option 1 approved)
+
+**Impact:**
+- Review infrastructure restored (2/2 reviewers active)
+- Backend Week 3 Infrastructure implementation continues
+- Frontend Phase 1-B integration implementation starts
+- Wave 2 path to 100% completion clear (48h target)
+
+**Timeline:** 7 minutes critical blocker resolution
+
+**Ref:** MSG-ARCHITECT-057, MSG-FRONTEND-095, JOINERYTECH-UNBLOCK
 
 ---
 
