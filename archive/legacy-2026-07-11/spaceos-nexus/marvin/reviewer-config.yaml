@@ -1,0 +1,97 @@
+# =============================================================================
+# reviewer-config.yaml — Marvin Dual Reviewer Configuration
+#
+# Marvin-native config for reviewer_task.py
+# Adapted from /opt/spaceos/scripts/reviewer-config.yaml
+# =============================================================================
+
+# Review models (Marvin AI Agent configuration)
+reviewer:
+  model_a: haiku           # First reviewer model (via OPENAI_API_KEY)
+  model_b: haiku           # Second reviewer model
+  parallel: true           # Parallel execution with asyncio.gather()
+  require_both: true       # Both must APPROVE for consensus
+
+# Timeout and retry configuration
+timing:
+  review_timeout: 120      # Max wait for review response (seconds)
+  file_wait: 2             # Wait for file lock release (seconds)
+  retry_attempts: 3        # Retry count on transient failures
+
+# Verdict parsing (keyword detection + structured extraction)
+verdict:
+  approve_keywords:        # Keywords counted as APPROVE
+    - APPROVE
+    - APPROVED
+    - JÓVÁHAGYVA
+    - "✅"
+  reject_keywords:         # Keywords counted as REJECT
+    - REJECT
+    - REJECTED
+    - VISSZADOBVA
+    - "❌"
+  fallback_strategy: "reject"  # If unclear: approve, reject, or manual
+
+# Paths (relative to SPACEOS_ROOT)
+paths:
+  spaceos_root: /opt/spaceos
+  mailbox_base: docs/mailbox
+  log_dir: logs/dispatcher
+  review_dir: logs/reviews
+  prompt_template: spaceos-nexus/marvin/prompts/reviewer-prompt.md
+
+# Reject inbox generation
+reject_inbox:
+  priority: high
+  model_fallback: sonnet   # If original inbox has no model field
+  template: |
+    ---
+    id: {original_id}-REJECT
+    from: reviewer
+    to: {terminal}
+    type: task
+    priority: {priority}
+    status: UNREAD
+    model: {model}
+    ref: {original_id}
+    created: {date}
+    ---
+    
+    # Review Failed — REJECTED
+    
+    **Original Task:** {original_id}
+    **Rejection Reason:**
+    
+    {rejection_reason}
+    
+    ## Required Changes
+    
+    {required_changes}
+
+# Telegram notifications
+notifications:
+  on_approve: false        # Notify on APPROVE
+  on_reject: true          # Notify on REJECT
+  on_error: true           # Notify on error
+  webhook_url: ""          # Optional: custom webhook URL
+
+# Guardrail Service integration (future)
+guardrails:
+  enabled: false           # Enable RbacFilter checks
+  rbac_permission: "review:done"
+  audit_log: logs/audit/reviewer.log
+
+# Marvin-specific configuration
+marvin:
+  temperature: 0.1         # Low temperature for consistency
+  max_tokens: 2000         # Max tokens per review
+  instructions_prefix: |
+    You are a code review agent. Your task is to review a DONE message from a terminal.
+    
+    Review criteria:
+    1. Task completion (all requirements met?)
+    2. Code quality (follows patterns?)
+    3. Testing (tests passed?)
+    4. Documentation (updated?)
+    
+    Output your verdict as APPROVE or REJECT with reasoning.

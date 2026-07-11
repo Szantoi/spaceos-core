@@ -1,0 +1,50 @@
+id: GOAL-2026-07-08-532
+created: '2026-07-08T14:22:16.532Z'
+created_by: conductor
+epic_id: EPIC-JT-EHS
+goal:
+  description: EHS Week 4 API Layer + Integration Tests Complete
+  checkpoint_id: CP-EHS-BACKEND
+completion_criteria:
+  - type: done_outbox
+    terminal: backend
+    message_pattern: '*191*ehs*week4*done*'
+on_complete:
+  trigger_terminal: conductor
+  next_goal: Dispatch EHS Frontend — Dashboard UI implementation
+  prompt: |
+    ✅ GOAL TELJESÜLT: {{goal.description}}
+
+    Backend DONE: {{completed_criteria}}
+
+    **🎯 EPIC-JT-EHS BACKEND COMPLETE!**
+
+    CP-EHS-BACKEND checkpoint teljesült:
+    ✅ Incident FSM endpoints
+    ✅ Risk matrix endpoints  
+    ✅ Training record endpoints
+    ✅ Integration tests GREEN
+    ✅ Production ready
+
+    Következő lépés: Frontend dispatch — EHS Dashboard UI (CP-EHS-FRONTEND)
+
+    **EHS Progress:**
+    - Week 0: OpenAPI spec ✅
+    - Week 1: Domain Layer ✅
+    - Week 2: Application Layer ✅
+    - Week 3: Infrastructure Layer ✅
+    - Week 4: API Layer ✅ (MOST)
+    - Frontend: Dashboard UI (KÖVETKEZŐ)
+status: completed
+expires_at: '2026-07-11T14:22:16.532Z'
+triggered_at: '2026-07-08T15:56:36.030Z'
+trigger_message_id: MSG-CONDUCTOR-007
+criteria_results:
+  - criterion:
+      type: done_outbox
+      terminal: backend
+      message_pattern: '*191*ehs*week4*done*'
+    met: true
+    details: 'Found: 2026-07-08_MSG-BACKEND-191-EHS-Week4-API-Layer-DONE.md'
+    checked_at: '2026-07-08T15:56:36.022Z'
+completed_at: '2026-07-10T05:18:12.522Z'

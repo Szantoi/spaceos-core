@@ -1,0 +1,24 @@
+[Unit]
+Description=SpaceOS Knowledge Service (MCP + RAG)
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=gabor
+Group=gabor
+WorkingDirectory=/opt/spaceos/spaceos-nexus/knowledge-service
+Environment=NODE_ENV=production
+EnvironmentFile=/opt/spaceos/spaceos-nexus/knowledge-service/.env
+ExecStart=/usr/bin/npx ts-node src/server.ts
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/spaceos/knowledge-service.log
+StandardError=append:/var/log/spaceos/knowledge-service.log
+
+# Hardening (relaxed for node_modules access)
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

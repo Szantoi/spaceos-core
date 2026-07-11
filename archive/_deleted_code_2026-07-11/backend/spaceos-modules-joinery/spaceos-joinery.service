@@ -1,0 +1,33 @@
+[Unit]
+Description=SpaceOS Modules.Joinery API (.NET 8)
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=spaceos
+WorkingDirectory=/opt/spaceos/spaceos-modules-joinery/publish
+ExecStart=/usr/bin/dotnet /opt/spaceos/spaceos-modules-joinery/publish/SpaceOS.Modules.Joinery.Api.dll
+EnvironmentFile=/etc/spaceos/joinery.env
+Environment=DOTNET_ROOT=/opt/dotnet
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/spaceos/spaceos-modules-joinery/publish /var/log/spaceos
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+CapabilityBoundingSet=
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+RestrictNamespaces=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

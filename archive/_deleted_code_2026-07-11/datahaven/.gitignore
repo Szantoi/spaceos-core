@@ -1,0 +1,10 @@
+# Secrets
+config/.env
+
+# Runtime
+memory/
+cache/
+logs/
+
+# Local knowledge (opcionális - ha publikus repo)
+# knowledge/

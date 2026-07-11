@@ -1,0 +1,39 @@
+id: GOAL-2026-07-08-541
+created: '2026-07-08T14:03:45.541Z'
+created_by: conductor
+epic_id: EPIC-JT-EHS
+goal:
+  description: EHS Week 3 Infrastructure Layer Complete
+completion_criteria:
+  - type: done_outbox
+    terminal: backend
+    message_pattern: '*190*ehs*week3*done*'
+on_complete:
+  trigger_terminal: conductor
+  next_goal: Dispatch EHS Week 4 API Layer to Backend
+  prompt: |
+    ✅ GOAL TELJESÜLT: {{goal.description}}
+
+    Backend DONE: {{completed_criteria}}
+
+    Következő lépés: Dispatch EHS Week 4 API Layer to Backend
+
+    **EHS Progress:**
+    - Week 0: OpenAPI spec ✅
+    - Week 1: Domain Layer ✅
+    - Week 2: Application Layer ✅
+    - Week 3: Infrastructure Layer ✅ (MOST)
+    - Week 4: API Layer (KÖVETKEZŐ)
+status: completed
+expires_at: '2026-07-10T14:03:45.541Z'
+triggered_at: '2026-07-08T14:18:23.524Z'
+trigger_message_id: MSG-CONDUCTOR-004
+criteria_results:
+  - criterion:
+      type: done_outbox
+      terminal: backend
+      message_pattern: '*190*ehs*week3*done*'
+    met: true
+    details: 'Found: 2026-07-08_190_ehs-week3-infrastructure-layer-done.md'
+    checked_at: '2026-07-08T14:18:23.520Z'
+completed_at: '2026-07-10T05:18:12.361Z'

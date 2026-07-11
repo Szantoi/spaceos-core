@@ -1,0 +1,21 @@
+id: GOAL-2026-07-10-999
+created: '2026-07-10T20:51:03.999Z'
+created_by: root
+goal:
+  description: Test goal
+completion_criteria:
+  - type: done_outbox
+    terminal: frontend
+on_complete:
+  trigger_terminal: designer
+  prompt: Test
+status: triggered
+triggered_at: '2026-07-10T20:52:13.868Z'
+trigger_message_id: MSG-DESIGNER-030
+criteria_results:
+  - criterion:
+      type: done_outbox
+      terminal: frontend
+    met: true
+    details: 'Found: 2026-07-04_039_designer-032-ui-fixes-partial-done.md'
+    checked_at: '2026-07-10T20:52:13.862Z'

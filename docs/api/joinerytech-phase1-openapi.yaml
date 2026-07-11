@@ -1,0 +1,1145 @@
+openapi: 3.1.0
+
+info:
+  title: JoineryTech Phase 1 API
+  version: 1.0.0
+  description: |
+    **JoineryTech Phase 1 Critical APIs**
+
+    Production-ready manufacturing ERP for B2B woodworking companies.
+
+    This specification covers Phase 1 modules:
+    - **Authentication:** JWT-based auth with HttpOnly cookies
+    - **Catalog:** Read-only product catalog (materials, finishes)
+    - **CRM:** Customer Relationship Management (Leads Phase 1 subset)
+
+    ## Security
+
+    All authenticated endpoints require JWT access token in HttpOnly cookie.
+    The API uses cookie-based authentication (no bearer tokens in headers).
+
+    ## Error Handling
+
+    All errors follow RFC 7807 Problem Details format.
+
+    ## Architecture
+
+    - **Backend:** .NET 8 REST API (stateless)
+    - **Frontend:** React 18 SPA with TanStack Query
+    - **Database:** PostgreSQL 15 with Row-Level Security (RLS)
+
+    Ref: ADR-058 (Backend-Frontend Integration Architecture)
+  contact:
+    name: SpaceOS Architect
+    email: architect@spaceos.local
+  license:
+    name: Proprietary
+    url: https://joinerytech.hu
+
+servers:
+  - url: https://api.joinerytech.hu/v1
+    description: Production
+  - url: https://staging-api.joinerytech.hu/v1
+    description: Staging
+  - url: http://localhost:5000/v1
+    description: Local Development
+
+tags:
+  - name: Authentication
+    description: JWT-based authentication with HttpOnly cookies
+  - name: Catalog
+    description: Product catalog (read-only for Phase 1)
+  - name: CRM
+    description: Customer Relationship Management (Leads only for Phase 1)
+
+security:
+  - cookieAuth: []
+
+paths:
+  # ============================================================
+  # AUTHENTICATION MODULE
+  # ============================================================
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: |
+        Authenticate user with email and password.
+
+        On success, sets two HttpOnly cookies:
+        - `access_token` (15 min expiration)
+        - `refresh_token` (7 day expiration)
+
+        Returns user profile and permissions.
+      operationId: login
+      security: []  # No auth required for login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  maxLength: 100
+                  example: admin@joinerytech.hu
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  maxLength: 100
+                  example: "********"
+                rememberMe:
+                  type: boolean
+                  default: false
+                  description: If true, refresh token expiration is 30 days instead of 7
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: JWT access and refresh tokens
+              schema:
+                type: string
+                example: |
+                  access_token=eyJhbGc...; HttpOnly; Secure; SameSite=Strict; Max-Age=900
+                  refresh_token=eyJhbGc...; HttpOnly; Secure; SameSite=Strict; Max-Age=604800
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://api.joinerytech.hu/errors/invalid-credentials
+                title: Invalid Credentials
+                status: 401
+                detail: Email or password is incorrect
+                instance: /v1/auth/login
+                traceId: "00-abc123-def456-00"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: |
+        Use refresh token to obtain new access token.
+
+        The refresh token is read from HttpOnly cookie automatically.
+        On success, sets new `access_token` cookie (15 min expiration).
+
+        **Token Rotation:** The refresh token is also rotated (new refresh token issued).
+      operationId: refresh
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Token refreshed successfully
+          headers:
+            Set-Cookie:
+              description: New JWT access and refresh tokens
+              schema:
+                type: string
+                example: |
+                  access_token=eyJhbGc...; HttpOnly; Secure; SameSite=Strict; Max-Age=900
+                  refresh_token=eyJhbGc...; HttpOnly; Secure; SameSite=Strict; Max-Age=604800
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Token refreshed successfully
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    example: "2026-07-02T10:15:00Z"
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://api.joinerytech.hu/errors/invalid-token
+                title: Invalid Refresh Token
+                status: 401
+                detail: Refresh token is invalid or expired
+                instance: /v1/auth/refresh
+                traceId: "00-abc123-def456-00"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: |
+        Logout current user by clearing access and refresh tokens.
+
+        Sets both cookies with Max-Age=0 to delete them.
+      operationId: logout
+      responses:
+        '200':
+          description: Logout successful
+          headers:
+            Set-Cookie:
+              description: Clear JWT cookies
+              schema:
+                type: string
+                example: |
+                  access_token=; HttpOnly; Secure; SameSite=Strict; Max-Age=0
+                  refresh_token=; HttpOnly; Secure; SameSite=Strict; Max-Age=0
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logged out successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user profile
+      description: |
+        Get authenticated user's profile and permissions.
+
+        Useful for checking auth status and displaying user info in UI.
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ============================================================
+  # CATALOG MODULE (Read-Only)
+  # ============================================================
+
+  /catalog/items:
+    get:
+      tags:
+        - Catalog
+      summary: List catalog items
+      description: |
+        Get paginated list of catalog items (materials, finishes, hardware).
+
+        Supports filtering by category and search term.
+      operationId: listCatalogItems
+      parameters:
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            minimum: 10
+            maximum: 100
+            default: 50
+        - name: categoryId
+          in: query
+          description: Filter by category ID
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          description: Search term (fuzzy match on name, code, description)
+          schema:
+            type: string
+            maxLength: 100
+      responses:
+        '200':
+          description: Catalog items retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - totalCount
+                  - page
+                  - pageSize
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CatalogItem'
+                  totalCount:
+                    type: integer
+                    example: 1250
+                  page:
+                    type: integer
+                    example: 1
+                  pageSize:
+                    type: integer
+                    example: 50
+                  hasMore:
+                    type: boolean
+                    example: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /catalog/items/{id}:
+    get:
+      tags:
+        - Catalog
+      summary: Get catalog item by ID
+      description: Get detailed information about a single catalog item
+      operationId: getCatalogItemById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Catalog item UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Catalog item retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Catalog item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://api.joinerytech.hu/errors/not-found
+                title: Catalog Item Not Found
+                status: 404
+                detail: Catalog item with ID '3fa85f64-5717-4562-b3fc-2c963f66afa6' does not exist
+                instance: /v1/catalog/items/3fa85f64-5717-4562-b3fc-2c963f66afa6
+                traceId: "00-abc123-def456-00"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /catalog/categories:
+    get:
+      tags:
+        - Catalog
+      summary: List catalog categories
+      description: |
+        Get hierarchical list of catalog categories.
+
+        Categories are organized in a tree structure (parent-child relationships).
+      operationId: listCatalogCategories
+      responses:
+        '200':
+          description: Categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - categories
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CatalogCategory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ============================================================
+  # CRM MODULE (Phase 1 Subset: Leads Only)
+  # ============================================================
+
+  /crm/leads:
+    get:
+      tags:
+        - CRM
+      summary: List leads
+      description: |
+        Get paginated list of leads with optional filters.
+
+        Supports filtering by status, priority, assigned user.
+      operationId: listLeads
+      parameters:
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            minimum: 10
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          description: Filter by lead status
+          schema:
+            $ref: '#/components/schemas/LeadStatus'
+        - name: priority
+          in: query
+          description: Filter by priority
+          schema:
+            $ref: '#/components/schemas/LeadPriority'
+        - name: assignedTo
+          in: query
+          description: Filter by assigned user ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Leads retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - leads
+                  - totalCount
+                  - page
+                  - pageSize
+                properties:
+                  leads:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Lead'
+                  totalCount:
+                    type: integer
+                    example: 45
+                  page:
+                    type: integer
+                    example: 1
+                  pageSize:
+                    type: integer
+                    example: 20
+                  hasMore:
+                    type: boolean
+                    example: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - CRM
+      summary: Create new lead
+      description: |
+        Create a new lead (initial contact).
+
+        Lead is created in `New` status by default.
+        FSM enforces valid state transitions.
+      operationId: createLead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLeadRequest'
+      responses:
+        '201':
+          description: Lead created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblemDetails'
+              example:
+                type: https://api.joinerytech.hu/errors/validation-failed
+                title: Validation Failed
+                status: 422
+                detail: One or more validation errors occurred
+                instance: /v1/crm/leads
+                traceId: "00-abc123-def456-00"
+                errors:
+                  companyName:
+                    - Company name is required
+                  email:
+                    - Email format is invalid
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /crm/leads/{id}:
+    get:
+      tags:
+        - CRM
+      summary: Get lead by ID
+      description: Get detailed information about a single lead
+      operationId: getLeadById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Lead UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lead retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Lead not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+              example:
+                type: https://api.joinerytech.hu/errors/not-found
+                title: Lead Not Found
+                status: 404
+                detail: Lead with ID '3fa85f64-5717-4562-b3fc-2c963f66afa6' does not exist
+                instance: /v1/crm/leads/3fa85f64-5717-4562-b3fc-2c963f66afa6
+                traceId: "00-abc123-def456-00"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /crm/leads/{id}/status:
+    patch:
+      tags:
+        - CRM
+      summary: Update lead status
+      description: |
+        Transition lead to new status (FSM-validated).
+
+        Valid transitions (FSM):
+        - New → Contacted, Qualified, Rejected
+        - Contacted → Qualified, Rejected
+        - Qualified → Opportunity (Phase 2)
+        - Rejected → New (reopen)
+
+        Invalid transitions return 422 with FSM error details.
+      operationId: updateLeadStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Lead UUID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  $ref: '#/components/schemas/LeadStatus'
+                reason:
+                  type: string
+                  maxLength: 500
+                  description: Reason for status change (optional, but recommended for Rejected)
+                  example: Customer not interested in woodworking services
+      responses:
+        '200':
+          description: Lead status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Lead not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Invalid FSM transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblemDetails'
+              example:
+                type: https://api.joinerytech.hu/errors/invalid-state-transition
+                title: Invalid State Transition
+                status: 422
+                detail: Cannot transition from 'Qualified' to 'New'
+                instance: /v1/crm/leads/3fa85f64-5717-4562-b3fc-2c963f66afa6/status
+                traceId: "00-abc123-def456-00"
+                errors:
+                  status:
+                    - "Valid transitions from 'Qualified': Opportunity, Rejected"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ============================================================
+# COMPONENTS (Reusable Schemas)
+# ============================================================
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+      description: |
+        JWT access token stored in HttpOnly cookie.
+
+        Automatically sent by browser on authenticated requests.
+        No need to manually set Authorization header.
+
+  schemas:
+    # --------------------------------------------------------
+    # Authentication Schemas
+    # --------------------------------------------------------
+
+    LoginResponse:
+      type: object
+      required:
+        - user
+        - expiresAt
+      properties:
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        expiresAt:
+          type: string
+          format: date-time
+          description: Access token expiration timestamp
+          example: "2026-07-02T10:15:00Z"
+        message:
+          type: string
+          example: Login successful
+
+    UserProfile:
+      type: object
+      required:
+        - id
+        - email
+        - firstName
+        - lastName
+        - roles
+        - permissions
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        email:
+          type: string
+          format: email
+          example: admin@joinerytech.hu
+        firstName:
+          type: string
+          maxLength: 50
+          example: János
+        lastName:
+          type: string
+          maxLength: 50
+          example: Kovács
+        fullName:
+          type: string
+          readOnly: true
+          example: Kovács János
+        roles:
+          type: array
+          items:
+            type: string
+            enum:
+              - Admin
+              - Manager
+              - Employee
+              - Viewer
+          example:
+            - Manager
+        permissions:
+          type: array
+          items:
+            type: string
+          description: Granular permissions (RBAC)
+          example:
+            - crm.leads.read
+            - crm.leads.create
+            - catalog.items.read
+        tenantId:
+          type: string
+          format: uuid
+          description: Multi-tenant ID (RLS enforcement)
+          example: "a3b85f64-5717-4562-b3fc-2c963f66afa6"
+
+    # --------------------------------------------------------
+    # Catalog Schemas
+    # --------------------------------------------------------
+
+    CatalogItem:
+      type: object
+      required:
+        - id
+        - code
+        - name
+        - categoryId
+        - unit
+        - price
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        code:
+          type: string
+          maxLength: 50
+          description: Unique item code (SKU)
+          example: MAT-BOARD-18MM-OAK
+        name:
+          type: string
+          maxLength: 200
+          example: Oak Veneered Chipboard 18mm
+        description:
+          type: string
+          maxLength: 1000
+        
+          example: High-quality oak veneered chipboard, 18mm thickness, suitable for furniture
+        categoryId:
+          type: string
+          format: uuid
+          example: "b4c85f64-5717-4562-b3fc-2c963f66afa6"
+        categoryName:
+          type: string
+          readOnly: true
+          example: Boards
+        unit:
+          type: string
+          enum:
+            - m2
+            - m
+            - pcs
+            - kg
+          example: m2
+        price:
+          $ref: '#/components/schemas/Money'
+        imageUrl:
+          type: string
+          format: uri
+        
+          example: https://cdn.joinerytech.hu/catalog/mat-board-18mm-oak.jpg
+        specifications:
+          type: object
+          additionalProperties:
+            type: string
+          description: Key-value pairs for technical specs
+          example:
+            thickness: "18mm"
+            veneerType: "oak"
+            coreType: "chipboard"
+        stockQuantity:
+          type: number
+          format: float
+          readOnly: true
+          description: Current stock (read-only, managed by Inventory module)
+          example: 125.5
+        isActive:
+          type: boolean
+          example: true
+
+    CatalogCategory:
+      type: object
+      required:
+        - id
+        - name
+        - level
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "b4c85f64-5717-4562-b3fc-2c963f66afa6"
+        name:
+          type: string
+          maxLength: 100
+          example: Boards
+        parentId:
+          type: string
+          format: uuid
+        
+          description: Parent category ID (null for root categories)
+          example: "c5d85f64-5717-4562-b3fc-2c963f66afa6"
+        level:
+          type: integer
+          description: Tree depth (0 = root, 1 = first level, etc.)
+          example: 1
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogCategory'
+          description: Child categories (recursive tree structure)
+
+    # --------------------------------------------------------
+    # CRM Schemas
+    # --------------------------------------------------------
+
+    Lead:
+      type: object
+      required:
+        - id
+        - companyName
+        - status
+        - priority
+        - source
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        companyName:
+          type: string
+          maxLength: 200
+          example: Faipari Kft.
+        contactPerson:
+          type: string
+          maxLength: 100
+        
+          example: Nagy Péter
+        email:
+          type: string
+          format: email
+          maxLength: 100
+        
+          example: nagy.peter@faipari.hu
+        phone:
+          type: string
+          maxLength: 20
+        
+          example: "+36 30 123 4567"
+        status:
+          $ref: '#/components/schemas/LeadStatus'
+        priority:
+          $ref: '#/components/schemas/LeadPriority'
+        source:
+          $ref: '#/components/schemas/LeadSource'
+        notes:
+          type: string
+          maxLength: 2000
+        
+          example: Interested in oak doors and furniture. Budget ~3M HUF.
+        estimatedValue:
+          $ref: '#/components/schemas/Money'
+        assignedTo:
+          type: string
+          format: uuid
+        
+          description: User ID of assigned sales rep
+          example: "d6e85f64-5717-4562-b3fc-2c963f66afa6"
+        assignedToName:
+          type: string
+          readOnly: true
+        
+          example: Kovács János
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2026-07-01T08:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2026-07-02T09:15:00Z"
+        lastContactedAt:
+          type: string
+          format: date-time
+        
+          example: "2026-07-02T09:00:00Z"
+
+    CreateLeadRequest:
+      type: object
+      required:
+        - companyName
+        - priority
+        - source
+      properties:
+        companyName:
+          type: string
+          maxLength: 200
+          example: Faipari Kft.
+        contactPerson:
+          type: string
+          maxLength: 100
+        
+          example: Nagy Péter
+        email:
+          type: string
+          format: email
+          maxLength: 100
+        
+          example: nagy.peter@faipari.hu
+        phone:
+          type: string
+          maxLength: 20
+        
+          example: "+36 30 123 4567"
+        priority:
+          $ref: '#/components/schemas/LeadPriority'
+        source:
+          $ref: '#/components/schemas/LeadSource'
+        notes:
+          type: string
+          maxLength: 2000
+        
+          example: Interested in oak doors and furniture. Budget ~3M HUF.
+        estimatedValue:
+          $ref: '#/components/schemas/Money'
+
+    LeadStatus:
+      type: string
+      enum:
+        - New
+        - Contacted
+        - Qualified
+        - Rejected
+      description: |
+        Lead lifecycle status (FSM-enforced)
+
+        Valid transitions:
+        - New → Contacted, Qualified, Rejected
+        - Contacted → Qualified, Rejected
+        - Qualified → Opportunity (Phase 2)
+        - Rejected → New (reopen)
+      example: New
+
+    LeadPriority:
+      type: string
+      enum:
+        - Low
+        - Medium
+        - High
+        - Critical
+      example: Medium
+
+    LeadSource:
+      type: string
+      enum:
+        - Website
+        - Referral
+        - ColdCall
+        - Exhibition
+        - SocialMedia
+        - Email
+        - Other
+      example: Website
+
+    # --------------------------------------------------------
+    # Shared Value Objects
+    # --------------------------------------------------------
+
+    Money:
+      type: object
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: number
+          format: decimal
+          description: Monetary amount (2 decimal places)
+          example: 12500.00
+        currency:
+          type: string
+          enum:
+            - HUF
+            - EUR
+            - USD
+          default: HUF
+          example: HUF
+        formatted:
+          type: string
+          readOnly: true
+          description: Formatted string for display
+          example: "12 500 Ft"
+
+    # --------------------------------------------------------
+    # Error Schemas (RFC 7807 Problem Details)
+    # --------------------------------------------------------
+
+    ProblemDetails:
+      type: object
+      required:
+        - type
+        - title
+        - status
+      properties:
+        type:
+          type: string
+          format: uri
+          description: URI reference that identifies the problem type
+          example: https://api.joinerytech.hu/errors/not-found
+        title:
+          type: string
+          description: Short, human-readable summary
+          example: Not Found
+        status:
+          type: integer
+          description: HTTP status code
+          example: 404
+        detail:
+          type: string
+          description: Human-readable explanation specific to this occurrence
+          example: The requested resource was not found
+        instance:
+          type: string
+          format: uri
+          description: URI reference that identifies the specific occurrence
+          example: /v1/crm/leads/3fa85f64-5717-4562-b3fc-2c963f66afa6
+        traceId:
+          type: string
+          description: Distributed trace ID for debugging
+          example: "00-abc123-def456-00"
+
+    ValidationProblemDetails:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+              description: Validation errors by field name
+              example:
+                companyName:
+                  - Company name is required
+                email:
+                  - Email format is invalid
+
+  responses:
+    BadRequest:
+      description: Bad Request (malformed request)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: https://api.joinerytech.hu/errors/bad-request
+            title: Bad Request
+            status: 400
+            detail: Request body is malformed or missing required fields
+            instance: /v1/crm/leads
+            traceId: "00-abc123-def456-00"
+
+    Unauthorized:
+      description: Unauthorized (missing or invalid token)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: https://api.joinerytech.hu/errors/unauthorized
+            title: Unauthorized
+            status: 401
+            detail: Access token is missing or invalid
+            instance: /v1/auth/me
+            traceId: "00-abc123-def456-00"
+
+    Forbidden:
+      description: Forbidden (insufficient permissions)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: https://api.joinerytech.hu/errors/forbidden
+            title: Forbidden
+            status: 403
+            detail: You do not have permission to access this resource
+            instance: /v1/crm/leads
+            traceId: "00-abc123-def456-00"
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: https://api.joinerytech.hu/errors/internal-server-error
+            title: Internal Server Error
+            status: 500
+            detail: An unexpected error occurred. Please try again later.
+            instance: /v1/crm/leads
+            traceId: "00-abc123-def456-00"

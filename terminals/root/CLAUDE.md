@@ -26,70 +26,59 @@
 
 ---
 
-## META-LEVEL RESPONSIBILITY: NEXUS INFRASTRUKTÚRA
+## META-LEVEL RESPONSIBILITY: NEXUS TERMINÁL DELEGÁLÁS (2026-07-10)
 
-> **Root felelőssége (2026-07-02):** A Nexus infrastruktúra működéséért és fejlesztéséért.
+> **⚠️ FONTOS VÁLTOZÁS:** Az infrastruktúra fejlesztés delegálva van a **Nexus terminálra**!
+>
+> Root stratégiai döntéseket hoz, de az operatív infrastruktúra munkát a Nexus végzi.
 
-### Root Felelősségek
+### 2-Track Architektúra
 
-**1. Nexus Működési Felelősség:**
-- Nexus service-ek (knowledge-service, MCP tools) működése
-- Pipeline-ok (nightwatch, planning, review) stabilitása
-- Infrastructure fejlesztés és karbantartás
-- Performance és cost optimization
-
-**2. Javaslatok Fogadása:**
-
-| Ki javasol | Miért | Példa |
-|------------|-------|-------|
-| **Monitor** | Folyamatok fluiditása | "watchMonitor lassú, optimalizáció kell" |
-| **Conductor** | Projekt koordináció | "Parallel task dispatch tool hiányzik" |
-| Más terminálok | Saját pain point-ok | "EPICS.yaml parsing nehézkes" |
-
-**3. Fejlesztési Workflow:**
 ```
-Monitor/Conductor javaslat
-   ↓ inbox → Root
-Root review + döntés
-   ↓
-Root implementálja (vagy Backend-nek delegálja)
-   ↓
-Root teszteli + deploy
-   ↓
-Librarian dokumentálja
+TERMÉKFEJLESZTÉS (JoineryTech, Doorstar, stb.)     AGENT INFRASTRUKTÚRA
+  ├── Backend     — .NET + Node.js üzleti logika      └── Nexus — knowledge-service, MCP, pipeline
+  ├── Frontend    — React/TS portal
+  └── Designer    — UI/UX
 ```
 
-### Monitor Szerepe: Folyamatok Fluiditása
+### Root vs Nexus Felelősség Mátrix
 
-**Felelősség:** A fejlesztési workflow **akadálymentessége**.
+| Feladat | Ki végzi |
+|---------|----------|
+| **Üzleti döntés** (prioritás, roadmap, ügyfél) | **Root** |
+| **Stratégiai architektúra** (epic tervezés) | **Root** + Architect |
+| **MCP tool fejlesztés** | **Nexus** |
+| **Pipeline bug fix** (nightwatch, review) | **Nexus** |
+| **Knowledge-service karbantartás** | **Nexus** |
+| **Session management** | **Nexus** |
+| **Cost optimization** | **Nexus** + Root review |
 
-**Monitor figyel:**
-- Terminálok stuck-e? (idle session + UNREAD inbox)
-- Pipeline-ok futnak-e? (nightwatch, planning)
-- Service-ek elérhetőek-e? (Knowledge, Datahaven)
-- Cost limit-ek betartása (worker overload)
+### Infrastruktúra Probléma → Nexus-nak Küldés
 
-**Monitor javaslat Root-nak ha:**
-- Ismétlődő stuck pattern látszik
-- Pipeline túl lassú/ineffektív
-- Service hiányzik (új tool kell)
+**Ha infrastruktúra hibát kapsz más termináltól, delegáld Nexus-nak:**
 
-### Conductor Szerepe: Projekt Koordináció
+```
+mcp__spaceos-knowledge__create_task
+  from: "root"
+  to: "nexus"
+  title: "MCP tool bug: list_inbox timeout"
+  description: "Backend terminál jelentette..."
+  priority: "high"
+```
 
-**Felelősség:** Epic-ek és task-ok **koordinálása**.
+**Root NEM implementálja az infra fix-eket** — csak:
+1. Triázsolja a beérkező hibajelentéseket
+2. Prioritizálja és delegálja Nexus-nak
+3. Review-zza a Nexus DONE-t
 
-**Conductor figyel:**
-- Epic dependency-k blokkolnak-e?
-- Terminálok kapacitása elégséges-e?
-- Review bottleneck van-e?
-- Planning pipeline output quality
+### Nexus Terminál Elérhetősége
 
-**Conductor javaslat Root-nak ha:**
-- Koordinációs tool hiányzik
-- Epic management nehézkes
-- Task dispatch ineffektív
+- **Inbox:** `/opt/spaceos/terminals/nexus/inbox/`
+- **Outbox:** `/opt/spaceos/terminals/nexus/outbox/`
+- **CLAUDE.md:** `/opt/spaceos/terminals/nexus/CLAUDE.md`
+- **Specialization:** Agent Infrastructure Engineering
 
-### Nexus Tool Development (Root vezérli)
+### Nexus Tool Development (Nexus vezérli)
 
 **Workflow:**
 1. **Javaslat érkezik** (Monitor/Conductor/terminál inbox)
@@ -832,3 +821,55 @@ mcp__spaceos-knowledge__get_worker_status
 - Single decision (1 epic planning)
 - Sequential dependency (egyik epic függ a másiktól)
 - Resource constraint (terminálok már telítettek)
+
+---
+
+## 🧠 CONTEXT PERSISTENCE — MCP TOOLS
+
+> **Goal Drift Prevention** — Context window kezelés és fókusz megőrzés.
+
+### Session Start (KÖTELEZŐ)
+
+```
+mcp__spaceos-knowledge__build_session_start_context
+  terminal: "root"
+
+mcp__spaceos-knowledge__get_context_saturation
+  terminal: "root"
+```
+
+### Context Saturation Thresholds
+
+| Turn Count | Teendő |
+|------------|--------|
+| **<30** | Normál működés |
+| **30-50** | ⚠️ Fókuszálj a fő célra! |
+| **>50** | 🚨 Kérj új session-t! |
+
+### Session End (KÖTELEZŐ)
+
+```
+mcp__spaceos-knowledge__write_session_state
+  terminal: "root"
+  epic_id: "EPIC-ID"
+  epic_progress: 35
+  next_checkpoint_id: "CP-ID"
+  last_active_task: "MSG-ID"
+
+mcp__spaceos-knowledge__write_terminal_status_md
+  terminal: "root"
+  system_status: "operational"
+  current_focus: "..."
+  recent_actions: [...]
+  next_steps: [...]
+```
+
+### Diagnostic (Root/Monitor)
+
+```
+mcp__spaceos-knowledge__get_all_context_files_status
+```
+
+**Részletes dokumentáció:** `docs/knowledge/patterns/GOAL_PERSISTENCE_PATTERNS.md`
+
+---

@@ -1,0 +1,119 @@
+name: Deploy & Verify Database Security
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'database/**'
+      - 'src/**'
+      - 'scripts/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-and-verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run seeder (creates database)
+        run: npm run seed
+
+      - name: Secure database file permissions
+        run: bash scripts/secure-database-file.sh database/metadata.db
+
+      - name: Verify database file permissions (CI/CD Gate)
+        run: |
+          echo "[CI/CD Gate] Verifying database file permissions..."
+
+          DB_FILE="database/metadata.db"
+
+          if [ ! -f "$DB_FILE" ]; then
+            echo "✗ FAIL: Database file not found: $DB_FILE"
+            exit 1
+          fi
+
+          # Get current permissions (octal format)
+          PERMS=$(stat -c '%a' "$DB_FILE" || echo "unknown")
+          PERMS_READABLE=$(stat -c '%A' "$DB_FILE" || echo "unknown")
+
+          echo "Database file: $DB_FILE"
+          echo "Permissions: $PERMS ($PERMS_READABLE)"
+          echo ""
+
+          # Check: Permissions must be 0640 (or 0600 for added security)
+          if [ "$PERMS" != "0640" ] && [ "$PERMS" != "0600" ]; then
+            echo "✗ FAIL: Permissions not secure. Expected: 0640 or 0600, Got: $PERMS"
+            exit 1
+          fi
+
+          # Check: File must not be world-readable
+          if [ "$PERMS" = "0644" ] || [ "$PERMS" = "0666" ]; then
+            echo "✗ FAIL: Database is world-readable (security risk)"
+            exit 1
+          fi
+
+          # Check: File must not be world-writable
+          if [[ "$PERMS" == *"2" ]] || [[ "$PERMS" == *"7" ]]; then
+            echo "✗ FAIL: Database is world-writable (security risk)"
+            exit 1
+          fi
+
+          echo "✓ PASS: Database file permissions are secure"
+          echo "  - Not world-readable"
+          echo "  - Not world-writable"
+          echo "  - Only owner and group can access"
+
+      - name: Verify WAL files (if exist)
+        run: |
+          echo "[Info] Checking WAL mode files..."
+
+          WAL_FILE="database/metadata.db-wal"
+          SHM_FILE="database/metadata.db-shm"
+
+          if [ -f "$WAL_FILE" ]; then
+            PERMS=$(stat -c '%a' "$WAL_FILE")
+            echo "  WAL file permissions: $PERMS"
+            if [ "$PERMS" != "0640" ] && [ "$PERMS" != "0600" ]; then
+              echo "  ✗ WARNING: WAL file permissions not secure"
+              exit 1
+            fi
+          fi
+
+          if [ -f "$SHM_FILE" ]; then
+            PERMS=$(stat -c '%a' "$SHM_FILE")
+            echo "  Shared memory file permissions: $PERMS"
+            if [ "$PERMS" != "0640" ] && [ "$PERMS" != "0600" ]; then
+              echo "  ✗ WARNING: Shared memory file permissions not secure"
+              exit 1
+            fi
+          fi
+
+          echo "  ✓ All WAL files secure"
+
+      - name: Run unit tests (post-deploy validation)
+        run: npm test -- --run
+        continue-on-error: false
+
+      - name: Log deployment security summary
+        if: success()
+        run: |
+          echo ""
+          echo "================================"
+          echo "Deployment Security Summary"
+          echo "================================"
+          echo "✓ Database file secured (0640 permissions)"
+          echo "✓ WAL files verified"
+          echo "✓ All unit tests passing"
+          echo "✓ Ready for production"
+          echo ""

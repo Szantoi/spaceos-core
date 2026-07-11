@@ -1,0 +1,659 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SpaceOS.Kernel.Api</name>
+    </assembly>
+    <members>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.AuditEventEndpoints">
+            <summary>Registers AuditLog Minimal API endpoints.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.AuditEventEndpoints.MapAuditEventEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all audit event endpoints to the provided route builder.</summary>
+            <param name="app">The endpoint route builder to register routes on.</param>
+            <returns>The same <see cref="T:Microsoft.AspNetCore.Routing.IEndpointRouteBuilder"/> for chaining.</returns>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.ReHashRequest">
+            <summary>Request body for the <c>POST /api/audit-events/re-hash</c> endpoint.</summary>
+            <param name="TenantId">The tenant whose audit chain to analyse.</param>
+            <param name="TargetAlgorithm">The target algorithm name (e.g. "SHA3_256").</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.ReHashRequest.#ctor(System.Guid,System.String)">
+            <summary>Request body for the <c>POST /api/audit-events/re-hash</c> endpoint.</summary>
+            <param name="TenantId">The tenant whose audit chain to analyse.</param>
+            <param name="TargetAlgorithm">The target algorithm name (e.g. "SHA3_256").</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.ReHashRequest.TenantId">
+            <summary>The tenant whose audit chain to analyse.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.ReHashRequest.TargetAlgorithm">
+            <summary>The target algorithm name (e.g. "SHA3_256").</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.AuthEndpoints">
+            <summary>Registers authentication-related Minimal API endpoints (logout).</summary>
+            <remarks>
+            Refresh token rotation is no longer handled here — Keycloak manages token lifecycle.
+            The JWKS endpoint has been removed; JWT validation keys are fetched automatically from
+            the Keycloak authority's <c>/.well-known/openid-configuration</c> discovery document.
+            </remarks>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.AuthEndpoints.MapAuthEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all auth endpoints to the provided route builder.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.RefreshRequest">
+            <summary>Request body for refresh and logout endpoints.</summary>
+            <param name="RefreshToken">The raw 43-character Base64Url opaque refresh token.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.RefreshRequest.#ctor(System.String)">
+            <summary>Request body for refresh and logout endpoints.</summary>
+            <param name="RefreshToken">The raw 43-character Base64Url opaque refresh token.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RefreshRequest.RefreshToken">
+            <summary>The raw 43-character Base64Url opaque refresh token.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.DashboardEndpoints">
+            <summary>Registers Dashboard-related Minimal API endpoints.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.DashboardEndpoints.MapDashboardEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps the dashboard stats GET endpoint to the provided route builder.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.FacilityEndpoints">
+            <summary>Registers Facility-related Minimal API endpoints (reads and writes), including nested sub-resource routes.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.FacilityEndpoints.MapFacilityEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all Facility GET and write endpoints to the provided route builder.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.FacilityEndpoints.ResolveTenantIdAsync(SpaceOS.Kernel.Domain.Auth.ITenantResolver,SpaceOS.Kernel.Domain.Repositories.IFacilityRepository,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Resolves the tenant ID from the JWT <c>tid</c> claim. When the claim is absent
+            (e.g. dev tokens), falls back to the owning facility's tenant.
+            </summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.RegisterWorkStationRequest">
+            <summary>Request body for registering a new WorkStation under a Facility.</summary>
+            <param name="Name">The display name for the workstation.</param>
+            <param name="Type">The type classification string.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.RegisterWorkStationRequest.#ctor(System.String,System.String)">
+            <summary>Request body for registering a new WorkStation under a Facility.</summary>
+            <param name="Name">The display name for the workstation.</param>
+            <param name="Type">The type classification string.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterWorkStationRequest.Name">
+            <summary>The display name for the workstation.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterWorkStationRequest.Type">
+            <summary>The type classification string.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.RegisterSpaceLayerRequest">
+            <summary>Request body for registering a new SpaceLayer under a Facility.</summary>
+            <param name="TradeType">The construction trade this layer represents.</param>
+            <param name="IsExternalNode">Whether this layer is federated (external).</param>
+            <param name="ExternalSourceUrl">URL of the external source (required when federated).</param>
+            <param name="IntentDataJson">Local intent data JSON (used when not federated).</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.RegisterSpaceLayerRequest.#ctor(SpaceOS.Kernel.Domain.Enums.TradeType,System.Boolean,System.String,System.String)">
+            <summary>Request body for registering a new SpaceLayer under a Facility.</summary>
+            <param name="TradeType">The construction trade this layer represents.</param>
+            <param name="IsExternalNode">Whether this layer is federated (external).</param>
+            <param name="ExternalSourceUrl">URL of the external source (required when federated).</param>
+            <param name="IntentDataJson">Local intent data JSON (used when not federated).</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterSpaceLayerRequest.TradeType">
+            <summary>The construction trade this layer represents.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterSpaceLayerRequest.IsExternalNode">
+            <summary>Whether this layer is federated (external).</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterSpaceLayerRequest.ExternalSourceUrl">
+            <summary>URL of the external source (required when federated).</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterSpaceLayerRequest.IntentDataJson">
+            <summary>Local intent data JSON (used when not federated).</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.CreateFlowEpicRequest">
+            <summary>Request body for creating a new FlowEpic under a Facility.</summary>
+            <param name="Title">A non-empty title describing the scope of the epic.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.CreateFlowEpicRequest.#ctor(System.String)">
+            <summary>Request body for creating a new FlowEpic under a Facility.</summary>
+            <param name="Title">A non-empty title describing the scope of the epic.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.CreateFlowEpicRequest.Title">
+            <summary>A non-empty title describing the scope of the epic.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.RenameFacilityRequest">
+            <summary>Request body for renaming an existing Facility.</summary>
+            <param name="Name">The new display name.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.RenameFacilityRequest.#ctor(System.String)">
+            <summary>Request body for renaming an existing Facility.</summary>
+            <param name="Name">The new display name.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RenameFacilityRequest.Name">
+            <summary>The new display name.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.FlowEpicEndpoints">
+            <summary>Registers FlowEpic-related Minimal API endpoints (reads and writes).</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.FlowEpicEndpoints.MapFlowEpicEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all FlowEpic GET and write endpoints to the provided route builder.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.UpdateFlowEpicTitleRequest">
+            <summary>Request body for updating a FlowEpic's title.</summary>
+            <param name="Title">The new title for the epic.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.UpdateFlowEpicTitleRequest.#ctor(System.String)">
+            <summary>Request body for updating a FlowEpic's title.</summary>
+            <param name="Title">The new title for the epic.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.UpdateFlowEpicTitleRequest.Title">
+            <summary>The new title for the epic.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.DelegateFlowEpicRequest">
+            <summary>Request body for delegating a FlowEpic to a guest tenant (B2B handshake).</summary>
+            <param name="GuestTenantId">The identifier of the guest tenant receiving the delegation.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.DelegateFlowEpicRequest.#ctor(System.Guid)">
+            <summary>Request body for delegating a FlowEpic to a guest tenant (B2B handshake).</summary>
+            <param name="GuestTenantId">The identifier of the guest tenant receiving the delegation.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.DelegateFlowEpicRequest.GuestTenantId">
+            <summary>The identifier of the guest tenant receiving the delegation.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.CloseFlowEpicRequest">
+            <summary>Request body for closing a FlowEpic with a verified proof document.</summary>
+            <param name="ProofUrl">The URL of the uploaded proof document.</param>
+            <param name="ProofHash">The lowercase hex-encoded SHA-256 hash of the proof document content.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.CloseFlowEpicRequest.#ctor(System.String,System.String)">
+            <summary>Request body for closing a FlowEpic with a verified proof document.</summary>
+            <param name="ProofUrl">The URL of the uploaded proof document.</param>
+            <param name="ProofHash">The lowercase hex-encoded SHA-256 hash of the proof document content.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.CloseFlowEpicRequest.ProofUrl">
+            <summary>The URL of the uploaded proof document.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.CloseFlowEpicRequest.ProofHash">
+            <summary>The lowercase hex-encoded SHA-256 hash of the proof document content.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.GdprEndpoints">
+            <summary>Registers GDPR Minimal API endpoints.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.GdprEndpoints.MapGdprEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all GDPR endpoints to the provided route builder.</summary>
+            <param name="app">The endpoint route builder to register routes on.</param>
+            <returns>The same <see cref="T:Microsoft.AspNetCore.Routing.IEndpointRouteBuilder"/> for chaining.</returns>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.EraseUserRequest">
+            <summary>Request body for the <c>POST /api/gdpr/erase-user</c> endpoint.</summary>
+            <param name="ExternalUserId">The JWT <c>sub</c> claim of the user to erase.</param>
+            <param name="TenantId">The tenant the user belongs to.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.EraseUserRequest.#ctor(System.String,System.Guid)">
+            <summary>Request body for the <c>POST /api/gdpr/erase-user</c> endpoint.</summary>
+            <param name="ExternalUserId">The JWT <c>sub</c> claim of the user to erase.</param>
+            <param name="TenantId">The tenant the user belongs to.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.EraseUserRequest.ExternalUserId">
+            <summary>The JWT <c>sub</c> claim of the user to erase.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.EraseUserRequest.TenantId">
+            <summary>The tenant the user belongs to.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.HandshakeEndpoints">
+            <summary>Registers B2B handshake allowlist Minimal API endpoints.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.HandshakeEndpoints.MapHandshakeEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all handshake-related endpoints to the provided route builder.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.ModuleRegistryEndpoints">
+            <summary>Registers Module Registry read endpoints.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.ModuleRegistryEndpoints.MapModuleRegistryEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps the <c>GET /api/module-registry/{tenantType}</c> endpoint.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.RegisterNodeRequest">
+            <summary>Request body for registering a remote node.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.RegisterNodeRequest.#ctor(System.Guid,System.String)">
+            <summary>Request body for registering a remote node.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.HeartbeatRequest">
+            <summary>Request body for recording a node heartbeat.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.HeartbeatRequest.#ctor(System.Guid)">
+            <summary>Request body for recording a node heartbeat.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.NodeEndpoints">
+            <summary>Registers node-management Minimal API endpoints.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.NodeEndpoints.MapNodeEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all node management endpoints to the provided route builder.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.SnapshotEndpoints">
+            <summary>Registers Snapshot Minimal API endpoints.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.SnapshotEndpoints.MapSnapshotEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all snapshot endpoints to the provided route builder.</summary>
+            <param name="app">The endpoint route builder to register routes on.</param>
+            <returns>The same <see cref="T:Microsoft.AspNetCore.Routing.IEndpointRouteBuilder"/> for chaining.</returns>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.SpaceEndpoints">
+            <summary>Registers Spatial BIM Core endpoints for physical spaces, elements, links, and timeline queries.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.SpaceEndpoints.MapSpaceEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all Space-related Minimal API endpoints to the provided route builder.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.RegisterPhysicalSpaceRequest">
+            <summary>Request body for registering a new physical space.</summary>
+            <param name="FacilityId">The facility this space belongs to.</param>
+            <param name="WidthMm">Width in millimetres.</param>
+            <param name="HeightMm">Height in millimetres.</param>
+            <param name="DepthMm">Depth in millimetres.</param>
+            <param name="OriginX">Origin X coordinate in millimetres.</param>
+            <param name="OriginY">Origin Y coordinate in millimetres.</param>
+            <param name="OriginZ">Origin Z coordinate in millimetres.</param>
+            <param name="SpaceType">The classification of the space.</param>
+            <param name="CellSizeMm">The spatial grid cell size in millimetres (default 500).</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.RegisterPhysicalSpaceRequest.#ctor(System.Guid,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,SpaceOS.Kernel.Domain.Enums.SpaceType,System.Int32)">
+            <summary>Request body for registering a new physical space.</summary>
+            <param name="FacilityId">The facility this space belongs to.</param>
+            <param name="WidthMm">Width in millimetres.</param>
+            <param name="HeightMm">Height in millimetres.</param>
+            <param name="DepthMm">Depth in millimetres.</param>
+            <param name="OriginX">Origin X coordinate in millimetres.</param>
+            <param name="OriginY">Origin Y coordinate in millimetres.</param>
+            <param name="OriginZ">Origin Z coordinate in millimetres.</param>
+            <param name="SpaceType">The classification of the space.</param>
+            <param name="CellSizeMm">The spatial grid cell size in millimetres (default 500).</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterPhysicalSpaceRequest.FacilityId">
+            <summary>The facility this space belongs to.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterPhysicalSpaceRequest.WidthMm">
+            <summary>Width in millimetres.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterPhysicalSpaceRequest.HeightMm">
+            <summary>Height in millimetres.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterPhysicalSpaceRequest.DepthMm">
+            <summary>Depth in millimetres.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterPhysicalSpaceRequest.OriginX">
+            <summary>Origin X coordinate in millimetres.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterPhysicalSpaceRequest.OriginY">
+            <summary>Origin Y coordinate in millimetres.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterPhysicalSpaceRequest.OriginZ">
+            <summary>Origin Z coordinate in millimetres.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterPhysicalSpaceRequest.SpaceType">
+            <summary>The classification of the space.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterPhysicalSpaceRequest.CellSizeMm">
+            <summary>The spatial grid cell size in millimetres (default 500).</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.RegisterSpatialElementRequest">
+            <summary>Request body for registering a spatial element within a physical space.</summary>
+            <param name="FlowEpicId">The FlowEpic this element belongs to.</param>
+            <param name="TradeType">The construction trade type.</param>
+            <param name="ElementType">The driver-specific element classification.</param>
+            <param name="MinX">Minimum X coordinate in millimetres.</param>
+            <param name="MinY">Minimum Y coordinate in millimetres.</param>
+            <param name="MinZ">Minimum Z coordinate in millimetres.</param>
+            <param name="MaxX">Maximum X coordinate in millimetres.</param>
+            <param name="MaxY">Maximum Y coordinate in millimetres.</param>
+            <param name="MaxZ">Maximum Z coordinate in millimetres.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.RegisterSpatialElementRequest.#ctor(System.Guid,SpaceOS.Kernel.Domain.Enums.TradeType,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>Request body for registering a spatial element within a physical space.</summary>
+            <param name="FlowEpicId">The FlowEpic this element belongs to.</param>
+            <param name="TradeType">The construction trade type.</param>
+            <param name="ElementType">The driver-specific element classification.</param>
+            <param name="MinX">Minimum X coordinate in millimetres.</param>
+            <param name="MinY">Minimum Y coordinate in millimetres.</param>
+            <param name="MinZ">Minimum Z coordinate in millimetres.</param>
+            <param name="MaxX">Maximum X coordinate in millimetres.</param>
+            <param name="MaxY">Maximum Y coordinate in millimetres.</param>
+            <param name="MaxZ">Maximum Z coordinate in millimetres.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterSpatialElementRequest.FlowEpicId">
+            <summary>The FlowEpic this element belongs to.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterSpatialElementRequest.TradeType">
+            <summary>The construction trade type.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterSpatialElementRequest.ElementType">
+            <summary>The driver-specific element classification.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterSpatialElementRequest.MinX">
+            <summary>Minimum X coordinate in millimetres.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterSpatialElementRequest.MinY">
+            <summary>Minimum Y coordinate in millimetres.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterSpatialElementRequest.MinZ">
+            <summary>Minimum Z coordinate in millimetres.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterSpatialElementRequest.MaxX">
+            <summary>Maximum X coordinate in millimetres.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterSpatialElementRequest.MaxY">
+            <summary>Maximum Y coordinate in millimetres.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.RegisterSpatialElementRequest.MaxZ">
+            <summary>Maximum Z coordinate in millimetres.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.LinkTaskToElementRequest">
+            <summary>Request body for linking a FlowTask to a spatial element.</summary>
+            <param name="FlowTaskId">The FlowTask identifier to link.</param>
+            <param name="WorkPhase">The manufacturing or installation phase.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.LinkTaskToElementRequest.#ctor(System.Guid,SpaceOS.Kernel.Domain.Enums.WorkPhase)">
+            <summary>Request body for linking a FlowTask to a spatial element.</summary>
+            <param name="FlowTaskId">The FlowTask identifier to link.</param>
+            <param name="WorkPhase">The manufacturing or installation phase.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.LinkTaskToElementRequest.FlowTaskId">
+            <summary>The FlowTask identifier to link.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.LinkTaskToElementRequest.WorkPhase">
+            <summary>The manufacturing or installation phase.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.SpaceLayerEndpoints">
+            <summary>Registers SpaceLayer-related Minimal API endpoints (reads and writes).</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.SpaceLayerEndpoints.MapSpaceLayerEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all SpaceLayer GET and write endpoints to the provided route builder.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.UpdateSpaceLayerIntentRequest">
+            <summary>Request body for updating a SpaceLayer's local intent data.</summary>
+            <param name="IntentDataJson">The new intent data JSON string.</param>
+            <param name="TradeType">
+            Optional trade type used to select the per-trade structural JSON schema for validation.
+            When omitted, generic rules apply (max depth 10, max 64 KB, must be an object or array).
+            </param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.UpdateSpaceLayerIntentRequest.#ctor(System.String,System.Nullable{SpaceOS.Kernel.Domain.Enums.TradeType})">
+            <summary>Request body for updating a SpaceLayer's local intent data.</summary>
+            <param name="IntentDataJson">The new intent data JSON string.</param>
+            <param name="TradeType">
+            Optional trade type used to select the per-trade structural JSON schema for validation.
+            When omitted, generic rules apply (max depth 10, max 64 KB, must be an object or array).
+            </param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.UpdateSpaceLayerIntentRequest.IntentDataJson">
+            <summary>The new intent data JSON string.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.UpdateSpaceLayerIntentRequest.TradeType">
+            <summary>
+            Optional trade type used to select the per-trade structural JSON schema for validation.
+            When omitted, generic rules apply (max depth 10, max 64 KB, must be an object or array).
+            </summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints">
+            <summary>Registers Stage Registry Minimal API endpoints (SEC-02).</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.StageEndpoints.MapStageEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all Stage Registry endpoints to the provided route builder.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.RegisterStageDefinitionRequest">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> RegisterStageDefinition.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.RegisterStageDefinitionRequest.#ctor(System.Guid,System.String,System.String,System.String)">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> RegisterStageDefinition.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.UpdateStageDefinitionRequest">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> UpdateStageDefinition.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.UpdateStageDefinitionRequest.#ctor(System.String)">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> UpdateStageDefinition.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.CreateStageChainTemplateRequest">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> CreateStageChainTemplate.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.CreateStageChainTemplateRequest.#ctor(System.Guid,System.String,System.Boolean)">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> CreateStageChainTemplate.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.AddStageChainStepRequest">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> AddStageChainStep.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.AddStageChainStepRequest.#ctor(System.Guid,System.Int32,System.Boolean)">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> AddStageChainStep.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.CreateStageHandoffRequest">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> CreateStageHandoff.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.CreateStageHandoffRequest.#ctor(System.Guid,System.Guid,System.String,System.String,System.Guid,System.String,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Guid})">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> CreateStageHandoff.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.AssignChainRequest">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> AssignChainToFlowEpic.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.AssignChainRequest.#ctor(System.Guid,System.String)">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> AssignChainToFlowEpic.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.AdvanceStageRequest">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> AdvanceFlowEpicStage.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.AdvanceStageRequest.#ctor(System.String)">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> AdvanceFlowEpicStage.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.SkipStageRequest">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> SkipOptionalStage.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.SkipStageRequest.#ctor(System.String)">
+            <summary>Request body for <see cref="T:SpaceOS.Kernel.Api.Endpoints.StageEndpoints"/> SkipOptionalStage.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.ReceiveSyncSignalRequest">
+            <summary>Request body for receiving an offline sync signal.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.ReceiveSyncSignalRequest.#ctor(System.Guid,System.Guid,System.String,System.Guid,System.String)">
+            <summary>Request body for receiving an offline sync signal.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.SyncEndpoints">
+            <summary>Registers sync-signal Minimal API endpoints.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.SyncEndpoints.MapSyncEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all sync endpoints to the provided route builder.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.TenantEndpoints">
+            <summary>Registers Tenant-related Minimal API endpoints (reads and writes).</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.TenantEndpoints.MapTenantEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all Tenant GET and write endpoints to the provided route builder.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.CreateTenantRequest">
+            <summary>Request body for creating a new Tenant.</summary>
+            <param name="Name">The display name for the tenant.</param>
+            <param name="TenantType">The ecosystem actor type. Defaults to "Manufacturer".</param>
+            <param name="EnabledModules">Optional initial set of enabled module names.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.CreateTenantRequest.#ctor(System.String,System.String,System.String[])">
+            <summary>Request body for creating a new Tenant.</summary>
+            <param name="Name">The display name for the tenant.</param>
+            <param name="TenantType">The ecosystem actor type. Defaults to "Manufacturer".</param>
+            <param name="EnabledModules">Optional initial set of enabled module names.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.CreateTenantRequest.Name">
+            <summary>The display name for the tenant.</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.CreateTenantRequest.TenantType">
+            <summary>The ecosystem actor type. Defaults to "Manufacturer".</summary>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.CreateTenantRequest.EnabledModules">
+            <summary>Optional initial set of enabled module names.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.UpdateTenantNameRequest">
+            <summary>Request body for updating a Tenant's display name.</summary>
+            <param name="Name">The new display name.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.UpdateTenantNameRequest.#ctor(System.String)">
+            <summary>Request body for updating a Tenant's display name.</summary>
+            <param name="Name">The new display name.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.UpdateTenantNameRequest.Name">
+            <summary>The new display name.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.CreateFacilityRequest">
+            <summary>Request body for creating a new Facility under a Tenant.</summary>
+            <param name="Name">The display name for the new facility.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.CreateFacilityRequest.#ctor(System.String)">
+            <summary>Request body for creating a new Facility under a Tenant.</summary>
+            <param name="Name">The display name for the new facility.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.CreateFacilityRequest.Name">
+            <summary>The display name for the new facility.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.UpdateTenantModulesRequest">
+            <summary>Request body for updating a Tenant's enabled modules.</summary>
+            <param name="Modules">The new set of enabled module names (e.g. ["door", "cutting"]).</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.UpdateTenantModulesRequest.#ctor(System.String[])">
+            <summary>Request body for updating a Tenant's enabled modules.</summary>
+            <param name="Modules">The new set of enabled module names (e.g. ["door", "cutting"]).</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.UpdateTenantModulesRequest.Modules">
+            <summary>The new set of enabled module names (e.g. ["door", "cutting"]).</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.ToolEndpoints">
+            <summary>
+            Minimal API endpoints for the LLM Tool Registry.
+            All endpoints require authentication and source TenantId from the JWT claim.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.ToolEndpoints.MapToolEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps tool registry query endpoints to the application.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.ToolEndpoints.GetTenantId(System.Security.Claims.ClaimsPrincipal)">
+            <summary>
+            Resolves the current tenant GUID from JWT claims.
+            Priority: (1) Keycloak <c>spaceos_tenants</c> claims — ASP.NET JsonWebTokenHandler splits
+            JSON array elements into individual <see cref="T:System.Security.Claims.Claim"/> objects with the same name,
+            so each claim value is a single JSON object like <c>{"tenant_id":"..."}</c>;
+            (2) legacy flat <c>tid</c> claim — note: when <c>MapInboundClaims = true</c> (default)
+            the JWT handler remaps <c>"tid"</c> → <see cref="F:SpaceOS.Kernel.Api.Endpoints.ToolEndpoints.MicrosoftTenantIdClaimType"/> URI, so
+            both names are checked; (3) <c>tenant_id</c> flat claim.
+            Returns <see cref="F:System.Guid.Empty"/> when no tenant claim is present.
+            </summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.WorkStationEndpoints">
+            <summary>Registers WorkStation-related Minimal API endpoints (reads and writes).</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.WorkStationEndpoints.MapWorkStationEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)">
+            <summary>Maps all WorkStation GET and write endpoints to the provided route builder.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.UpdateWorkStationNameRequest">
+            <summary>Request body for updating a WorkStation's display name.</summary>
+            <param name="Name">The new display name.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.UpdateWorkStationNameRequest.#ctor(System.String)">
+            <summary>Request body for updating a WorkStation's display name.</summary>
+            <param name="Name">The new display name.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.UpdateWorkStationNameRequest.Name">
+            <summary>The new display name.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.UpdateWorkStationStatusRequest">
+            <summary>Request body for updating a WorkStation's operational status.</summary>
+            <param name="Status">The desired new status.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.UpdateWorkStationStatusRequest.#ctor(SpaceOS.Kernel.Domain.Enums.WorkStationStatus)">
+            <summary>Request body for updating a WorkStation's operational status.</summary>
+            <param name="Status">The desired new status.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.UpdateWorkStationStatusRequest.Status">
+            <summary>The desired new status.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Endpoints.AssignWorkStationToFacilityRequest">
+            <summary>Request body for assigning a WorkStation to a different Facility.</summary>
+            <param name="FacilityId">The target facility identifier.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Endpoints.AssignWorkStationToFacilityRequest.#ctor(System.Guid)">
+            <summary>Request body for assigning a WorkStation to a different Facility.</summary>
+            <param name="FacilityId">The target facility identifier.</param>
+        </member>
+        <member name="P:SpaceOS.Kernel.Api.Endpoints.AssignWorkStationToFacilityRequest.FacilityId">
+            <summary>The target facility identifier.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Extensions.ResultExtensions">
+            <summary>Maps <see cref="T:Ardalis.Result.Result`1"/> and <see cref="T:Ardalis.Result.Result"/> values from the Application layer to ASP.NET Core <see cref="T:Microsoft.AspNetCore.Http.IResult"/> responses.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Extensions.ResultExtensions.ToApiResult``1(Ardalis.Result.Result{``0})">
+            <summary>Converts a <see cref="T:Ardalis.Result.Result`1"/> to the appropriate <see cref="T:Microsoft.AspNetCore.Http.IResult"/> HTTP response.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Extensions.ResultExtensions.ToApiResult(Ardalis.Result.Result)">
+            <summary>Converts a non-generic <see cref="T:Ardalis.Result.Result"/> to the appropriate <see cref="T:Microsoft.AspNetCore.Http.IResult"/> HTTP response.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Extensions.ResultExtensions.ToCreatedResult``1(Ardalis.Result.Result{``0},System.String,System.Func{``0,System.Object})">
+            <summary>
+            Converts a <see cref="T:Ardalis.Result.Result`1"/> to a 201 Created response using a named route for the Location header.
+            Returns 422 on validation failure and 500 on unexpected errors.
+            </summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Middleware.ExceptionHandlingMiddleware">
+            <summary>
+            Global exception-handling middleware. Catches unhandled exceptions and
+            converts them to RFC 7807 Problem Details responses — no stack traces ever leave the process.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Middleware.ExceptionHandlingMiddleware.#ctor(Microsoft.AspNetCore.Http.RequestDelegate,Microsoft.Extensions.Logging.ILogger{SpaceOS.Kernel.Api.Middleware.ExceptionHandlingMiddleware})">
+            <summary>Initialises the middleware with the next delegate and a logger.</summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Middleware.ExceptionHandlingMiddleware.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>Invokes the middleware, forwarding to the next delegate and catching any unhandled exceptions.</summary>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Middleware.RequestBodySizeLimitFilter">
+            <summary>
+            Endpoint filter that rejects requests whose <c>Content-Length</c> header exceeds 64 KB.
+            This enforces the same limit as the Kestrel <c>MaxRequestBodySize</c> setting so that
+            integration tests (which use <see cref="!:Microsoft.AspNetCore.TestHost.TestServer"/> and
+            therefore bypass Kestrel) also receive a 413 response for oversized payloads.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Middleware.RequestBodySizeLimitFilter.InvokeAsync(Microsoft.AspNetCore.Http.EndpointFilterInvocationContext,Microsoft.AspNetCore.Http.EndpointFilterDelegate)">
+            <inheritdoc/>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.Middleware.SipVersionMiddleware">
+            <summary>
+            BE-06 — SpaceOS Inter-node Protocol (SIP) versioning middleware.
+            Enforces the presence and value of the <c>SpaceOS-SIP-Version</c> header on all
+            <c>/api/sync/*</c> and <c>/api/nodes/*</c> requests.
+            Requests with a missing or unsupported version receive a 400 Problem Details response.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Middleware.SipVersionMiddleware.#ctor(Microsoft.AspNetCore.Http.RequestDelegate)">
+            <summary>Initialises the middleware with the next delegate in the pipeline.</summary>
+            <param name="next">The next request delegate.</param>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.Middleware.SipVersionMiddleware.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>Inspects the SIP version header for relevant paths and short-circuits with 400 on violation.</summary>
+            <param name="context">The HTTP context for the current request.</param>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.OpenApi.EnumStringSchemaFilter">
+            <summary>
+            Swashbuckle schema filter that converts enum schemas from <c>type: integer</c>
+            to <c>type: string</c> with named values, matching the runtime
+            <see cref="T:System.Text.Json.Serialization.JsonStringEnumConverter"/> behaviour.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.OpenApi.EnumStringSchemaFilter.Apply(Microsoft.OpenApi.Models.OpenApiSchema,Swashbuckle.AspNetCore.SwaggerGen.SchemaFilterContext)">
+            <inheritdoc/>
+        </member>
+        <member name="T:SpaceOS.Kernel.Api.OpenApi.PagedListSchemaFilter">
+            <summary>
+            Ensures <see cref="T:SpaceOS.Kernel.Application.Common.PagedList`1"/> schemas are rendered with their full property set in Swagger UI.
+            Without this filter Swashbuckle may collapse the generic type to <c>object</c>.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Kernel.Api.OpenApi.PagedListSchemaFilter.Apply(Microsoft.OpenApi.Models.OpenApiSchema,Swashbuckle.AspNetCore.SwaggerGen.SchemaFilterContext)">
+            <inheritdoc />
+        </member>
+        <member name="T:Program">
+            <summary>Exposes <see cref="T:Program"/> for <see cref="!:WebApplicationFactory&lt;TEntryPoint&gt;"/> in integration tests.</summary>
+        </member>
+    </members>
+</doc>

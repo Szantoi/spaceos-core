@@ -42,34 +42,34 @@
 
 ```bash
 # FE terminál
-tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-fe -c /opt/spaceos/spaceos-doorstar-portal
+tmux -S /tmp/spaceos.tmux new-session -d -s spaceos-fe -c /opt/spaceos/spaceos-doorstar-portal
 
 # Nexus terminál
-tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-nexus -c /opt/spaceos/spaceos-nexus
+tmux -S /tmp/spaceos.tmux new-session -d -s spaceos-nexus -c /opt/spaceos/spaceos-nexus
 
 # Identity terminál (Kernel mappa alatt)
-tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-identity -c /opt/spaceos/SpaceOS.Kernel
+tmux -S /tmp/spaceos.tmux new-session -d -s spaceos-identity -c /opt/spaceos/SpaceOS.Kernel
 
 # Cutting terminál
-tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-cutting -c /opt/spaceos/spaceos-modules-cutting
+tmux -S /tmp/spaceos.tmux new-session -d -s spaceos-cutting -c /opt/spaceos/spaceos-modules-cutting
 
 # Joinery terminál
-tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-joinery -c /opt/spaceos/spaceos-modules-joinery
+tmux -S /tmp/spaceos.tmux new-session -d -s spaceos-joinery -c /opt/spaceos/spaceos-modules-joinery
 
 # Orchestrator terminál
-tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-orch -c /opt/spaceos/spaceos-orchestrator
+tmux -S /tmp/spaceos.tmux new-session -d -s spaceos-orch -c /opt/spaceos/spaceos-orchestrator
 
 # Kernel terminál
-tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-kernel -c /opt/spaceos/SpaceOS.Kernel
+tmux -S /tmp/spaceos.tmux new-session -d -s spaceos-kernel -c /opt/spaceos/SpaceOS.Kernel
 
 # Infra terminál
-tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-infra -c /opt/spaceos/infra
+tmux -S /tmp/spaceos.tmux new-session -d -s spaceos-infra -c /opt/spaceos/infra
 
 # E2E terminál
-tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-e2e -c /opt/spaceos/e2e
+tmux -S /tmp/spaceos.tmux new-session -d -s spaceos-e2e -c /opt/spaceos/e2e
 
 # Conductor terminál (Root projektben, de külön session)
-tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-conductor -c /opt/spaceos
+tmux -S /tmp/spaceos.tmux new-session -d -s spaceos-conductor -c /opt/spaceos
 ```
 
 ---
@@ -78,19 +78,19 @@ tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-conductor -c /opt/space
 
 ```bash
 # 1. Claude indítás
-tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> "claude --model sonnet"
+tmux -S /tmp/spaceos.tmux send-keys -t <session> "claude --model sonnet"
 sleep 0.5
-tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> Enter
+tmux -S /tmp/spaceos.tmux send-keys -t <session> Enter
 
 # 2. Várakozás a CLI betöltésére
 sleep 3
 
 # 3. Inbox üzenet küldés (dupla Enter!)
-tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> "Olvasd el az inbox üzenetedet: /opt/spaceos/docs/mailbox/<terminal>/inbox/"
+tmux -S /tmp/spaceos.tmux send-keys -t <session> "Olvasd el az inbox üzenetedet: /opt/spaceos/docs/mailbox/<terminal>/inbox/"
 sleep 0.5
-tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> Enter
+tmux -S /tmp/spaceos.tmux send-keys -t <session> Enter
 sleep 1
-tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> Enter
+tmux -S /tmp/spaceos.tmux send-keys -t <session> Enter
 ```
 
 ---
@@ -99,7 +99,7 @@ tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> Enter
 
 ```bash
 # Ellenőrzés: mi látszik a pane-ben
-tmux -S /tmp/spaceos-tmux.sock capture-pane -t <session> -p | tail -20
+tmux -S /tmp/spaceos.tmux capture-pane -t <session> -p | tail -20
 ```
 
 ### Pattern-ek és teendők
@@ -119,7 +119,7 @@ tmux -S /tmp/spaceos-tmux.sock capture-pane -t <session> -p | tail -20
 
 ```bash
 # Session törlése
-tmux -S /tmp/spaceos-tmux.sock kill-session -t <session>
+tmux -S /tmp/spaceos.tmux kill-session -t <session>
 
 # Majd új session létrehozás (lásd fent)
 ```
@@ -132,7 +132,7 @@ tmux -S /tmp/spaceos-tmux.sock kill-session -t <session>
 #!/bin/bash
 # session-diag.sh — gyors állapotfelmérés
 
-SOCK="/tmp/spaceos-tmux.sock"
+SOCK="/tmp/spaceos.tmux"
 
 echo "=== FUTÓ SESSIONÖK ==="
 tmux -S $SOCK list-sessions 2>/dev/null
@@ -168,8 +168,8 @@ done
 
 **Fix:**
 ```bash
-tmux -S /tmp/spaceos-tmux.sock kill-session -t <session>
-tmux -S /tmp/spaceos-tmux.sock new-session -d -s <session> -c <helyes_mappa>
+tmux -S /tmp/spaceos.tmux kill-session -t <session>
+tmux -S /tmp/spaceos.tmux new-session -d -s <session> -c <helyes_mappa>
 ```
 
 ### 2. Dupla Enter nem működik
@@ -189,7 +189,7 @@ sleep 1    # → sleep 2
 **Diagnózis:**
 ```bash
 # Ellenőrizd, hogy a process fut-e
-tmux -S /tmp/spaceos-tmux.sock list-panes -t <session> -F "#{pane_pid} #{pane_current_command}"
+tmux -S /tmp/spaceos.tmux list-panes -t <session> -F "#{pane_pid} #{pane_current_command}"
 
 # Ha a process fut de nem reagál → kill és újraindítás
 ```

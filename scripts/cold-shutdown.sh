@@ -85,6 +85,27 @@ usage() {
     echo "  $0 --timeout 300 --kill-after  # 5 perc után kilövi"
 }
 
+stop_schedulers() {
+    log "${YELLOW}Scheduler-ek leállítása (emergency-stop API)...${NC}"
+
+    local response
+    response=$(curl -s -X POST http://localhost:3456/api/control/emergency-stop \
+        -H "Authorization: Bearer ${SPACEOS_ROOT_TOKEN:-dev-token-root-2026}" \
+        -H "Content-Type: application/json" 2>/dev/null || echo '{"error":"unreachable"}')
+
+    if echo "$response" | grep -q '"success":true'; then
+        log "${GREEN}✓ Scheduler-ek leállítva${NC}"
+        log "  Nightwatch, Autonomous Dev, Monitor, stb. → STOPPED"
+        return 0
+    elif echo "$response" | grep -q 'unreachable'; then
+        log "${YELLOW}⚠ Knowledge-service nem elérhető (lehet már leállt)${NC}"
+        return 0
+    else
+        log "${RED}✗ Scheduler leállítás sikertelen: $response${NC}"
+        return 1
+    fi
+}
+
 main() {
     # Argumentumok feldolgozása
     while [[ $# -gt 0 ]]; do
@@ -114,6 +135,9 @@ main() {
     done
 
     log "${BLUE}=== SpaceOS HIDEG LEÁLLÍTÁS ===${NC}"
+
+    # ELSŐ LÉPÉS: Scheduler-ek leállítása (nightwatch, autonomous dev, monitor trigger)
+    stop_schedulers
     log "Mód: Passzív várakozás (nincs beavatkozás)"
     log "Timeout: ${TIMEOUT}s ($(($TIMEOUT / 60)) perc)"
     log "Kill after timeout: $KILL_AFTER_TIMEOUT"

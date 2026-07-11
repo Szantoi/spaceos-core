@@ -1,0 +1,115 @@
+# =============================================================================
+# pipeline-config.yaml — SpaceOS Pipeline konfiguráció
+#
+# pipeline-docs.sh és pipeline-librarian.sh használja.
+# =============================================================================
+
+# ── Modellek ─────────────────────────────────────────────────────────────────
+
+models:
+  docs_updater: haiku          # pipeline-docs.sh — docs frissítés + next task
+  librarian: haiku             # cron-librarian.sh — memory szintézis
+
+# ── Timing ───────────────────────────────────────────────────────────────────
+
+timing:
+  docs_timeout: 120            # pipeline-docs.sh timeout
+  librarian_interval: 18000    # 5 óra másodpercben (5 * 60 * 60)
+  file_wait: 2
+
+# ── Útvonalak ────────────────────────────────────────────────────────────────
+
+paths:
+  tasks_readme: docs/tasks/README.md
+  codebase_status: docs/Codebase_Status.md
+  domain_matrix: docs/tasks/new/FE_Domain_Ownership_Matrix_v1.md
+  knowledge_dir: docs/knowledge
+  knowledge_index: docs/knowledge/INDEX.md
+
+# ── Prompt fájlok ────────────────────────────────────────────────────────────
+
+prompts:
+  docs_updater: scripts/prompts/pipeline-docs-prompt.md
+  librarian_sync: scripts/prompts/librarian-memory-sync-prompt.md
+
+# ── Routing szabályok ────────────────────────────────────────────────────────
+
+routing:
+  # Default inbox (Conductor koordinál)
+  default_inbox: docs/mailbox/conductor/inbox
+
+  # Speciális routing kulcsszavak alapján
+  special_routes:
+    - keywords: ["nexus", "datahaven", "resonance"]
+      inbox: docs/mailbox/nexus/inbox
+    - keywords: ["librarian", "knowledge", "memory-sync"]
+      inbox: docs/mailbox/librarian/inbox
+
+# ── Next task konfiguráció ───────────────────────────────────────────────────
+
+next_task:
+  default_model: haiku         # Kód feladatok alapértelmezett modellje
+  default_priority: medium
+
+# ── Librarian memory sources ─────────────────────────────────────────────────
+
+librarian:
+  # Terminál MEMORY.md fájlok (új rendszer)
+  memory_files:
+    - path: frontend/joinerytech-portal/MEMORY.md
+      terminal: fe
+    - path: spaceos-doorstar-portal/MEMORY.md
+      terminal: fe-doorstar
+    - path: backend/spaceos-kernel/MEMORY.md
+      terminal: kernel
+    - path: backend/spaceos-orchestrator/MEMORY.md
+      terminal: orchestrator
+    - path: backend/spaceos-modules-joinery/MEMORY.md
+      terminal: joinery
+    - path: backend/spaceos-modules-cutting/MEMORY.md
+      terminal: cutting
+    - path: backend/spaceos-modules-inventory/MEMORY.md
+      terminal: inventory
+    - path: backend/spaceos-modules-procurement/MEMORY.md
+      terminal: procurement
+    - path: backend/spaceos-modules-sales/MEMORY.md
+      terminal: sales
+    - path: backend/spaceos-modules-identity/MEMORY.md
+      terminal: identity
+    - path: backend/spaceos-modules-abstractions/MEMORY.md
+      terminal: abstractions
+    - path: infra/MEMORY.md
+      terminal: infra
+    - path: e2e/MEMORY.md
+      terminal: e2e
+    - path: spaceos-conductor/MEMORY.md
+      terminal: conductor
+    - path: spaceos-architect/MEMORY.md
+      terminal: architect
+    - path: spaceos-librarian/MEMORY.md
+      terminal: librarian
+    - path: spaceos-nexus/MEMORY.md
+      terminal: nexus
+    - path: MEMORY.md
+      terminal: root
+
+  # Knowledge célfájlok
+  knowledge_targets:
+    gotchas: docs/knowledge/deployment/KNOWN_GOTCHAS.md
+    adr: docs/knowledge/architecture/ADR_CATALOGUE.md
+    security: docs/knowledge/security/SECURITY_PATTERNS.md
+    database: docs/knowledge/patterns/DATABASE_PATTERNS.md
+    testing: docs/knowledge/patterns/TESTING_PATTERNS.md
+
+  # Knowledge service
+  knowledge_service:
+    enabled: true
+    url: http://localhost:3456/api/knowledge/index
+    source: docs/knowledge
+
+# ── Notifications ────────────────────────────────────────────────────────────
+
+notifications:
+  on_docs_update: false
+  on_librarian_start: true
+  on_librarian_done: true

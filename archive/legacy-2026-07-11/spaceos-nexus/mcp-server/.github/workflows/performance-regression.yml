@@ -1,0 +1,61 @@
+name: Performance Regression Gate
+
+on:
+  pull_request:
+    branches: [ main, master ]
+  push:
+    branches: [ main, master ]
+
+jobs:
+  performance:
+    name: Performance Regression Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run performance tests
+        run: npm run test:load
+
+      - name: Check regression
+        shell: bash
+        run: |
+          BASELINE_FILE="test-results/performance-baseline.json"
+          LATEST_FILE="test-results/performance-latest.json"
+
+          if [ ! -f "$BASELINE_FILE" ]; then
+            echo "⚠️ No baseline found. Skipping regression check."
+            exit 0
+          fi
+
+          if [ ! -f "$LATEST_FILE" ]; then
+            echo "❌ Current results file not found!"
+            exit 1
+          fi
+
+          BASELINE_P95=$(cat $BASELINE_FILE | jq '.percentiles.p95_ms')
+          LATEST_P95=$(cat $LATEST_FILE | jq '.percentiles.p95_ms')
+
+          # 10% degradation threshold
+          THRESHOLD=$(echo "$BASELINE_P95 * 1.1" | bc -l)
+
+          echo "Performance Comparison:"
+          echo "  Baseline P95: $BASELINE_P95 ms"
+          echo "  Current P95:  $LATEST_P95 ms"
+          echo "  Threshold:    $THRESHOLD ms"
+
+          if (( $(echo "$LATEST_P95 > $THRESHOLD" | bc -l) )); then
+            echo "❌ Performance regression detected! P95 increased by more than 10%."
+            exit 1
+          else
+            echo "✅ Performance within acceptable range."
+          fi

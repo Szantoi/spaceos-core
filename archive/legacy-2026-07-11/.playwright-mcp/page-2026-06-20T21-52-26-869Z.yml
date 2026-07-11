@@ -1,0 +1,31 @@
+- generic [ref=e3]:
+  - generic [ref=e14]:
+    - generic [ref=e15]:
+      - generic [ref=e16]: ▲
+      - generic [ref=e17]:
+        - generic [ref=e18]: DATAHAVEN
+        - generic [ref=e19]: SPACEOS ◆ MK.IV
+    - generic [ref=e21]:
+      - button "DASHBOARD" [ref=e22] [cursor=pointer]:
+        - generic [ref=e24]: DASHBOARD
+      - button "KANBAN" [ref=e25] [cursor=pointer]:
+        - generic [ref=e27]: KANBAN
+      - button "PLANNING" [ref=e28] [cursor=pointer]:
+        - generic [ref=e30]: PLANNING
+      - button "PROJECTS" [ref=e31] [cursor=pointer]:
+        - generic [ref=e33]: PROJECTS
+    - generic [ref=e35]:
+      - generic [ref=e36]: EMPTY
+      - button [ref=e37] [cursor=pointer]
+      - generic [ref=e39]: "OFF"
+  - main [ref=e40]:
+    - generic [ref=e42]:
+      - heading "Authentication Required" [level=2] [ref=e43]
+      - generic [ref=e44]:
+        - textbox "Enter token..." [active] [ref=e45]
+        - button "Login" [disabled] [ref=e46]
+    - generic [ref=e50]: LOADING PIPELINE...
+  - contentinfo [ref=e51]:
+    - generic [ref=e54]: SSE RECONNECTING...
+    - generic [ref=e55]: SPACEOS DATAHAVEN v2.0
+    - generic [ref=e56]: 23:52:26

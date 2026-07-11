@@ -1,0 +1,16 @@
+version: '3.9'
+# Dev-only: Keycloak with H2 in-memory DB + realm auto-import
+# Usage: docker compose -f docker-compose.dev.yml up
+services:
+  keycloak-dev:
+    image: quay.io/keycloak/keycloak:24.0.5
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 8080
+      KC_FEATURES: scripts       # DB-01: enable JS protocol mapper
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./realm-export.json:/opt/keycloak/data/import/realm-export.json

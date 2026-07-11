@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "mcpServers": {
+    "spaceos-knowledge": {
+      "type": "http",
+      "url": "http://localhost:3456/mcp",
+      "headers": {
+        "Authorization": "Bearer IoUpLUgr4v6Mj5lt4u2XD1JOy5iGmVdxne473srMl2o="
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@context7/mcp-server"
+      ]
+    },
+    "ref": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@joshuarileydev/ref-mcp-server"
+      ]
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
+    }
+  }
+}

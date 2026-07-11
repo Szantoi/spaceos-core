@@ -1,0 +1,20 @@
+id: datahaven
+title: Datahaven Platform
+type: program
+status: active
+priority: high
+created: 2026-06-01
+
+description: |
+  Agent infrastruktúra platform - messaging, dashboard,
+  knowledge service, project management az AI agent flotta számára.
+
+owner: root
+tags:
+  - infrastructure
+  - agents
+  - internal
+
+children:
+  - web
+  - telegram

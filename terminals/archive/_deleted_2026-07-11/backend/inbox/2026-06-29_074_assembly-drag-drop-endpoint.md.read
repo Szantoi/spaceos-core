@@ -1,0 +1,154 @@
+---
+id: MSG-BACKEND-074
+from: conductor
+to: backend
+type: task
+priority: high
+status: UNREAD
+model: sonnet
+ref: CONSENSUS-2026-06-23
+created: 2026-06-29
+content_hash: b6cbcd6bc2b69c9535156a97c188b88e8704cabb986c7ed12ddf152ff9b8fedd
+---
+
+# Assembly Szerelési Sorrend - Backend API Implementáció (Prioritás 1)
+
+## Összefoglalás
+
+A Frontend Assembly Drag-and-Drop feature-hez szükséges backend endpoint és adatmodell. Ez a **legmagasabb üzleti prioritás** a 2026-06-23 konszenzus alapján.
+
+**Ütemezés:** 5 nap (Backend + Frontend párhuzamosan)
+
+## Feladat
+
+### 1. Adatmodell módosítás
+
+`WorkOrderOperation` aggregate-hez új mezők:
+
+```csharp
+public class WorkOrderOperation {
+  public string Id { get; set; }
+  public int Sequence { get; set; }          // ÚJ - sorrend nyomon követéshez
+  public DateTime LastModified { get; set; }  // ÚJ - conflict detection (optimistic locking)
+  public string Description { get; set; }
+  public TimeSpan EstimatedDuration { get; set; }
+}
+```
+
+**Database migration:**
+- ADD COLUMN `sequence` INT NOT NULL DEFAULT 0
+- ADD COLUMN `last_modified` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+
+**Constraints:**
+- Sequence értékek continuos kell legyenek (gap detection)
+- LastModified auto-update trigger
+
+### 2. API Endpoint - PATCH /api/v1/work-orders/{id}/assembly-sequence
+
+**Request:**
+```json
+{
+  "operations": [
+    { "id": "op-1", "sequence": 1 },
+    { "id": "op-2", "sequence": 2 }
+  ],
+  "timestamp": "2026-06-23T10:30:00Z"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "updated_operations": [
+    {
+      "id": "op-1",
+      "sequence": 1,
+      "description": "Alapozás",
+      "estimated_duration": "00:30:00"
+    },
+    {
+      "id": "op-2",
+      "sequence": 2,
+      "description": "Festés",
+      "estimated_duration": "01:00:00"
+    }
+  ],
+  "estimated_duration_change": "+15min",
+  "total_duration": "02:00:00"
+}
+```
+
+**Error Responses:**
+
+- **409 Conflict** — optimistic locking failure:
+  ```json
+  {
+    "error": "Conflict",
+    "code": "CONCURRENT_MODIFICATION",
+    "message": "Work order has been modified. Please refresh and try again.",
+    "current_timestamp": "2026-06-23T10:31:00Z"
+  }
+  ```
+
+- **400 Bad Request** — validation errors:
+  ```json
+  {
+    "error": "Invalid sequence",
+    "details": [
+      "Gap detected: operations 1→3 (missing 2)",
+      "Operation op-99 not found in work order",
+      "Work order status is 'completed' - cannot modify"
+    ]
+  }
+  ```
+
+### 3. Validációk (kötelező)
+
+- ✅ Minden `operations[].id` létezik az actual work order-ben
+- ✅ Sequence számok continuos (1, 2, 3, ... nincs gap)
+- ✅ Work order status != "completed" (csak draft/in_progress módosítható)
+- ✅ Timestamp-based optimistic locking:
+  - Client küld: `timestamp` (amikor az UI betöltötte)
+  - Server ellenőrzi: `request.timestamp >= db.last_modified`
+  - Ha conflict: 409 response
+- ✅ Estimated duration change kalkuláció:
+  - Új sorrend alapján előszámítani az teljes időt
+  - Replyban `estimated_duration_change` és `total_duration`
+
+### 4. Üzleti logika (Phase 2)
+
+Később (nem ebben a sprint-ben) majd:
+- "Festés" nem lehet "alapozás" előtt (business rule validation)
+- Más hasonló korlátozások
+
+**Egyelőre:** csak technikai validáció (gap detection, status check).
+
+---
+
+## Frontend követelmény
+
+A Frontend (`MSG-FRONTEND-055`) ugyanakkor implementálja:
+- DnD-kit drag-and-drop UI
+- Optimistic UI (state frissülés előtte API call)
+- Error rollback (conflict-kor visszavonja a szerkesztést)
+- Timestamp kezelés (request.timestamp az aktuális időponttal)
+
+---
+
+## Elfogadási kritériumok
+
+- ✅ Database migration fut (sequence, last_modified oszlopok)
+- ✅ PATCH endpoint működik
+- ✅ Request/response szerkezet pontosan az alábbiak szerint
+- ✅ Validációk mind implementálva
+- ✅ 409 Conflict error optimistic locking-hoz
+- ✅ EstimatedDuration change kalkuláció helyes
+- ✅ Teszt coverage: unit test + integration test (conflict scenario)
+- ✅ DONE outbox-ba report (git commit hash, test results)
+
+---
+
+## Referencia
+
+**Konsenzus fájl:** `/opt/spaceos/docs/planning/consensus/2026-06-23_consensus.md`
+**Frontend task:** `MSG-FRONTEND-055`

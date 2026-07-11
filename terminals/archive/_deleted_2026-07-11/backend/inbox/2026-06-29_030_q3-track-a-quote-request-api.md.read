@@ -1,0 +1,157 @@
+---
+id: MSG-BACKEND-030
+from: conductor
+to: backend
+type: task
+priority: high
+status: UNREAD
+model: sonnet
+ref: MSG-CONDUCTOR-007-Q3-APPROVED
+created: 2026-06-29
+---
+
+# Q3 Track A: Quote Request API Implementation
+
+## Overview
+
+**Milestone:** Q3 Cutting Module Expansion — Track A: Customer Self-Service Portal
+**Status:** APPROVED by Root (2026-06-22)
+**Effort:** 2 days (parallel with Frontend)
+**Target:** Week 1-2 completion
+
+## Feature Scope
+
+Implement unauthenticated public Quote Request API endpoint for B2C Lapszabász KKV customers.
+
+### API Specification
+
+**Endpoint:** `POST /public/cutting/quote-request`
+
+**Request Body:**
+```typescript
+interface QuoteRequestInput {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+
+  // Quote parameters
+  panelDimensions: {
+    width: number;      // mm
+    height: number;     // mm
+  };
+  panelCount: number;
+  material: string;      // e.g., "oak", "beech", "walnut"
+  edging: string;        // e.g., "2mm_pvc", "1mm_veneer"
+  finishing: string;     // e.g., "plain", "varnished"
+
+  // Optional
+  notes?: string;
+  urgency?: "standard" | "express";
+  deliveryLocation?: string;
+}
+```
+
+**Response Success (200):**
+```typescript
+{
+  success: true,
+  quoteRequestId: "QR-2026-0042";
+  customerEmail: "...",
+  estimatedLeadTime: "3-5 days",
+  message: "Quote request received"
+}
+```
+
+**Response Error (400/422):**
+```typescript
+{
+  success: false,
+  error: "validation_error" | "quota_exceeded" | "invalid_material",
+  details: { ... }
+}
+```
+
+### Implementation Requirements
+
+1. **Validation:**
+   - Required fields check (name, email, phone)
+   - Dimension bounds (200-2500 mm width/height)
+   - Material/edging/finishing enum validation
+   - Panel count (1-100)
+   - Email format validation
+
+2. **Database:**
+   - Create `QuoteRequest` aggregate in Cutting domain
+   - Schema: id, customerId (nullable), email, phone, dimensions, material, edging, finishing, notes, urgency, createdAt, status
+   - Status FSM: `pending` → `reviewed` → `quoted` / `declined`
+
+3. **Rate Limiting:**
+   - Max 10 requests per IP per hour (public endpoint)
+   - Max 50 requests per email per 24h
+
+4. **Email Integration (MSG-BACKEND-031 handles this):**
+   - Store quote request with confirmation email placeholder
+   - Brevo SMTP integration in separate task (don't block this task)
+
+5. **Logging:**
+   - Log all quote requests (for analytics)
+   - Track rejection reasons
+
+### Testing
+
+- ✅ Valid request → 200 with quoteRequestId
+- ✅ Missing fields → 422 with validation error
+- ✅ Invalid material → 422 with enum error
+- ✅ Rate limit exceeded → 429 with retry-after header
+- ✅ Database persistence → Quote in `cutting_quote_requests` table
+
+### Files to Create/Modify
+
+**Create:**
+- `backend/spaceos-modules-cutting/src/domain/QuoteRequest/QuoteRequest.aggregate.ts`
+- `backend/spaceos-modules-cutting/src/application/CreateQuoteRequest/CreateQuoteRequest.command.ts`
+- `backend/spaceos-modules-cutting/src/application/CreateQuoteRequest/CreateQuoteRequest.handler.ts`
+- `backend/spaceos-modules-cutting/src/infrastructure/http/PublicQuoteRequestController.ts`
+- `backend/spaceos-modules-cutting/src/__tests__/integration/public-quote-request.test.ts`
+
+**Modify:**
+- `backend/spaceos-modules-cutting/src/Cutting.module.ts` — register PublicQuoteRequestController
+- Database migration: Add `cutting_quote_requests` table
+
+### Success Criteria
+
+- ✅ `POST /public/cutting/quote-request` live on port 3001
+- ✅ Rate limiting working
+- ✅ Quote requests persisted in DB
+- ✅ >10 integration tests passing
+- ✅ 0 TypeScript errors
+
+### Dependencies
+
+- Cutting domain (your work)
+- Kernel: IQuoteableProduct interface (already exists)
+- RateLimiter middleware (reuse from existing)
+
+### Blocking/Dependencies
+
+**Blocks:** MSG-FRONTEND-018 (Frontend needs API endpoint)
+**Blocked by:** None
+
+### Next Steps
+
+1. Implement `QuoteRequest.aggregate.ts`
+2. Create command handler
+3. Register HTTP controller
+4. Write integration tests
+5. Report DONE when `/public/cutting/quote-request` is live
+
+---
+
+**Notes:**
+- This is a **public, unauthenticated endpoint** — design for security (rate limiting, input validation)
+- Keep it simple (MVP) — advanced pricing calculation is Track B
+- Customer email is the primary identifier for follow-up
+
+**Questions?** Ask in Telegram: @conductor
+
+**Timeline:** Start immediately after Assembly PATCH completion

@@ -1,0 +1,49 @@
+# SpaceOS Marvin Planning Configuration
+# MSG-NEXUS-015: Marvin Migration
+
+planning:
+  # Planning cycle interval
+  interval_seconds: 1800  # 30 minutes
+
+  # Memory segments to scan (9 segments)
+  segments:
+    - kernel-memory
+    - orch-memory
+    - fe-memory
+    - joinery-memory
+    - cutting-memory
+    - infra-memory
+    - sales-memory
+    - identity-memory
+    - abstractions-memory
+
+  # Model configuration
+  models:
+    scan: haiku           # Segment scanning
+    select: sonnet        # Idea selection
+    debate: sonnet        # Parallel debate
+
+  # Limits
+  limits:
+    ideas_max: 10         # Max ideas per scan cycle
+    pending_max: 3        # Max pending specs
+    queue_max: 3          # Max consensus in queue
+    ideas_per_segment: 2  # Max ideas per segment
+
+# Knowledge Service integration
+knowledge:
+  api_url: http://localhost:3456/api/knowledge/search
+  search_limit: 5
+  timeout_seconds: 5
+
+# File paths
+paths:
+  memory_dir: /opt/spaceos/docs/memory
+  ideas_dir: /opt/spaceos/docs/planning/ideas
+  pending_file: /opt/spaceos/docs/planning/selected/pending.md
+  queue_dir: /opt/spaceos/docs/planning/queue
+
+# Logging
+logging:
+  level: INFO
+  file: /opt/spaceos/spaceos-nexus/marvin/logs/planning.log

@@ -1,0 +1,36 @@
+{
+    "folders": [
+        {
+            "name": "🔧 SRC: TypeScript Server",
+            "path": "src"
+        },
+        {
+            "name": "🗄️ DATABASE: SSOT (Role Definitions)",
+            "path": "database"
+        },
+        {
+            "name": "🔒 META-SECURITY: System Protection",
+            "path": "meta-security"
+        },
+        {
+            "name": "⚙️ SCRIPTS: Helper Scripts",
+            "path": "scripts"
+        },
+        {
+            "name": "⚙️ GITHUB: Config & Agents",
+            "path": ".github"
+        },
+        {
+            "name": "📂 ROOT",
+            "path": "."
+        }
+    ],
+    "settings": {
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "editor.formatOnSave": true,
+        "files.exclude": {
+            "**/node_modules": true,
+            "**/dist": true
+        }
+    }
+}

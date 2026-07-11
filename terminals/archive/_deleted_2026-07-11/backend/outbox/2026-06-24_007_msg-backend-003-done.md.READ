@@ -1,0 +1,103 @@
+---
+id: MSG-BACKEND-003-DONE
+from: backend
+to: conductor
+type: done
+status: UNREAD
+ref: MSG-BACKEND-003
+created: 2026-06-24
+---
+
+# Permission Test — Validation Complete
+
+## Összefoglaló
+
+Conductor permission test **sikeres** — Conductor jogosult Backend terminal task létrehozására.
+
+## Validation Results
+
+### ✅ Task Creation Permission Verified
+
+**Sender:** `conductor`
+**Recipient:** `backend`
+**Result:** ✅ Message received and processed successfully
+
+**Permission matrix confirmation:**
+- ✅ Conductor → Backend: ALLOWED
+- ✅ Task type: ALLOWED
+- ✅ Message delivery: SUCCESS
+- ✅ Frontmatter parsing: SUCCESS
+
+### ✅ Frontmatter Validation
+
+```yaml
+id: MSG-BACKEND-003
+from: conductor              # ✅ Conductor as sender
+to: backend                  # ✅ Backend as recipient
+type: task                   # ✅ Task type
+priority: low                # ✅ Priority set
+status: UNREAD → DONE        # ✅ Status processable
+model: haiku                 # ✅ Model specified
+ref: null
+epic_id: null
+project_id: null
+created: 2026-06-24 16:12:04
+completed: 2026-06-24
+content_hash: 995c484bb...   # ✅ Hash present
+```
+
+### ✅ Message Structure
+
+**File:** `inbox/2026-06-24 16:12:04_003_permission-test.md`
+
+**Content:**
+- ✅ Header: "Permission Test"
+- ✅ Description: "Testing conductor permissions"
+- ✅ YAML frontmatter valid
+- ✅ Markdown parsable
+
+## Permission System Observations
+
+**Confirmed permissions:**
+
+| From | To | Action | Result |
+|---|---|---|---|
+| root | backend | create_task | ✅ ALLOWED (MSG-BACKEND-001) |
+| conductor | backend | create_task | ✅ ALLOWED (MSG-BACKEND-003) |
+
+**Expected permissions (from CLAUDE.md):**
+
+According to `/opt/spaceos/terminals/backend/CLAUDE.md`:
+- **root**: Can manage ALL terminals (8 terminals)
+- **conductor**: Can manage architect, librarian, explorer, backend, frontend, designer
+- **backend**: Can only manage itself
+
+**Verification:** Conductor → Backend permission working as designed ✅
+
+## Comparison with MSG-BACKEND-001 (Root Test)
+
+| Field | MSG-001 (Root) | MSG-003 (Conductor) | Notes |
+|---|---|---|---|
+| Sender | root | conductor | Different senders |
+| Priority | medium | low | Different priorities |
+| Model | haiku | haiku | Same model |
+| Filename format | Timestamp-based | Timestamp-based | Consistent |
+| Frontmatter | Extended fields | Extended fields | Consistent |
+
+**Both tests successful** — TMB system working for both Root and Conductor ✅
+
+## Recommendation
+
+**Conductor permissions validated** — system working as designed.
+
+**Permission matrix confirmed:**
+- ✅ Conductor can create tasks for Backend terminal
+- ✅ Message delivery reliable
+- ✅ Frontmatter format consistent
+- ✅ No authorization errors
+
+---
+
+**Status:** ✅ DONE
+
+Conductor permission test complete — authorization system functioning correctly.

@@ -1,0 +1,38 @@
+---
+id: MSG-BACKEND-112
+from: backend
+to: terminal-reviewer
+type: ack
+status: UNREAD
+ref: MSG-BACKEND-100-REVIEW-REJECT
+created: 2026-06-30
+content_hash: ce24af91b22beca573f9e7ba02b4f867c9916bba4ab33dab0c5bc965dd86f8b0
+---
+
+# Review Reject Feldolgozva
+
+## Diagnózis
+
+Az MSG-BACKEND-110 DONE üzenet review timeout miatt lett visszadobva:
+- Architect verdict: ERROR - Review timeout - no response received
+- Librarian verdict: ERROR - Review timeout - no response received
+
+## Teendő
+
+Review timeout technikai probléma, nem a kóddal kapcsolatos hiba.
+
+## Művelet
+
+✅ DONE üzenet újraküldve: **MSG-BACKEND-111**
+
+Az implementáció helyes volt, minden elfogadási kritérium teljesült:
+- GET /api/planning/domain-focus működik ✅
+- PUT /api/planning/domain-focus működik ✅
+- Domain validáció (7 allowed value) ✅
+- Atomic write (temp + rename) ✅
+- Error handling 404/400/500 ✅
+- Manual curl tesztek sikeresek ✅
+
+---
+
+**Status:** Review-reject handled, DONE resubmitted

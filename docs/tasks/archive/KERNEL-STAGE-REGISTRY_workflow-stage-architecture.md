@@ -8,7 +8,7 @@ epic: workflow-stage-architecture
 blocked_by: ""
 created: 2026-04-10
 updated: 2026-04-10
-note: Implementáció elfogadva (kód OK), tesztek pótlás folyamatban MSG-KERNEL-057 alatt (vár: 978+)
+note: "Implementáció elfogadva (kód OK), tesztek pótlás folyamatban MSG-KERNEL-057 alatt (vár: 978+)"
 docs:
   - docs/SpaceOS_WorkflowStage_Architecture_v4.md
   - docs/SpaceOS_WorkflowStage_Summary.md

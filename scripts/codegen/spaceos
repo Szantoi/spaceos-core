@@ -1,0 +1,239 @@
+#!/bin/bash
+#
+# spaceos — SpaceOS Unified CLI
+# Part of SpaceOS Code Generator Toolchain (ADR-050 Phase 3)
+#
+# Usage:
+#   spaceos generate api-client [portal|orchestrator|all]
+#   spaceos generate component <name> [options]
+#   spaceos generate module <name> [options]
+#   spaceos generate hook <name> [options]
+#   spaceos status
+#   spaceos help
+#
+
+set -euo pipefail
+
+# Resolve symlinks to get the actual script directory
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+VERSION="1.0.0"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+show_banner() {
+    echo -e "${CYAN}"
+    echo "  ╔═══════════════════════════════════════╗"
+    echo "  ║         SpaceOS CLI v$VERSION           ║"
+    echo "  ║   Code Generator Toolchain (ADR-050)  ║"
+    echo "  ╚═══════════════════════════════════════╝"
+    echo -e "${NC}"
+}
+
+show_help() {
+    show_banner
+    echo -e "${BOLD}USAGE:${NC}"
+    echo "  spaceos <command> [subcommand] [options]"
+    echo ""
+    echo -e "${BOLD}COMMANDS:${NC}"
+    echo ""
+    echo -e "  ${GREEN}generate${NC}     Code generation commands"
+    echo "    api-client   Generate API clients (Orval/NSwag)"
+    echo "    component    Generate React component"
+    echo "    module       Generate .NET module"
+    echo "    hook         Generate React hook (query/mutation/state/effect)"
+    echo ""
+    echo -e "  ${GREEN}status${NC}       Show system status"
+    echo -e "  ${GREEN}help${NC}         Show this help message"
+    echo -e "  ${GREEN}version${NC}      Show version"
+    echo ""
+    echo -e "${BOLD}EXAMPLES:${NC}"
+    echo ""
+    echo "  # Generate all API clients"
+    echo "  spaceos generate api-client"
+    echo ""
+    echo "  # Generate Portal API client only"
+    echo "  spaceos generate api-client portal"
+    echo ""
+    echo "  # Generate React component with tests"
+    echo "  spaceos generate component FlowEpicCard --with-test"
+    echo ""
+    echo "  # Generate .NET module with FSM states"
+    echo "  spaceos generate module Pricing --states Draft,Submitted,Approved"
+    echo ""
+    echo "  # Generate React hook with caching"
+    echo "  spaceos generate hook Orders --type query --with-cache --endpoint /api/orders"
+    echo ""
+    echo -e "${BOLD}MORE INFO:${NC}"
+    echo "  spaceos generate api-client --help"
+    echo "  spaceos generate component --help"
+    echo "  spaceos generate module --help"
+}
+
+show_generate_help() {
+    echo -e "${BOLD}spaceos generate${NC} - Code Generation Commands"
+    echo ""
+    echo -e "${BOLD}SUBCOMMANDS:${NC}"
+    echo ""
+    echo -e "  ${GREEN}api-client${NC} [target]"
+    echo "    Generate API clients from OpenAPI spec"
+    echo "    Targets: portal, orchestrator, all (default)"
+    echo ""
+    echo -e "  ${GREEN}component${NC} <name> [options]"
+    echo "    Generate React component with SpaceOS patterns"
+    echo "    Options:"
+    echo "      --category <feature|ui|layout>  Component category"
+    echo "      --with-test                     Include test file"
+    echo "      --with-story                    Include Storybook story"
+    echo ""
+    echo -e "  ${GREEN}module${NC} <name> [options]"
+    echo "    Generate .NET module with DDD structure"
+    echo "    Options:"
+    echo "      --aggregate <name>     Aggregate root name"
+    echo "      --states <s1,s2,...>   FSM states"
+    echo "      --events <e1,e2,...>   Domain events"
+    echo "      --with-api             Include API endpoints"
+    echo ""
+    echo -e "  ${GREEN}hook${NC} <name> [options]"
+    echo "    Generate React hook with SpaceOS patterns"
+    echo "    Options:"
+    echo "      --type <query|mutation|state|effect>  Hook type (default: query)"
+    echo "      --with-test                           Include test file"
+    echo "      --with-cache                          TanStack Query caching"
+    echo "      --endpoint <path>                     API endpoint path"
+}
+
+cmd_generate() {
+    local subcommand="${1:-}"
+    shift || true
+
+    case "$subcommand" in
+        api-client)
+            "$SCRIPT_DIR/generate-api-client.sh" "$@"
+            ;;
+        component)
+            "$SCRIPT_DIR/generate-component.sh" "$@"
+            ;;
+        module)
+            "$SCRIPT_DIR/generate-module.sh" "$@"
+            ;;
+        hook)
+            "$SCRIPT_DIR/generate-hook.sh" "$@"
+            ;;
+        -h|--help|"")
+            show_generate_help
+            ;;
+        *)
+            echo -e "${RED}[ERROR]${NC} Unknown generate subcommand: $subcommand"
+            echo ""
+            show_generate_help
+            exit 1
+            ;;
+    esac
+}
+
+cmd_status() {
+    show_banner
+    echo -e "${BOLD}System Status:${NC}"
+    echo ""
+
+    # Check Kernel API
+    echo -n "  Kernel API:      "
+    if curl -s --max-time 2 http://localhost:5000/health > /dev/null 2>&1; then
+        echo -e "${GREEN}● Running${NC}"
+    else
+        echo -e "${RED}○ Not running${NC}"
+    fi
+
+    # Check Knowledge Service
+    echo -n "  Knowledge Svc:   "
+    if curl -s --max-time 2 http://localhost:3456/health > /dev/null 2>&1; then
+        echo -e "${GREEN}● Running${NC}"
+    else
+        echo -e "${RED}○ Not running${NC}"
+    fi
+
+    # Check Portal dev server
+    echo -n "  Portal Dev:      "
+    if curl -s --max-time 2 http://localhost:5173 > /dev/null 2>&1; then
+        echo -e "${GREEN}● Running${NC}"
+    else
+        echo -e "${YELLOW}○ Not running${NC}"
+    fi
+
+    echo ""
+    echo -e "${BOLD}Code Generation:${NC}"
+    echo ""
+
+    # Check Orval config
+    echo -n "  Orval config:    "
+    if [ -f "/opt/spaceos/datahaven-web/client/orval.config.ts" ]; then
+        echo -e "${GREEN}✓ Found${NC}"
+    else
+        echo -e "${RED}✗ Missing${NC}"
+    fi
+
+    # Check NSwag config
+    echo -n "  NSwag config:    "
+    if [ -f "/opt/spaceos/backend/spaceos-orchestrator/nswag.json" ]; then
+        echo -e "${GREEN}✓ Found${NC}"
+    else
+        echo -e "${RED}✗ Missing${NC}"
+    fi
+
+    # Generated files
+    echo -n "  Portal API:      "
+    if [ -d "/opt/spaceos/datahaven-web/client/src/api/generated/kernel" ]; then
+        local count
+        count=$(find /opt/spaceos/datahaven-web/client/src/api/generated/kernel -name "*.ts" 2>/dev/null | wc -l)
+        echo -e "${GREEN}✓ $count files${NC}"
+    else
+        echo -e "${YELLOW}○ Not generated${NC}"
+    fi
+
+    echo -n "  Orchestrator API:"
+    if [ -f "/opt/spaceos/backend/spaceos-orchestrator/src/api/generated/kernel-api-client.ts" ]; then
+        local size
+        size=$(du -h /opt/spaceos/backend/spaceos-orchestrator/src/api/generated/kernel-api-client.ts 2>/dev/null | cut -f1)
+        echo -e "${GREEN}✓ $size${NC}"
+    else
+        echo -e "${YELLOW}○ Not generated${NC}"
+    fi
+
+    echo ""
+}
+
+main() {
+    local command="${1:-}"
+    shift || true
+
+    case "$command" in
+        generate|gen|g)
+            cmd_generate "$@"
+            ;;
+        status|st)
+            cmd_status
+            ;;
+        version|-v|--version)
+            echo "spaceos v$VERSION"
+            ;;
+        help|-h|--help|"")
+            show_help
+            ;;
+        *)
+            echo -e "${RED}[ERROR]${NC} Unknown command: $command"
+            echo ""
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

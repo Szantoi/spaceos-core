@@ -1,0 +1,472 @@
+#!/bin/bash
+# SpaceOS Nexus - Központi indító script
+# Használat: nexus [start|stop|status|restart|logs|kill]
+
+SPACEOS_ROOT="/opt/spaceos"
+NEXUS_DIR="$SPACEOS_ROOT/spaceos-nexus/knowledge-service"
+LOG_FILE="/tmp/knowledge-service.log"
+TMUX_ROOT="spaceos-root"
+TMUX_CONDUCTOR="spaceos-conductor"
+SERVICE_NAME="spaceos-knowledge.service"
+AGENT_SESSIONS="spaceos-backend spaceos-frontend spaceos-conductor spaceos-architect spaceos-librarian spaceos-explorer spaceos-designer"
+
+# Színek
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# ─── KILL - Teljes leállítás (Emergency Stop) ──────────────────────────────────
+
+kill_all() {
+    echo -e "${RED}🛑 EMERGENCY STOP - Killing ALL SpaceOS processes...${NC}"
+    echo -e "${RED}   (6 perzisztencia réteg leállítása)${NC}"
+    echo ""
+
+    # 1. System systemd services
+    echo -e "${YELLOW}1. System systemd services...${NC}"
+    sudo systemctl stop $SERVICE_NAME 2>/dev/null && echo -e "  ${GREEN}✓ $SERVICE_NAME stopped${NC}" || echo -e "  ${YELLOW}⚠ $SERVICE_NAME was not running${NC}"
+    sudo systemctl stop claude-code.service 2>/dev/null && echo -e "  ${GREEN}✓ claude-code.service stopped${NC}" || true
+    sudo systemctl stop marveen.service 2>/dev/null && echo -e "  ${GREEN}✓ marveen.service stopped${NC}" || true
+
+    # 2. USER systemd services (KRITIKUS - külön namespace!)
+    echo -e "${YELLOW}2. User systemd services (~/.config/systemd/user/)...${NC}"
+    systemctl --user stop spaceos-dashboard.service 2>/dev/null && echo -e "  ${GREEN}✓ spaceos-dashboard stopped${NC}" || true
+    systemctl --user stop spaceos-channels.service 2>/dev/null && echo -e "  ${GREEN}✓ spaceos-channels stopped${NC}" || true
+    systemctl --user stop spaceos-morning.timer 2>/dev/null && echo -e "  ${GREEN}✓ spaceos-morning.timer stopped${NC}" || true
+
+    # 3. Marveen stop script
+    echo -e "${YELLOW}3. Marveen services...${NC}"
+    /opt/marveen/scripts/stop.sh 2>/dev/null && echo -e "  ${GREEN}✓ Marveen stopped via stop.sh${NC}" || true
+
+    # 4. MINDEN node/ts-node háttér process (régi is!)
+    echo -e "${YELLOW}4. Background processes (node, ts-node, dispatcher)...${NC}"
+    pkill -9 -f "ts-node src/server.ts" 2>/dev/null && echo -e "  ${GREEN}✓ ts-node killed${NC}" || true
+    pkill -9 -f "node.*dist/server.js" 2>/dev/null && echo -e "  ${GREEN}✓ node server killed${NC}" || true
+    pkill -9 -f "node.*knowledge-service" 2>/dev/null || true
+    pkill -9 -f "node.*marveen" 2>/dev/null && echo -e "  ${GREEN}✓ marveen node killed${NC}" || true
+    pkill -9 -f "/opt/marveen" 2>/dev/null || true
+    pkill -9 -f "spaceos-dispatcher.sh" 2>/dev/null && echo -e "  ${GREEN}✓ dispatcher killed${NC}" || true
+    pkill -9 -f "inotifywait" 2>/dev/null && echo -e "  ${GREEN}✓ inotifywait killed${NC}" || true
+    pkill -9 -f "channels.sh" 2>/dev/null || true
+
+    # 5. MINDEN agent tmux session (spaceos-root KIVÉTELÉVEL!)
+    echo -e "${YELLOW}5. Agent tmux sessions...${NC}"
+    for session in $AGENT_SESSIONS agent-spaceos marveen-worker; do
+        tmux kill-session -t $session 2>/dev/null && echo -e "  ${GREEN}✓ $session killed${NC}" || true
+    done
+
+    # 6. Verify
+    echo ""
+    local remaining=$(ps aux | grep -E "(ts-node.*server|node.*server|node.*marveen|dispatcher|inotify)" | grep -v grep | wc -l)
+    local sessions=$(tmux list-sessions 2>/dev/null | grep -v spaceos-root | wc -l)
+
+    if [ "$remaining" -eq 0 ] && [ "$sessions" -eq 0 ]; then
+        echo -e "${GREEN}✅ ALL STOPPED - Only spaceos-root remains${NC}"
+    else
+        echo -e "${RED}⚠️ Still running: $remaining processes, $sessions extra sessions${NC}"
+        ps aux | grep -E "(ts-node.*server|node.*server|node.*marveen|dispatcher|inotify)" | grep -v grep
+    fi
+
+    echo ""
+    echo -e "${YELLOW}Tmux sessions:${NC}"
+    tmux list-sessions 2>/dev/null || echo "  No tmux sessions"
+}
+
+# ─── DISABLE - Minden auto-start kikapcsolása ────────────────────────────────
+
+disable_all() {
+    echo -e "${RED}🔒 DISABLING all auto-start services...${NC}"
+    echo ""
+
+    # System systemd
+    echo -e "${YELLOW}1. System systemd services...${NC}"
+    sudo systemctl disable $SERVICE_NAME 2>/dev/null && echo -e "  ${GREEN}✓ $SERVICE_NAME disabled${NC}" || true
+    sudo systemctl disable claude-code.service 2>/dev/null && echo -e "  ${GREEN}✓ claude-code.service disabled${NC}" || true
+    sudo systemctl disable marveen.service 2>/dev/null && echo -e "  ${GREEN}✓ marveen.service disabled${NC}" || true
+
+    # User systemd
+    echo -e "${YELLOW}2. User systemd services...${NC}"
+    systemctl --user disable spaceos-dashboard.service 2>/dev/null && echo -e "  ${GREEN}✓ spaceos-dashboard disabled${NC}" || true
+    systemctl --user disable spaceos-channels.service 2>/dev/null && echo -e "  ${GREEN}✓ spaceos-channels disabled${NC}" || true
+    systemctl --user disable spaceos-morning.timer 2>/dev/null && echo -e "  ${GREEN}✓ spaceos-morning.timer disabled${NC}" || true
+
+    # Cron
+    echo -e "${YELLOW}3. Cron jobs...${NC}"
+    crontab -l 2>/dev/null | grep -v "nexus" | crontab - && echo -e "  ${GREEN}✓ nexus cron jobs removed${NC}" || true
+
+    echo ""
+    echo -e "${GREEN}✅ All auto-start disabled${NC}"
+    echo -e "${YELLOW}   A rendszer reboot után NEM indul automatikusan${NC}"
+}
+
+# ─── ENABLE - Auto-start visszakapcsolása ────────────────────────────────────
+
+enable_all() {
+    echo -e "${GREEN}🔓 ENABLING auto-start services...${NC}"
+    echo ""
+
+    # System systemd
+    echo -e "${YELLOW}1. System systemd services...${NC}"
+    sudo systemctl enable $SERVICE_NAME 2>/dev/null && echo -e "  ${GREEN}✓ $SERVICE_NAME enabled${NC}" || true
+
+    # User systemd
+    echo -e "${YELLOW}2. User systemd services...${NC}"
+    systemctl --user enable spaceos-dashboard.service 2>/dev/null && echo -e "  ${GREEN}✓ spaceos-dashboard enabled${NC}" || true
+    systemctl --user enable spaceos-channels.service 2>/dev/null && echo -e "  ${GREEN}✓ spaceos-channels enabled${NC}" || true
+
+    echo ""
+    echo -e "${GREEN}✅ Auto-start enabled${NC}"
+}
+
+start_knowledge_service() {
+    echo -e "${YELLOW}Starting Knowledge Service...${NC}"
+
+    # Ellenőrzés - fut-e már
+    if pgrep -f "node dist/server.js" > /dev/null || pgrep -f "ts-node src/server.ts" > /dev/null; then
+        echo -e "${GREEN}Knowledge Service already running${NC}"
+        return 0
+    fi
+
+    # Systemd-vel indítjuk
+    sudo systemctl start $SERVICE_NAME
+    sleep 3
+
+    if curl -s http://localhost:3456/health > /dev/null; then
+        echo -e "${GREEN}✓ Knowledge Service started (port 3456)${NC}"
+    else
+        echo -e "${RED}✗ Knowledge Service failed to start${NC}"
+        sudo journalctl -u $SERVICE_NAME --no-pager -n 20
+        return 1
+    fi
+}
+
+stop_knowledge_service() {
+    echo -e "${YELLOW}Stopping Knowledge Service...${NC}"
+    sudo systemctl stop $SERVICE_NAME 2>/dev/null
+    pkill -f "ts-node src/server.ts" 2>/dev/null
+    pkill -f "node dist/server.js" 2>/dev/null
+    sleep 1
+    echo -e "${GREEN}✓ Knowledge Service stopped${NC}"
+}
+
+start_root_terminal() {
+    echo -e "${YELLOW}Starting Root terminal...${NC}"
+
+    if tmux has-session -t "$TMUX_ROOT" 2>/dev/null; then
+        echo -e "${GREEN}Root terminal already running${NC}"
+        return 0
+    fi
+
+    tmux new-session -d -s "$TMUX_ROOT" -c "$SPACEOS_ROOT/terminals/root"
+    tmux send-keys -t "$TMUX_ROOT" "claude --model opus" Enter
+    sleep 2
+    echo -e "${GREEN}✓ Root terminal started (tmux: $TMUX_ROOT)${NC}"
+}
+
+start_conductor_terminal() {
+    echo -e "${YELLOW}Starting Conductor terminal...${NC}"
+
+    if tmux has-session -t "$TMUX_CONDUCTOR" 2>/dev/null; then
+        echo -e "${GREEN}Conductor terminal already running${NC}"
+        return 0
+    fi
+
+    tmux new-session -d -s "$TMUX_CONDUCTOR" -c "$SPACEOS_ROOT/terminals/conductor"
+    tmux send-keys -t "$TMUX_CONDUCTOR" "claude --model sonnet" Enter
+    sleep 2
+    echo -e "${GREEN}✓ Conductor terminal started (tmux: $TMUX_CONDUCTOR)${NC}"
+}
+
+show_status() {
+    echo -e "${YELLOW}=== SpaceOS Nexus Status ===${NC}"
+    echo ""
+
+    # Knowledge Service
+    if curl -s http://localhost:3456/health > /dev/null 2>&1; then
+        echo -e "Knowledge Service: ${GREEN}RUNNING${NC} (port 3456)"
+        curl -s http://localhost:3456/api/metrics/system 2>/dev/null | head -1
+    else
+        echo -e "Knowledge Service: ${RED}STOPPED${NC}"
+    fi
+    echo ""
+
+    # Tmux sessions
+    echo "Tmux Sessions:"
+    if tmux has-session -t "$TMUX_ROOT" 2>/dev/null; then
+        echo -e "  $TMUX_ROOT: ${GREEN}RUNNING${NC}"
+    else
+        echo -e "  $TMUX_ROOT: ${RED}STOPPED${NC}"
+    fi
+
+    if tmux has-session -t "$TMUX_CONDUCTOR" 2>/dev/null; then
+        echo -e "  $TMUX_CONDUCTOR: ${GREEN}RUNNING${NC}"
+    else
+        echo -e "  $TMUX_CONDUCTOR: ${RED}STOPPED${NC}"
+    fi
+
+    # Egyéb terminálok
+    for session in $(tmux ls 2>/dev/null | grep "spaceos-" | cut -d: -f1 | grep -v root | grep -v conductor); do
+        echo -e "  $session: ${GREEN}RUNNING${NC}"
+    done
+    echo ""
+
+    # Nightwatch utolsó futás
+    if [ -f "$SPACEOS_ROOT/logs/dispatcher/nightwatch.log" ]; then
+        echo "Last Nightwatch:"
+        tail -3 "$SPACEOS_ROOT/logs/dispatcher/nightwatch.log"
+    fi
+}
+
+show_logs() {
+    echo -e "${YELLOW}=== Knowledge Service Logs ===${NC}"
+    tail -50 "$LOG_FILE"
+}
+
+# ─── Watchdog funkcionalitás (Marveen-inspired) ───────────────────────────────
+
+watchdog_check() {
+    local restart_needed=false
+
+    # Knowledge Service ellenőrzés
+    if ! curl -s http://localhost:3456/health > /dev/null 2>&1; then
+        echo -e "${RED}Knowledge Service not responding - restarting${NC}"
+        restart_needed=true
+        pkill -f "node dist/server.js" 2>/dev/null
+        sleep 2
+        cd "$NEXUS_DIR"
+        nohup npm start > "$LOG_FILE" 2>&1 &
+        sleep 4
+    fi
+
+    # Root terminál ellenőrzés
+    if ! tmux has-session -t "$TMUX_ROOT" 2>/dev/null; then
+        echo -e "${RED}Root terminal not running - starting${NC}"
+        restart_needed=true
+        start_root_terminal
+    fi
+
+    # Conductor terminál ellenőrzés
+    if ! tmux has-session -t "$TMUX_CONDUCTOR" 2>/dev/null; then
+        echo -e "${RED}Conductor terminal not running - starting${NC}"
+        restart_needed=true
+        start_conductor_terminal
+    fi
+
+    if [ "$restart_needed" = true ]; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') Watchdog restart triggered" >> "$SPACEOS_ROOT/logs/dispatcher/watchdog.log"
+    fi
+}
+
+run_watchdog() {
+    echo -e "${YELLOW}Starting SpaceOS Watchdog (checking every 5 minutes)...${NC}"
+    mkdir -p "$SPACEOS_ROOT/logs/dispatcher"
+
+    while true; do
+        watchdog_check
+        sleep 300  # 5 perc
+    done
+}
+
+# ─── Nudge funkció (stuck session újraindítás) ─────────────────────────────────
+
+nudge_session() {
+    local session="$1"
+    if tmux has-session -t "$session" 2>/dev/null; then
+        echo -e "${YELLOW}Nudging $session...${NC}"
+        tmux send-keys -t "$session" "" Enter
+        sleep 1
+        tmux send-keys -t "$session" "Folytasd a munkát" Enter
+        echo -e "${GREEN}✓ Nudge sent to $session${NC}"
+    else
+        echo -e "${RED}Session $session not found${NC}"
+    fi
+}
+
+# ─── Health API lekérdezés ─────────────────────────────────────────────────────
+
+show_health() {
+    echo -e "${YELLOW}=== SpaceOS Health Check ===${NC}"
+    echo ""
+
+    # Metrics snapshot
+    local metrics=$(curl -s http://localhost:3456/api/metrics/snapshot 2>/dev/null)
+    if [ -n "$metrics" ]; then
+        echo "System Metrics:"
+        echo "$metrics" | jq -r '
+          "  CPU Load: \(.system.cpu.loadAvg1)/\(.system.cpu.cores) cores",
+          "  Memory: \(.system.memory.usedMb)MB / \(.system.memory.totalMb)MB (\(.system.memory.usedPercent)%)",
+          "  Disk: \(.system.disk.usedGb)GB / \(.system.disk.totalGb)GB (\(.system.disk.usedPercent)%)",
+          "  Uptime: \(.uptime.uptimeSeconds)s"
+        ' 2>/dev/null
+    else
+        echo -e "  ${RED}Metrics API not available${NC}"
+    fi
+    echo ""
+
+    # Alerts
+    local alerts=$(curl -s http://localhost:3456/api/metrics/alerts 2>/dev/null)
+    if [ -n "$alerts" ]; then
+        local count=$(echo "$alerts" | jq -r '.alertCount' 2>/dev/null)
+        if [ "$count" = "0" ]; then
+            echo -e "Alerts: ${GREEN}None${NC}"
+        else
+            echo -e "Alerts: ${RED}$count${NC}"
+            echo "$alerts" | jq -r '.alerts[]' 2>/dev/null | while read alert; do
+                echo "  - $alert"
+            done
+        fi
+    fi
+}
+
+# ─── Cron telepítés (boot persistence) ─────────────────────────────────────────
+
+install_cron() {
+    echo -e "${YELLOW}Installing SpaceOS cron jobs...${NC}"
+
+    # Watchdog - minden 5 percben
+    local cron_watchdog="*/5 * * * * /opt/spaceos/scripts/nexus watchdog-check >> /opt/spaceos/logs/dispatcher/watchdog.log 2>&1"
+
+    # Boot indítás
+    local cron_boot="@reboot sleep 30 && /opt/spaceos/scripts/nexus start >> /opt/spaceos/logs/dispatcher/boot.log 2>&1"
+
+    # Meglévő crontab mentése és frissítése
+    (crontab -l 2>/dev/null | grep -v "nexus"; echo "$cron_watchdog"; echo "$cron_boot") | crontab -
+
+    echo -e "${GREEN}✓ Cron jobs installed:${NC}"
+    echo "  - Watchdog: */5 * * * *"
+    echo "  - Boot: @reboot"
+    crontab -l | grep nexus
+}
+
+uninstall_cron() {
+    echo -e "${YELLOW}Removing SpaceOS cron jobs...${NC}"
+    crontab -l 2>/dev/null | grep -v "nexus" | crontab -
+    echo -e "${GREEN}✓ Cron jobs removed${NC}"
+}
+
+case "$1" in
+    kill)
+        # EMERGENCY STOP - Minden leállítása
+        kill_all
+        ;;
+    disable)
+        # Minden auto-start kikapcsolása
+        disable_all
+        ;;
+    enable)
+        # Auto-start visszakapcsolása
+        enable_all
+        ;;
+    start)
+        start_knowledge_service
+        start_root_terminal
+        start_conductor_terminal
+        echo ""
+        show_status
+        ;;
+    stop)
+        stop_knowledge_service
+        echo -e "${YELLOW}Note: Tmux sessions not stopped (use 'nexus kill' to stop all)${NC}"
+        ;;
+    restart)
+        stop_knowledge_service
+        sleep 2
+        start_knowledge_service
+        ;;
+    status)
+        show_status
+        ;;
+    logs)
+        show_logs
+        ;;
+    service)
+        # Csak a Knowledge Service
+        start_knowledge_service
+        ;;
+    root)
+        # Csak a Root terminal
+        start_root_terminal
+        tmux attach -t "$TMUX_ROOT"
+        ;;
+    conductor)
+        # Csak a Conductor terminal
+        start_conductor_terminal
+        tmux attach -t "$TMUX_CONDUCTOR"
+        ;;
+    attach)
+        # Attach to Root
+        tmux attach -t "$TMUX_ROOT"
+        ;;
+    watchdog)
+        # Folyamatos watchdog mód
+        run_watchdog
+        ;;
+    watchdog-check)
+        # Egyszer lefutó watchdog ellenőrzés (cron-ból)
+        watchdog_check
+        ;;
+    nudge)
+        # Session nudge
+        if [ -z "$2" ]; then
+            nudge_session "$TMUX_ROOT"
+            nudge_session "$TMUX_CONDUCTOR"
+        else
+            nudge_session "spaceos-$2"
+        fi
+        ;;
+    health)
+        # Részletes health check
+        show_health
+        ;;
+    install)
+        # Cron telepítés
+        install_cron
+        ;;
+    uninstall)
+        # Cron eltávolítás
+        uninstall_cron
+        ;;
+    backend)
+        # Backend terminal indítása
+        echo -e "${YELLOW}Starting Backend terminal...${NC}"
+        if tmux has-session -t "spaceos-backend" 2>/dev/null; then
+            echo -e "${GREEN}Backend terminal already running${NC}"
+        else
+            tmux new-session -d -s "spaceos-backend" -c "$SPACEOS_ROOT/terminals/backend"
+            tmux send-keys -t "spaceos-backend" "claude --model sonnet" Enter
+            echo -e "${GREEN}✓ Backend terminal started${NC}"
+        fi
+        tmux attach -t "spaceos-backend"
+        ;;
+    *)
+        echo "SpaceOS Nexus - Központi indító"
+        echo ""
+        echo "Használat: nexus [parancs]"
+        echo ""
+        echo -e "${RED}EMERGENCY CONTROL:${NC}"
+        echo "  kill        - 🛑 MINDEN leállítása (6 réteg: system+user systemd, marveen, processek, tmux)"
+        echo "  disable     - 🔒 Auto-start kikapcsolása (reboot után sem indul)"
+        echo "  enable      - 🔓 Auto-start visszakapcsolása"
+        echo ""
+        echo "Alapparancsok:"
+        echo "  start       - Minden indítása (service + root + conductor)"
+        echo "  stop        - Knowledge Service leállítása"
+        echo "  restart     - Knowledge Service újraindítása"
+        echo "  status      - Állapot megjelenítése"
+        echo "  logs        - Knowledge Service logok"
+        echo ""
+        echo "Terminálok:"
+        echo "  root        - Root terminal indítása és attach"
+        echo "  conductor   - Conductor terminal indítása és attach"
+        echo "  backend     - Backend terminal indítása és attach"
+        echo "  attach      - Attach to Root terminal"
+        echo ""
+        echo "Folyamatos működés:"
+        echo "  watchdog    - Watchdog daemon indítása (folyamatos)"
+        echo "  nudge [t]   - Stuck session nudge (root+conductor vagy megadott)"
+        echo "  health      - Részletes health check (CPU, RAM, alerts)"
+        echo "  install     - Cron jobs telepítése (boot + watchdog)"
+        echo "  uninstall   - Cron jobs eltávolítása"
+        ;;
+esac

@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Share+Tech+Mono&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#1d1828;color:#e6dfc8;font-family:'Chakra Petch',system-ui,sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased;touch-action:manipulation}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;font:inherit;padding:0;text-align:left}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:#1d1828}
+  ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#6a5a82,#3a3047);border-radius:4px;border:1px solid #1d1828}
+  @keyframes ledBreathe { 0%,100%{opacity:1} 50%{opacity:.5} }
+  @keyframes ledBlinkSlow { 0%,84%{opacity:1} 85%,100%{opacity:.3} }
+  @keyframes ledBlinkFast { 0%,49%{opacity:1} 50%,100%{opacity:.22} }
+  @keyframes vfdFlicker { 0%,96%,100%{opacity:1} 97%{opacity:.85} }
+  @keyframes runeFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+  @keyframes snapFlash { 0%{opacity:0} 18%{opacity:.9} 100%{opacity:0} }
+  @keyframes glyphShimmer { 0%,100%{filter:drop-shadow(0 0 4px rgba(255,82,214,.7))} 50%{filter:drop-shadow(0 0 12px rgba(255,82,214,1))} }
+  @keyframes tickerScroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+  /* shared worn-panel surface: bone-cream enamel over brushed metal with wear */
+  .worn { 
+    background:
+      radial-gradient(ellipse 60% 20% at 30% 0%, rgba(0,0,0,.18) 0%, transparent 60%),
+      radial-gradient(circle at 75% 80%, rgba(255,255,255,.05) 0%, transparent 40%),
+      repeating-linear-gradient(94deg, rgba(0,0,0,.04) 0px, rgba(0,0,0,.04) 1px, transparent 1px, transparent 4px),
+      repeating-linear-gradient(180deg, rgba(255,255,255,.02) 0px, rgba(255,255,255,.02) 1px, transparent 1px, transparent 3px),
+      linear-gradient(180deg, #8a7d9a 0%, #6a5d7e 55%, #4a3f5a 100%);
+  }
+  /* paint chip overlay: irregular dark patches where the cream paint has worn through */
+  .chips {
+    position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    background:
+      radial-gradient(ellipse 18px 6px at 12% 88%, rgba(20,15,30,.55) 0%, transparent 100%),
+      radial-gradient(ellipse 8px 4px at 80% 12%, rgba(20,15,30,.5) 0%, transparent 100%),
+      radial-gradient(ellipse 12px 5px at 45% 95%, rgba(20,15,30,.45) 0%, transparent 100%),
+      radial-gradient(ellipse 6px 3px at 92% 60%, rgba(20,15,30,.4) 0%, transparent 100%),
+      radial-gradient(circle at 22% 18%, rgba(255,255,255,.08) 0%, transparent 8%);
+    mix-blend-mode:multiply;opacity:.85;
+  }
+  /* scratches */
+  .scratch {
+    position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.18;
+    background:
+      linear-gradient(102deg, transparent 18%, rgba(255,255,255,.6) 18.4%, transparent 19%),
+      linear-gradient(86deg, transparent 62%, rgba(255,255,255,.4) 62.2%, transparent 62.6%),
+      linear-gradient(110deg, transparent 80%, rgba(0,0,0,.7) 80.3%, transparent 81%);
+  }
+  /* engraved/stenciled label text */
+  .stencil { font-family:'Special Elite','Share Tech Mono',monospace; color:#1c1424; text-shadow:0 1px 0 rgba(255,255,255,.25), 0 -1px 0 rgba(0,0,0,.4); letter-spacing:.2em; }
+  .grabbing,.grabbing *{cursor:grabbing!important}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:radial-gradient(ellipse at 50% 0%, #2a2138 0%, #1a1424 70%, #120e1a 100%);position:relative;overflow:hidden">
+
+<!-- ambient grid -->
+<div style="position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,82,214,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(94,229,255,.04) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse at 50% 30%, black 0%, transparent 75%);z-index:0"></div>
+<div style="position:fixed;top:-180px;left:-180px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle, rgba(255,82,214,.1) 0%, transparent 70%);pointer-events:none;z-index:0"></div>
+<div style="position:fixed;bottom:-180px;right:-180px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle, rgba(94,229,255,.08) 0%, transparent 70%);pointer-events:none;z-index:0"></div>
+
+<sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+<div style="position:relative;z-index:1;max-width:1480px;margin:0 auto;padding:22px 22px 60px">
+
+  <!-- ============ OUTER WORN RIG ============ -->
+  <div class="worn" style="position:relative;border-radius:16px;padding:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -2px 4px rgba(0,0,0,.45),0 30px 80px rgba(0,0,0,.7),0 0 0 1px rgba(0,0,0,.5)">
+    <div class="chips" style="border-radius:16px"></div>
+    <div class="scratch" style="border-radius:16px"></div>
+
+    <!-- corner rivets -->
+    <div style="position:absolute;top:11px;left:11px;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #d8cdb8 0%, #6a5d4a 50%, #2a2018 100%);box-shadow:inset 0 1px 1px rgba(255,255,255,.4),inset 0 -1px 1px rgba(0,0,0,.6),0 1px 2px rgba(0,0,0,.6);z-index:3"></div>
+    <div style="position:absolute;top:11px;right:11px;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #d8cdb8 0%, #6a5d4a 50%, #2a2018 100%);box-shadow:inset 0 1px 1px rgba(255,255,255,.4),inset 0 -1px 1px rgba(0,0,0,.6),0 1px 2px rgba(0,0,0,.6);z-index:3"></div>
+    <div style="position:absolute;bottom:11px;left:11px;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #d8cdb8 0%, #6a5d4a 50%, #2a2018 100%);box-shadow:inset 0 1px 1px rgba(255,255,255,.4),inset 0 -1px 1px rgba(0,0,0,.6),0 1px 2px rgba(0,0,0,.6);z-index:3"></div>
+    <div style="position:absolute;bottom:11px;right:11px;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #d8cdb8 0%, #6a5d4a 50%, #2a2018 100%);box-shadow:inset 0 1px 1px rgba(255,255,255,.4),inset 0 -1px 1px rgba(0,0,0,.6),0 1px 2px rgba(0,0,0,.6);z-index:3"></div>
+
+    <div style="position:relative;z-index:2">
+
+      <!-- ===== HEADER ===== -->
+      <div style="position:relative;background:linear-gradient(180deg,#0e0a16 0%,#06040c 100%);border:1px solid #050307;border-radius:10px;padding:14px 18px;display:grid;grid-template-columns:300px 1fr 360px;gap:20px;align-items:center;box-shadow:inset 0 3px 8px rgba(0,0,0,.7),inset 0 -1px 0 rgba(255,255,255,.05),0 0 0 1px rgba(255,82,214,.1)">
+
+        <!-- BRAND -->
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="display:flex;flex-direction:column;gap:5px;padding:6px;background:#020205;border-radius:4px;box-shadow:inset 0 1px 3px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.04)">
+            <div style="width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d8ffe2 0%,#5af28a 38%,#0e3a1a 100%);box-shadow:0 0 7px rgba(90,242,138,.85),inset 0 -1px 1px rgba(0,0,0,.5);animation:ledBreathe 3.2s ease-in-out infinite"></div>
+            <div style="width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd994 0%,#ffb83a 40%,#5a2d00 100%);box-shadow:0 0 6px rgba(255,184,58,.65),inset 0 -1px 1px rgba(0,0,0,.5);animation:ledBlinkSlow 4.4s ease-in-out infinite"></div>
+            <div style="width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffc5f4 0%,#ff52d6 40%,#3a062e 100%);box-shadow:0 0 9px rgba(255,82,214,.85),inset 0 -1px 1px rgba(0,0,0,.5);animation:ledBreathe 2.1s ease-in-out infinite"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <div style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.28em;color:#9b88b0;font-weight:500">SPACE//OS · v1.0</div>
+            <div style="font-family:'Chakra Petch',sans-serif;font-size:20px;letter-spacing:.14em;font-weight:700;color:#f4ebd0;text-shadow:0 1px 0 rgba(0,0,0,.6),0 0 16px rgba(255,82,214,.35)">DATAHAVEN<span style="color:#ff52d6;text-shadow:0 0 12px #ff52d6">.</span>RIG</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.22em;color:#5ee5ff;text-shadow:0 0 6px rgba(94,229,255,.6)">⌬ ASTRAL LINK · ACTIVE</div>
+          </div>
+        </div>
+
+        <!-- MODE DIAL -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:16px">
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+            <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.3em;color:#9b88b0">MODE</div>
+            <div style="font-family:'Chakra Petch',sans-serif;font-size:14px;letter-spacing:.2em;font-weight:600;color:#ff52d6;text-shadow:0 0 12px rgba(255,82,214,.7);min-width:130px;text-align:right">{{ currentPageLabel }}</div>
+          </div>
+          <div style="position:relative;width:108px;height:108px">
+            <div style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 30%,#4a3f5a 0%,#1d1424 60%,#0a0612 100%);box-shadow:inset 0 3px 6px rgba(0,0,0,.85),inset 0 -1px 2px rgba(255,255,255,.06),0 0 0 1px rgba(255,82,214,.18),0 0 18px rgba(255,82,214,.18)"></div>
+            {{ headerDetents }}
+            <div style="position:absolute;inset:18px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#a89bbe 0%,#5a4d70 50%,#1a1226 100%);box-shadow:inset 0 2px 3px rgba(255,255,255,.25),inset 0 -3px 6px rgba(0,0,0,.7),0 4px 10px rgba(0,0,0,.8),0 0 14px rgba(255,82,214,.3);transition:transform .42s cubic-bezier(.34,1.56,.64,1);transform:rotate({{ knobAngle }}deg);display:flex;align-items:center;justify-content:center">
+              <div style="position:absolute;inset:3px;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.08) 0deg,rgba(0,0,0,.45) 4deg,rgba(255,255,255,.08) 8deg);opacity:.65;mix-blend-mode:overlay"></div>
+              <div style="position:absolute;top:5px;left:50%;transform:translateX(-50%);width:4px;height:14px;background:linear-gradient(180deg,#ff52d6,#a01088);border-radius:2px;box-shadow:0 0 10px #ff52d6,0 0 18px rgba(255,82,214,.7)"></div>
+              <div style="position:relative;width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#2a1d3a 0%,#0a0612 100%);box-shadow:inset 0 0 6px rgba(255,82,214,.5),0 0 0 1px rgba(255,82,214,.5);display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:18px;color:#ff52d6;text-shadow:0 0 10px #ff52d6;animation:glyphShimmer 3s ease-in-out infinite">⌬</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LEDs + actions -->
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:14px">
+          <div style="display:grid;grid-template-columns:repeat(3,auto);gap:6px 14px;padding:10px 12px;background:linear-gradient(180deg,#06040c,#020205);border-radius:6px;box-shadow:inset 0 2px 4px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.04)">
+            {{ statusLEDs }}
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <button on-click="{{ toggleEmpty }}" style="position:relative;width:42px;height:64px;background:linear-gradient(180deg,#06040c,#020205);border-radius:4px;box-shadow:inset 0 2px 4px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.04);display:flex;flex-direction:column;justify-content:{{ emptySwitchJustify }};padding:4px;cursor:pointer">
+              <div style="width:34px;height:24px;background:radial-gradient(ellipse at 50% 20%,#f0e6cf 0%,#a89bbe 50%,#3a3047 100%);border-radius:3px;box-shadow:0 2px 5px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.45);transition:all .25s cubic-bezier(.5,-.4,.3,1.4)"></div>
+            </button>
+            <div class="stencil" style="font-size:8px;color:#f0e4c8">VOID</div>
+          </div>
+          <button on-click="{{ refresh }}" style="position:relative;width:54px;height:54px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#ff7088 0%,#c01840 55%,#5a0a18 100%);box-shadow:inset 0 2px 4px rgba(255,255,255,.4),inset 0 -3px 5px rgba(0,0,0,.6),0 4px 10px rgba(192,24,64,.5),0 0 18px rgba(255,43,77,.45);display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.15em;color:#ffe0e8;text-shadow:0 1px 0 rgba(0,0,0,.7);font-weight:700;cursor:pointer">SYNC</button>
+        </div>
+      </div>
+
+      <!-- TICKER -->
+      <div style="margin-top:14px;background:#020205;border:1px solid #050307;border-radius:6px;padding:6px 14px;overflow:hidden;position:relative;box-shadow:inset 0 2px 4px rgba(0,0,0,.8)">
+        <div style="position:absolute;top:0;left:0;bottom:0;width:60px;background:linear-gradient(90deg,#020205 60%,transparent);z-index:2"></div>
+        <div style="position:absolute;top:0;right:0;bottom:0;width:60px;background:linear-gradient(90deg,transparent,#020205 40%);z-index:2"></div>
+        <div style="display:flex;gap:36px;white-space:nowrap;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.15em;color:#5ee5ff;animation:tickerScroll 60s linear infinite;text-shadow:0 0 5px rgba(94,229,255,.6)">
+          {{ tickerItems }}
+        </div>
+      </div>
+
+      <!-- ============ PANEL CONTENT ============ -->
+      <div style="margin-top:14px;position:relative">
+        <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">{{ dashboardPanel }}</sc-if>
+        <sc-if value="{{ isKanban }}"    hint-placeholder-val="{{ false }}">{{ kanbanPanel }}</sc-if>
+        <sc-if value="{{ isPlanning }}"  hint-placeholder-val="{{ false }}">{{ planningPanel }}</sc-if>
+        <sc-if value="{{ isProjects }}"  hint-placeholder-val="{{ false }}">{{ projectsPanel }}</sc-if>
+        <sc-if value="{{ snapPulse }}"   hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:-8px;border-radius:10px;background:radial-gradient(ellipse at 50% 0%, rgba(255,82,214,.22) 0%, transparent 60%);pointer-events:none;animation:snapFlash .28s ease-out forwards;z-index:5"></div>
+        </sc-if>
+      </div>
+
+      <!-- FOOTER -->
+      <div style="margin-top:14px;background:linear-gradient(180deg,#0e0a16,#06040c);border:1px solid #050307;border-radius:10px;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.2em;color:#7b6a99;box-shadow:inset 0 2px 6px rgba(0,0,0,.65)">
+        <div>◇ JOINERY//TECH · ROOT TERMINAL · CHANNEL OPEN</div>
+        <div style="display:flex;gap:20px">
+          <div>LAT <span style="color:#5ee5ff;text-shadow:0 0 6px rgba(94,229,255,.6)">{{ latency }}ms</span></div>
+          <div>UPTIME <span style="color:#5af28a;text-shadow:0 0 6px rgba(90,242,138,.6)">{{ uptime }}</span></div>
+          <div>LAST SYNC <span style="color:#ffb83a;text-shadow:0 0 6px rgba(255,184,58,.6)">{{ lastSyncStr }}</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</sc-if>
+
+<sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;padding:14px 12px 12px;gap:12px">
+  {{ mobileShell }}
+</div>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = {
+    page: 'dashboard',
+    isMobile: false,
+    empty: false,
+    knobAngle: 0,
+    dialAngle: 0,
+    dialDragging: false,
+    cardGrabbed: null,
+    cardOffset: { x: 0, y: 0 },
+    snapPulse: false,
+    now: Date.now(),
+    lastSync: Date.now() - 12000,
+  };
+
+  PAGES = [
+    { id: 'dashboard', label: 'NODE GRID',     glyph: '⏣', angle: -45 },
+    { id: 'kanban',    label: 'FLOW MATRIX',   glyph: '⫴', angle:  45 },
+    { id: 'planning',  label: 'RITUAL CIRCLE', glyph: '✦', angle: 135 },
+    { id: 'projects',  label: 'LEY TIMELINE',  glyph: '⏃', angle: 225 },
+  ];
+
+  TERMINALS = [
+    { id:'kernel',  label:'KERNEL',  sigil:'⏣', inbox:12, outbox:8,  uIn:3, uOut:1, status:'WORKING', last:'2m',  aspect:'CORE' },
+    { id:'orch',    label:'ORCH',    sigil:'⌬', inbox:24, outbox:19, uIn:7, uOut:2, status:'WORKING', last:'14s', aspect:'AETHER' },
+    { id:'fe',      label:'FE',      sigil:'◈', inbox:6,  outbox:4,  uIn:1, uOut:0, status:'WORKING', last:'1m',  aspect:'GLASS' },
+    { id:'joinery', label:'JOINERY', sigil:'⎔', inbox:18, outbox:11, uIn:4, uOut:0, status:'IDLE',    last:'12m', aspect:'WOOD' },
+    { id:'be',      label:'BE',      sigil:'⊞', inbox:9,  outbox:7,  uIn:2, uOut:1, status:'WORKING', last:'38s', aspect:'IRON' },
+    { id:'data',    label:'DATA',    sigil:'≋', inbox:15, outbox:12, uIn:0, uOut:0, status:'IDLE',    last:'6m',  aspect:'WATER' },
+    { id:'qa',      label:'QA',      sigil:'⌖', inbox:4,  outbox:3,  uIn:1, uOut:0, status:'WORKING', last:'52s', aspect:'MIRROR' },
+    { id:'ops',     label:'OPS',     sigil:'⏃', inbox:22, outbox:16, uIn:5, uOut:1, status:'WORKING', last:'8s',  aspect:'STORM' },
+    { id:'sec',     label:'SEC',     sigil:'⛨', inbox:3,  outbox:2,  uIn:0, uOut:0, status:'IDLE',    last:'24m', aspect:'WARD' },
+    { id:'docs',    label:'DOCS',    sigil:'☷', inbox:11, outbox:9,  uIn:2, uOut:1, status:'WORKING', last:'3m',  aspect:'SCRIBE' },
+    { id:'infra',   label:'INFRA',   sigil:'⌗', inbox:7,  outbox:6,  uIn:0, uOut:0, status:'IDLE',    last:'18m', aspect:'STONE' },
+    { id:'plan',    label:'PLAN',    sigil:'✦', inbox:30, outbox:24, uIn:8, uOut:3, status:'WORKING', last:'22s', aspect:'ORACLE' },
+    { id:'sim',     label:'SIM',     sigil:'◉', inbox:5,  outbox:3,  uIn:0, uOut:0, status:'IDLE',    last:'41m', aspect:'MIRROR' },
+    { id:'mesh',    label:'MESH',    sigil:'⌘', inbox:13, outbox:10, uIn:3, uOut:1, status:'WORKING', last:'1m',  aspect:'WEB' },
+    { id:'cache',   label:'CACHE',   sigil:'◊', inbox:2,  outbox:1,  uIn:0, uOut:0, status:'IDLE',    last:'2h',  aspect:'GLYPH' },
+    { id:'edge',    label:'EDGE',    sigil:'⟁', inbox:8,  outbox:6,  uIn:1, uOut:0, status:'WORKING', last:'4m',  aspect:'BLADE' },
+    { id:'root',    label:'ROOT',    sigil:'☉', inbox:1,  outbox:0,  uIn:1, uOut:0, status:'WORKING', last:'12s', aspect:'SUN' },
+  ];
+
+  STATUS_LEDS = [
+    { label:'PWR',   color:'#5af28a', anim:'none' },
+    { label:'MTX',   color:'#5ee5ff', anim:'breathe' },
+    { label:'AST',   color:'#ff52d6', anim:'breathe' },
+    { label:'SIGIL', color:'#ffb83a', anim:'blinkSlow' },
+    { label:'BUS',   color:'#5ee5ff', anim:'blinkFast' },
+    { label:'FAULT', color:'#ff5566', anim:'off' },
+  ];
+
+  TICKER = [
+    '◈ KERNEL: rebalanced 4 allocation slots',
+    '⚡ ORCH: sigil collision resolved in 184ms',
+    '⌬ PLAN: 3 ideas promoted to debate',
+    '⛨ SEC: ward holding · 0 incidents 4h',
+    '≋ DATA: 1.2GB streamed through storm channel',
+    '✦ ROOT: priority sweep requested',
+    '⏣ MESH: failover drill scheduled 02:00 UTC',
+    '⎔ JOINERY: hardwood frame tuning shipped',
+  ];
+
+  componentDidMount() {
+    this.mq = window.matchMedia('(max-width: 820px)');
+    this.mqH = (e) => this.setState({ isMobile: e.matches });
+    this.mq.addEventListener('change', this.mqH);
+    this.setState({ isMobile: this.mq.matches });
+    this.tick = setInterval(() => this.setState({ now: Date.now() }), 1000);
+
+    this.upH = () => {
+      if (this.state.dialDragging) {
+        const snap = Math.round(this.state.dialAngle / 90) * 90;
+        const idx = (((snap % 360) + 360) % 360) / 90 | 0;
+        this.setState({ dialAngle: snap, dialDragging: false });
+        const p = this.PAGES[idx];
+        if (p) this.setPage(p.id, true);
+      }
+      if (this.state.cardGrabbed) {
+        this.setState({ cardGrabbed: null, cardOffset: { x: 0, y: 0 } });
+        this.flash();
+      }
+      document.body.classList.remove('grabbing');
+    };
+    this.moveH = (e) => {
+      const t = e.touches ? e.touches[0] : e;
+      if (this.state.dialDragging && this.dialC) {
+        const dx = t.clientX - this.dialC.x;
+        const dy = t.clientY - this.dialC.y;
+        let a = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+        if (a < 0) a += 360;
+        this.setState({ dialAngle: a });
+      } else if (this.state.cardGrabbed && this.grabS) {
+        const dx = t.clientX - this.grabS.x;
+        const dy = t.clientY - this.grabS.y;
+        this.setState({ cardOffset: { x: dx * .4, y: dy * .4 } });
+      }
+    };
+    window.addEventListener('mouseup', this.upH);
+    window.addEventListener('touchend', this.upH);
+    window.addEventListener('mousemove', this.moveH);
+    window.addEventListener('touchmove', this.moveH, { passive: true });
+  }
+  componentWillUnmount() {
+    this.mq && this.mq.removeEventListener('change', this.mqH);
+    clearInterval(this.tick);
+    window.removeEventListener('mouseup', this.upH);
+    window.removeEventListener('touchend', this.upH);
+    window.removeEventListener('mousemove', this.moveH);
+    window.removeEventListener('touchmove', this.moveH);
+  }
+
+  setPage = (id, fromDial) => {
+    const p = this.PAGES.find(x => x.id === id);
+    if (!p || this.state.page === id) return;
+    this.setState({ page: id, knobAngle: p.angle, snapPulse: true, lastSync: Date.now() });
+    if (!fromDial) this.setState({ dialAngle: this.PAGES.findIndex(x => x.id === id) * 90 });
+    setTimeout(() => this.setState({ snapPulse: false }), 320);
+  };
+  flash = () => { this.setState({ snapPulse: true }); setTimeout(() => this.setState({ snapPulse: false }), 280); };
+  toggleEmpty = () => this.setState({ empty: !this.state.empty });
+  refresh = () => { this.setState({ lastSync: Date.now() }); this.flash(); };
+  grabCard = (id) => (e) => {
+    const t = e.touches ? e.touches[0] : e;
+    this.grabS = { x: t.clientX, y: t.clientY };
+    this.setState({ cardGrabbed: id, cardOffset: { x: 0, y: 0 } });
+    document.body.classList.add('grabbing');
+    e.preventDefault && e.preventDefault();
+  };
+  grabDial = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    this.dialC = { x: r.left + r.width/2, y: r.top + r.height/2 };
+    this.setState({ dialDragging: true });
+    document.body.classList.add('grabbing');
+    e.preventDefault && e.preventDefault();
+  };
+
+  lighten(hex) { const m=hex.match(/#?([0-9a-f]{6})/i); if(!m)return '#fff'; const r=parseInt(m[1].slice(0,2),16),g=parseInt(m[1].slice(2,4),16),b=parseInt(m[1].slice(4,6),16); const x=c=>Math.min(255,c+(255-c)*.55)|0; return `rgb(${x(r)},${x(g)},${x(b)})`; }
+  darken(hex)  { const m=hex.match(/#?([0-9a-f]{6})/i); if(!m)return '#000'; const r=parseInt(m[1].slice(0,2),16),g=parseInt(m[1].slice(2,4),16),b=parseInt(m[1].slice(4,6),16); return `rgb(${r*.2|0},${g*.2|0},${b*.2|0})`; }
+
+  buildStatusLEDs() {
+    const R = React.createElement;
+    return this.STATUS_LEDS.map(l => {
+      const off = l.anim === 'off';
+      const anim = l.anim==='breathe'?'ledBreathe 2.4s ease-in-out infinite':l.anim==='blinkSlow'?'ledBlinkSlow 3.6s ease-in-out infinite':l.anim==='blinkFast'?'ledBlinkFast 1.2s steps(1) infinite':'none';
+      return R('div', { key:l.label, style:{ display:'flex', alignItems:'center', gap:6 }},
+        R('div', { style:{
+          width:8, height:8, borderRadius:'50%',
+          background: off ? 'radial-gradient(circle at 35% 30%,#3a1a22 0%,#1a0a12 100%)' : `radial-gradient(circle at 35% 30%, ${this.lighten(l.color)} 0%, ${l.color} 40%, ${this.darken(l.color)} 100%)`,
+          boxShadow: off ? 'inset 0 -1px 1px rgba(0,0,0,.6)' : `0 0 7px ${l.color}cc, inset 0 -1px 1px rgba(0,0,0,.5)`,
+          animation: anim,
+        }}),
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:9, letterSpacing:'.22em', color: off?'#3a2a40':'#b8a8d0' }}, l.label)
+      );
+    });
+  }
+
+  buildHeaderDetents() {
+    const R = React.createElement;
+    return this.PAGES.map(p => {
+      const active = this.state.page === p.id;
+      const x = 50 + 42 * Math.sin(p.angle * Math.PI/180);
+      const y = 50 - 42 * Math.cos(p.angle * Math.PI/180);
+      return R('button', { key:p.id, onClick: () => this.setPage(p.id), title:p.label, style:{
+        position:'absolute', top:`${y}%`, left:`${x}%`, transform:'translate(-50%,-50%)',
+        width:22, height:22, borderRadius:'50%',
+        background: active ? 'radial-gradient(circle at 35% 30%,#ffc5f4 0%,#ff52d6 40%,#3a062e 100%)' : 'radial-gradient(circle at 35% 30%,#3a2d4a 0%,#15101e 100%)',
+        boxShadow: active ? '0 0 12px #ff52d6, inset 0 -1px 1px rgba(0,0,0,.5), 0 0 0 1px rgba(255,82,214,.7)' : 'inset 0 1px 2px rgba(0,0,0,.7), 0 0 0 1px rgba(255,82,214,.18)',
+        display:'flex', alignItems:'center', justifyContent:'center',
+        fontFamily:"'Share Tech Mono',monospace", fontSize:11,
+        color: active?'#fff':'#9b88b0',
+        textShadow: active?'0 0 4px #fff':'none',
+        cursor:'pointer', zIndex:2,
+      }}, p.glyph);
+    });
+  }
+
+  buildTicker() {
+    const R = React.createElement;
+    return [...this.TICKER, ...this.TICKER].map((t,i) => R('span', { key:i }, t));
+  }
+
+  fmtSync(now, last) {
+    const d = Math.max(0, Math.floor((now - last)/1000));
+    return d < 60 ? `${d}s ago` : `${Math.floor(d/60)}m ago`;
+  }
+  fmtClock(t) { return new Date(t).toTimeString().slice(0,8); }
+
+  // ========================= DASHBOARD =========================
+  buildDashboard() {
+    const R = React.createElement;
+    const empty = this.state.empty;
+    const M = empty
+      ? [
+          {l:'INBOX',v:0,sub:'— msgs', c:'#5ee5ff'},
+          {l:'OUTBOX',v:0,sub:'— msgs',c:'#a78bfa'},
+          {l:'UNREAD',v:0,sub:'— total',c:'#ffb83a'},
+          {l:'SESSIONS',v:0,sub:'— live',c:'#5af28a'},
+          {l:'NODES',v:0,sub:'/ 17', c:'#ff52d6'},
+        ]
+      : [
+          {l:'INBOX',v:195,sub:'msgs', c:'#5ee5ff'},
+          {l:'OUTBOX',v:141,sub:'msgs',c:'#a78bfa'},
+          {l:'UNREAD',v:38, sub:'total',c:'#ffb83a'},
+          {l:'SESSIONS',v:11,sub:'live',c:'#5af28a'},
+          {l:'NODES',v:17,sub:'/ 17', c:'#ff52d6'},
+        ];
+
+    const metricCards = R('div', { style:{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:12, marginBottom:14 }},
+      M.map(m => R('div', { key:m.l, style:{
+        position:'relative', borderRadius:8, padding:'14px 16px 12px',
+        boxShadow:'inset 0 1px 0 rgba(255,255,255,.18), inset 0 -2px 4px rgba(0,0,0,.4), 0 4px 10px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.5)',
+        background:`
+          radial-gradient(ellipse 40% 20% at 70% 90%, rgba(0,0,0,.18), transparent 70%),
+          radial-gradient(ellipse 10px 4px at 18% 92%, rgba(20,15,30,.55), transparent 100%),
+          repeating-linear-gradient(94deg, rgba(0,0,0,.05) 0px, rgba(0,0,0,.05) 1px, transparent 1px, transparent 4px),
+          linear-gradient(180deg, #8a7d9a 0%, #6a5d7e 55%, #4a3f5a 100%)`,
+      }},
+        R('div', { style:{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }},
+          R('div', { className:'stencil', style:{ fontFamily:"'Special Elite','Share Tech Mono',monospace", fontSize:10, letterSpacing:'.28em', color:'#1c1424', textShadow:'0 1px 0 rgba(255,255,255,.3),0 -1px 0 rgba(0,0,0,.4)' }}, m.l),
+          R('div', { style:{ width:9, height:9, borderRadius:'50%',
+            background:`radial-gradient(circle at 35% 30%, ${this.lighten(m.c)} 0%, ${m.c} 40%, ${this.darken(m.c)} 100%)`,
+            boxShadow:`0 0 7px ${m.c}cc, inset 0 -1px 1px rgba(0,0,0,.5)`,
+            animation:'ledBreathe 2.8s ease-in-out infinite',
+          }})
+        ),
+        R('div', { style:{
+          background:'radial-gradient(ellipse at 50% 30%, #0a1822 0%, #03060a 100%)',
+          border:'1px solid #02050a', borderRadius:4, padding:'6px 10px',
+          boxShadow:'inset 0 2px 6px rgba(0,0,0,.9), inset 0 0 14px rgba(94,229,255,.08), 0 0 0 1px rgba(255,255,255,.06)',
+          fontFamily:"'Share Tech Mono',monospace", color:m.c, textShadow:`0 0 7px ${m.c}dd, 0 0 14px ${m.c}55`,
+          fontSize:28, letterSpacing:'.05em', display:'flex', alignItems:'baseline', gap:8, animation:'vfdFlicker 6s steps(1) infinite',
+        }},
+          empty
+            ? R('span', { style:{ color:'#2a2336', textShadow:'none' }}, '— —')
+            : R('span', null, String(m.v).padStart(3,'0')),
+          R('span', { style:{ fontSize:10, color:'#5a4a7a', letterSpacing:'.2em', textShadow:'none' }}, m.sub)
+        ),
+      ))
+    );
+
+    const terms = empty ? [] : this.TERMINALS;
+    const emptyState = empty
+      ? R('div', { style:{
+          gridColumn:'span 5', minHeight:340, borderRadius:10, position:'relative',
+          background:'linear-gradient(180deg,#1a1424 0%,#0e0a16 100%)',
+          border:'1px dashed #3a2b4a', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:14,
+          boxShadow:'inset 0 0 60px rgba(255,82,214,.06)',
+        }},
+          R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:72, color:'#3a2b4a', textShadow:'0 0 28px rgba(255,82,214,.4)', animation:'runeFloat 4s ease-in-out infinite' }}, '⏣'),
+          R('div', { style:{ fontFamily:"'Chakra Petch',sans-serif", fontSize:18, letterSpacing:'.22em', color:'#7b6a99', fontWeight:600 }}, 'NODE GRID OFFLINE'),
+          R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, letterSpacing:'.18em', color:'#5a4a7a' }}, 'no terminals registered · awaiting bind'),
+        )
+      : null;
+
+    return R('div', null,
+      R('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }},
+        R('div', { style:{ display:'flex', alignItems:'baseline', gap:10 }},
+          R('div', { style:{ fontFamily:"'Chakra Petch',sans-serif", fontSize:18, letterSpacing:'.22em', fontWeight:700, color:'#f4ebd0' }}, 'NODE GRID'),
+          R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, letterSpacing:'.25em', color:'#7b6a99' }}, '// 17 BOUND TERMINALS · GLOBAL OVERVIEW'),
+        ),
+        R('div', { style:{ display:'flex', gap:8, fontFamily:"'Share Tech Mono',monospace", fontSize:10, letterSpacing:'.22em', color:'#b8a8d0' }},
+          R('div', { style:{ padding:'4px 10px', background:'#06040c', border:'1px solid #1a1322', borderRadius:4 }}, 'AUTO 60s'),
+          R('div', { style:{ padding:'4px 10px', background:'#06040c', border:'1px solid #1a1322', borderRadius:4 }}, `T+${this.fmtClock(this.state.now)}`),
+        ),
+      ),
+      metricCards,
+      R('div', { style:{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:12 }},
+        terms.map(t => this.buildTerminalModule(t)),
+        emptyState,
+      ),
+    );
+  }
+
+  buildTerminalModule(t) {
+    const R = React.createElement;
+    const working = t.status === 'WORKING';
+    const hot = t.uIn + t.uOut;
+    const grabbed = this.state.cardGrabbed === `term-${t.id}`;
+    const off = grabbed ? this.state.cardOffset : { x:0, y:0 };
+
+    return R('div', {
+      key: t.id,
+      onMouseDown: this.grabCard(`term-${t.id}`),
+      onTouchStart: this.grabCard(`term-${t.id}`),
+      style: {
+        position:'relative', borderRadius:8, padding:'10px 12px 10px',
+        background:`
+          radial-gradient(ellipse 50% 25% at 30% 0%, rgba(255,255,255,.1), transparent 70%),
+          radial-gradient(ellipse 10px 4px at 85% 92%, rgba(20,15,30,.55), transparent 100%),
+          radial-gradient(ellipse 6px 3px at 14% 18%, rgba(20,15,30,.4), transparent 100%),
+          repeating-linear-gradient(94deg, rgba(0,0,0,.04) 0, rgba(0,0,0,.04) 1px, transparent 1px, transparent 4px),
+          linear-gradient(180deg, #9a8caf 0%, #6e6086 55%, #4d4262 100%)`,
+        boxShadow: grabbed
+          ? '0 18px 32px rgba(0,0,0,.7), 0 0 0 1px rgba(255,82,214,.6), 0 0 28px rgba(255,82,214,.45), inset 0 1px 0 rgba(255,255,255,.25)'
+          : 'inset 0 1px 0 rgba(255,255,255,.22), inset 0 -2px 3px rgba(0,0,0,.45), 0 4px 9px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.4)',
+        transform: `translate(${off.x}px, ${off.y}px) ${grabbed ? 'scale(1.03) rotate(-.7deg)' : ''}`,
+        transition: grabbed ? 'none' : 'transform .38s cubic-bezier(.34,1.56,.64,1), box-shadow .2s',
+        cursor: grabbed ? 'grabbing' : 'grab',
+        userSelect:'none',
+        zIndex: grabbed ? 10 : 1,
+      }
+    },
+      // screws
+      R('div', { style:{ position:'absolute', top:4, left:4, width:7, height:7, borderRadius:'50%', background:'radial-gradient(circle at 35% 30%,#d8cdb8 0%,#5a4d3a 60%,#1a1410 100%)', boxShadow:'inset 0 1px 0 rgba(255,255,255,.4),0 1px 1px rgba(0,0,0,.6)' }}),
+      R('div', { style:{ position:'absolute', top:4, right:4, width:7, height:7, borderRadius:'50%', background:'radial-gradient(circle at 35% 30%,#d8cdb8 0%,#5a4d3a 60%,#1a1410 100%)', boxShadow:'inset 0 1px 0 rgba(255,255,255,.4),0 1px 1px rgba(0,0,0,.6)' }}),
+      R('div', { style:{ position:'absolute', bottom:4, left:4, width:7, height:7, borderRadius:'50%', background:'radial-gradient(circle at 35% 30%,#d8cdb8 0%,#5a4d3a 60%,#1a1410 100%)', boxShadow:'inset 0 1px 0 rgba(255,255,255,.4),0 1px 1px rgba(0,0,0,.6)' }}),
+      R('div', { style:{ position:'absolute', bottom:4, right:4, width:7, height:7, borderRadius:'50%', background:'radial-gradient(circle at 35% 30%,#d8cdb8 0%,#5a4d3a 60%,#1a1410 100%)', boxShadow:'inset 0 1px 0 rgba(255,255,255,.4),0 1px 1px rgba(0,0,0,.6)' }}),
+
+      // header strip
+      R('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8, paddingLeft:10, paddingRight:10 }},
+        R('div', { style:{ display:'flex', alignItems:'center', gap:6 }},
+          R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:14, color:'#ff52d6', textShadow:'0 0 7px rgba(255,82,214,.7),0 1px 0 rgba(0,0,0,.5)' }}, t.sigil),
+          R('div', { style:{ fontFamily:"'Special Elite','Share Tech Mono',monospace", fontSize:13, letterSpacing:'.16em', fontWeight:700, color:'#1c1424', textShadow:'0 1px 0 rgba(255,255,255,.3),0 -1px 0 rgba(0,0,0,.35)' }}, t.label),
+        ),
+        R('div', { style:{ display:'flex', alignItems:'center', gap:5 }},
+          R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:8, letterSpacing:'.18em', color: working ? '#1a4528' : '#3a2b4a' }}, working ? 'WORK' : 'IDLE'),
+          R('div', { style:{ width:10, height:10, borderRadius:'50%',
+            background: working ? 'radial-gradient(circle at 35% 30%,#d8ffe2 0%,#5af28a 40%,#0e3a1a 100%)' : 'radial-gradient(circle at 35% 30%,#3a2d4a 0%,#15101e 100%)',
+            boxShadow: working ? '0 0 9px rgba(90,242,138,.85), inset 0 -1px 1px rgba(0,0,0,.5)' : 'inset 0 1px 1px rgba(0,0,0,.6)',
+            animation: working ? 'ledBreathe 2.2s ease-in-out infinite' : 'none',
+          }}),
+        ),
+      ),
+
+      // mini readouts
+      R('div', { style:{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:5 }},
+        this.buildMini('IN', t.inbox, '#5ee5ff'),
+        this.buildMini('OUT', t.outbox, '#a78bfa'),
+        this.buildMini('uIN', t.uIn, t.uIn > 0 ? '#ffb83a' : '#3a2b4a'),
+        this.buildMini('uOUT', t.uOut, t.uOut > 0 ? '#ffb83a' : '#3a2b4a'),
+      ),
+
+      // bottom strip
+      R('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:8, paddingTop:6, borderTop:'1px solid rgba(0,0,0,.35)' }},
+        R('div', { style:{ fontFamily:"'Special Elite','Share Tech Mono',monospace", fontSize:8, letterSpacing:'.2em', color:'#2a2238' }}, t.aspect),
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:8, letterSpacing:'.18em', color:'#3a2b4a' }}, `T-${t.last}`),
+        R('div', { style:{ width:10, height:10, borderRadius:'50%', background:'radial-gradient(circle at 50% 35%,#03050a 0%,#0e0a16 60%,#2a2336 100%)', boxShadow:'inset 0 1px 2px rgba(0,0,0,.9), 0 0 0 1px rgba(255,82,214,.22)' }}),
+      ),
+      // grip strip
+      R('div', { style:{ position:'absolute', right:2, top:'30%', bottom:'30%', width:5, background:'repeating-linear-gradient(180deg, rgba(0,0,0,.45) 0px, rgba(0,0,0,.45) 1px, transparent 1px, transparent 3px)', opacity:.7, borderRadius:2 }}),
+      // hot badge
+      hot > 0 ? R('div', { style:{
+        position:'absolute', top:-7, right:-7, padding:'2px 7px', borderRadius:10,
+        background:'linear-gradient(180deg,#ff52d6,#a01088)',
+        fontFamily:"'Share Tech Mono',monospace", fontSize:9, color:'#fff', fontWeight:700, textShadow:'0 1px 0 rgba(0,0,0,.5)',
+        boxShadow:'0 0 11px rgba(255,82,214,.85), 0 0 0 1px rgba(255,255,255,.18), 0 2px 4px rgba(0,0,0,.5)',
+      }}, `${hot}!`) : null,
+    );
+  }
+
+  // ========================= KANBAN =========================
+  DISCOVERY = [
+    { stage:'ideas',     label:'IDEAS',     glyph:'✦', color:'#5ee5ff' },
+    { stage:'selected',  label:'SELECTED',  glyph:'◈', color:'#a78bfa' },
+    { stage:'debate',    label:'DEBATE',    glyph:'⚡', color:'#ffb83a' },
+    { stage:'consensus', label:'CONSENSUS', glyph:'⏣', color:'#5af28a' },
+    { stage:'queue',     label:'QUEUE',     glyph:'⌬', color:'#ff52d6' },
+  ];
+  DISC_CARDS = {
+    ideas:[
+      { title:'Astral cache prewarm', conf:0.62, prio:'medium' },
+      { title:'Inbox triage assistant', conf:0.71, prio:'high' },
+      { title:'Mesh handshake retry policy', conf:0.45, prio:'low' },
+    ],
+    selected:[
+      { title:'Planning pipeline v2', conf:0.81, prio:'high' },
+      { title:'Sigil registry GC', conf:0.66, prio:'medium' },
+    ],
+    debate:[ { title:'Aether routing rewrite', conf:0.54, prio:'critical' } ],
+    consensus:[ { title:'Queue depth alarm', conf:0.88, prio:'high' } ],
+    queue:[
+      { title:'Root mailbox sweep', conf:0.92, prio:'critical' },
+      { title:'Edge rune cache', conf:0.79, prio:'high' },
+    ],
+  };
+  DELIVERY_COLS = [
+    { id:'inbox',   label:'INBOX',   color:'#5ee5ff' },
+    { id:'working', label:'WORKING', color:'#5af28a' },
+    { id:'review',  label:'REVIEW',  color:'#ffb83a' },
+    { id:'done',    label:'DONE',    color:'#9b88b0' },
+  ];
+  DELIVERY_CARDS = [
+    { id:'msg-204', terminal:'orch',    col:'working', prio:'critical', type:'TASK',  title:'Resolve sigil collision in mesh router' },
+    { id:'msg-203', terminal:'orch',    col:'inbox',   prio:'high',     type:'PING',  title:'New planning item ready for review' },
+    { id:'msg-198', terminal:'kernel',  col:'working', prio:'high',     type:'TASK',  title:'Rebalance terminal allocation table' },
+    { id:'msg-197', terminal:'kernel',  col:'review',  prio:'medium',   type:'REVIEW',title:'Astral cache GC pass needs sign-off' },
+    { id:'msg-195', terminal:'fe',      col:'inbox',   prio:'medium',   type:'TASK',  title:'Rune dial accessibility audit' },
+    { id:'msg-193', terminal:'joinery', col:'done',    prio:'low',      type:'TASK',  title:'Hardwood card frame tuning' },
+    { id:'msg-191', terminal:'plan',    col:'working', prio:'high',     type:'TASK',  title:'Confidence score calibration' },
+    { id:'msg-189', terminal:'plan',    col:'inbox',   prio:'critical', type:'PING',  title:'Root requested priority sweep' },
+    { id:'msg-187', terminal:'ops',     col:'review',  prio:'high',     type:'REVIEW',title:'Storm channel throughput report' },
+    { id:'msg-185', terminal:'ops',     col:'working', prio:'medium',   type:'TASK',  title:'Edge node failover drill' },
+  ];
+
+  buildKanban() {
+    const R = React.createElement;
+    const empty = this.state.empty;
+    const totalDisc = empty ? 0 : Object.values(this.DISC_CARDS).reduce((a,b)=>a+b.length,0);
+    const totalDel  = empty ? 0 : this.DELIVERY_CARDS.length;
+
+    const header = R('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }},
+      R('div', { style:{ display:'flex', alignItems:'baseline', gap:10 }},
+        R('div', { style:{ fontFamily:"'Chakra Petch',sans-serif", fontSize:18, letterSpacing:'.22em', fontWeight:700, color:'#f4ebd0' }}, 'FLOW MATRIX'),
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, letterSpacing:'.25em', color:'#7b6a99' }}, '// DISCOVERY + DELIVERY · DUAL TRACK'),
+      ),
+      R('div', { style:{ display:'flex', gap:10 }},
+        this.metricChip('DISCOVERY WIP', totalDisc, '#a78bfa'),
+        this.metricChip('DELIVERY WIP',  totalDel,  '#5ee5ff'),
+        this.metricChip('SESSIONS',      empty ? 0 : 11, '#5af28a'),
+      ),
+    );
+
+    const discoveryTrack = R('div', { style:{
+      borderRadius:10, padding:'14px 14px 16px', marginBottom:12, position:'relative',
+      background:`
+        radial-gradient(ellipse 8px 4px at 92% 88%, rgba(20,15,30,.5), transparent 100%),
+        repeating-linear-gradient(94deg, rgba(0,0,0,.04) 0, rgba(0,0,0,.04) 1px, transparent 1px, transparent 4px),
+        linear-gradient(180deg, #6e6086 0%, #4d4262 100%)`,
+      boxShadow:'inset 0 1px 0 rgba(255,255,255,.18), inset 0 -2px 4px rgba(0,0,0,.45), 0 4px 10px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.5)',
+    }},
+      R('div', { style:{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }},
+        R('div', { style:{ width:6, height:20, background:'linear-gradient(180deg,#a78bfa,#5a3aa0)', borderRadius:2, boxShadow:'0 0 8px rgba(167,139,250,.85)' }}),
+        R('div', { style:{ fontFamily:"'Special Elite','Share Tech Mono',monospace", fontSize:13, letterSpacing:'.22em', fontWeight:700, color:'#1c1424', textShadow:'0 1px 0 rgba(255,255,255,.3),0 -1px 0 rgba(0,0,0,.35)' }}, 'DISCOVERY · PLANNING PIPELINE'),
+      ),
+      R('div', { style:{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:10 }},
+        this.DISCOVERY.map(s => this.discoveryColumn(s, empty))
+      ),
+    );
+
+    const deliveryTerms = ['kernel','orch','fe','joinery','plan','ops'];
+    const deliveryTrack = R('div', { style:{
+      borderRadius:10, padding:'14px 14px 16px', position:'relative',
+      background:`
+        radial-gradient(ellipse 8px 4px at 8% 92%, rgba(20,15,30,.5), transparent 100%),
+        repeating-linear-gradient(94deg, rgba(0,0,0,.04) 0, rgba(0,0,0,.04) 1px, transparent 1px, transparent 4px),
+        linear-gradient(180deg, #6e6086 0%, #4d4262 100%)`,
+      boxShadow:'inset 0 1px 0 rgba(255,255,255,.18), inset 0 -2px 4px rgba(0,0,0,.45), 0 4px 10px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.5)',
+    }},
+      R('div', { style:{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }},
+        R('div', { style:{ width:6, height:20, background:'linear-gradient(180deg,#5ee5ff,#0088a8)', borderRadius:2, boxShadow:'0 0 8px rgba(94,229,255,.85)' }}),
+        R('div', { style:{ fontFamily:"'Special Elite','Share Tech Mono',monospace", fontSize:13, letterSpacing:'.22em', fontWeight:700, color:'#1c1424', textShadow:'0 1px 0 rgba(255,255,255,.3),0 -1px 0 rgba(0,0,0,.35)' }}, 'DELIVERY · EXECUTION PIPELINE'),
+      ),
+      R('div', { style:{ display:'grid', gridTemplateColumns:'120px repeat(4,1fr)', gap:10, marginBottom:8 }},
+        R('div', null),
+        ...this.DELIVERY_COLS.map(c => R('div', { key:c.id, style:{
+          fontFamily:"'Share Tech Mono',monospace", fontSize:10, letterSpacing:'.25em', color:c.color, textAlign:'center', padding:'6px 0',
+          background:'#06040c', borderRadius:4, border:'1px solid #02050a',
+          boxShadow:'inset 0 2px 4px rgba(0,0,0,.7)', textShadow:`0 0 7px ${c.color}88`,
+        }}, c.label))
+      ),
+      empty
+        ? R('div', { style:{ minHeight:220, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10, border:'1px dashed #2a1d3a', borderRadius:8, background:'#08060f', boxShadow:'inset 0 0 50px rgba(255,82,214,.05)' }},
+            R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:46, color:'#3a2b4a', animation:'runeFloat 4s ease-in-out infinite' }}, '⫴'),
+            R('div', { style:{ fontFamily:"'Chakra Petch',sans-serif", fontSize:14, letterSpacing:'.22em', color:'#5a4a7a', fontWeight:600 }}, 'PIPELINE EMPTY'),
+            R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, letterSpacing:'.2em', color:'#3a2b4a' }}, 'no cards in flight'),
+          )
+        : R('div', null, deliveryTerms.map(tid => this.swimlane(tid))),
+    );
+
+    return R('div', null, header, discoveryTrack, deliveryTrack);
+  }
+
+  metricChip(label, val, color) {
+    const R = React.createElement;
+    return R('div', { style:{
+      display:'flex', alignItems:'center', gap:8, padding:'5px 11px 5px 9px',
+      background:'#06040c', border:'1px solid #1a1322', borderRadius:5,
+      boxShadow:'inset 0 1px 3px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.04)',
+    }},
+      R('div', { style:{ width:8, height:8, borderRadius:'50%',
+        background:`radial-gradient(circle at 35% 30%, ${this.lighten(color)} 0%, ${color} 40%, ${this.darken(color)} 100%)`,
+        boxShadow:`0 0 7px ${color}cc`, animation:'ledBreathe 2.8s ease-in-out infinite',
+      }}),
+      R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:9, letterSpacing:'.22em', color:'#b8a8d0' }}, label),
+      R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:14, color, textShadow:`0 0 7px ${color}aa` }}, val),
+    );
+  }
+
+  discoveryColumn(stage, empty) {
+    const R = React.createElement;
+    const cards = empty ? [] : (this.DISC_CARDS[stage.stage] || []);
+    return R('div', { key:stage.stage, style:{
+      borderRadius:6, padding:8, minHeight:200,
+      background:'linear-gradient(180deg,#0c0814 0%,#06040c 100%)',
+      border:'1px solid #02050a',
+      boxShadow:`inset 0 2px 6px rgba(0,0,0,.7), inset 0 0 18px ${stage.color}10, 0 0 0 1px ${stage.color}20`,
+    }},
+      R('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8, padding:'4px 7px', background:'#020205', borderRadius:4, boxShadow:'inset 0 1px 2px rgba(0,0,0,.7)' }},
+        R('div', { style:{ display:'flex', alignItems:'center', gap:6 }},
+          R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:13, color:stage.color, textShadow:`0 0 7px ${stage.color}aa` }}, stage.glyph),
+          R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:9, letterSpacing:'.22em', color:'#b8a8d0' }}, stage.label),
+        ),
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:stage.color, padding:'1px 7px', background:'#06040c', borderRadius:3, boxShadow:`inset 0 0 5px ${stage.color}33`, textShadow:`0 0 5px ${stage.color}99` }}, cards.length),
+      ),
+      R('div', { style:{ display:'flex', flexDirection:'column', gap:6 }},
+        cards.length
+          ? cards.map((c,i) => this.discoveryCard(c, stage.color, `${stage.stage}-${i}`))
+          : R('div', { style:{ padding:'18px 6px', fontFamily:"'Share Tech Mono',monospace", fontSize:9, letterSpacing:'.18em', color:'#3a2b4a', textAlign:'center', border:'1px dashed #1a1322', borderRadius:4 }}, '— no items —'),
+      ),
+    );
+  }
+
+  discoveryCard(c, color, id) {
+    const R = React.createElement;
+    const grabbed = this.state.cardGrabbed === `disc-${id}`;
+    const off = grabbed ? this.state.cardOffset : { x:0, y:0 };
+    return R('div', {
+      key:id, onMouseDown:this.grabCard(`disc-${id}`), onTouchStart:this.grabCard(`disc-${id}`),
+      style:{
+        position:'relative', borderRadius:5, padding:'8px 10px 8px 16px',
+        background:`
+          radial-gradient(ellipse 6px 3px at 90% 85%, rgba(20,15,30,.4), transparent 100%),
+          repeating-linear-gradient(94deg, rgba(0,0,0,.04) 0, rgba(0,0,0,.04) 1px, transparent 1px, transparent 4px),
+          linear-gradient(180deg, #877a9b 0%, #5b4e72 100%)`,
+        boxShadow: grabbed
+          ? `0 16px 26px rgba(0,0,0,.7), 0 0 0 1px ${color}cc, 0 0 26px ${color}99, inset 0 1px 0 rgba(255,255,255,.22)`
+          : `inset 0 1px 0 rgba(255,255,255,.18), inset 0 -1px 2px rgba(0,0,0,.4), 0 3px 6px rgba(0,0,0,.45), 0 0 0 1px ${color}33`,
+        cursor: grabbed ? 'grabbing' : 'grab', userSelect:'none',
+        transform: `translate(${off.x}px, ${off.y}px) ${grabbed ? 'scale(1.05) rotate(-1.2deg)' : ''}`,
+        transition: grabbed ? 'none' : 'transform .38s cubic-bezier(.34,1.56,.64,1), box-shadow .2s',
+        zIndex: grabbed ? 10 : 1,
+      }
+    },
+      R('div', { style:{ position:'absolute', left:5, top:7, bottom:7, width:3, background:`repeating-linear-gradient(180deg, ${color}cc 0px, ${color}cc 2px, transparent 2px, transparent 4px)`, borderRadius:1, opacity:.85, boxShadow:`0 0 5px ${color}88` }}),
+      R('div', { style:{ fontSize:12, color:'#1c1424', fontWeight:500, marginBottom:5, lineHeight:1.3, textShadow:'0 1px 0 rgba(255,255,255,.18)' }}, c.title),
+      R('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:6 }},
+        this.prioBadge(c.prio),
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:9, color:color, textShadow:`0 0 4px ${color}88`, padding:'1px 5px', background:'rgba(0,0,0,.35)', borderRadius:3 }}, `conf ${Math.round(c.conf*100)}%`),
+      ),
+    );
+  }
+
+  prioBadge(p) {
+    const R = React.createElement;
+    const map = { critical:'#ff5566', high:'#ff9a3a', medium:'#ffb83a', low:'#5ee5ff' };
+    const c = map[p] || '#9b88b0';
+    return R('div', { style:{
+      display:'inline-flex', alignItems:'center', gap:4, padding:'2px 7px',
+      background:`${c}22`, border:`1px solid ${c}77`, borderRadius:3,
+      fontFamily:"'Share Tech Mono',monospace", fontSize:8, letterSpacing:'.2em', color:c, textShadow:`0 0 4px ${c}88`,
+    }},
+      R('div', { style:{ width:5, height:5, borderRadius:'50%', background:c, boxShadow:`0 0 5px ${c}` }}),
+      p.toUpperCase(),
+    );
+  }
+
+  swimlane(tid) {
+    const R = React.createElement;
+    const t = this.TERMINALS.find(x => x.id === tid);
+    const cards = this.DELIVERY_CARDS.filter(c => c.terminal === tid);
+    return R('div', { key:tid, style:{ display:'grid', gridTemplateColumns:'120px repeat(4,1fr)', gap:10, marginBottom:8, alignItems:'stretch' }},
+      R('div', { style:{
+        borderRadius:6, padding:'8px 10px',
+        background:`
+          repeating-linear-gradient(94deg, rgba(0,0,0,.04) 0, rgba(0,0,0,.04) 1px, transparent 1px, transparent 4px),
+          linear-gradient(180deg, #877a9b 0%, #5b4e72 100%)`,
+        boxShadow:'inset 0 1px 0 rgba(255,255,255,.2), inset 0 -1px 2px rgba(0,0,0,.4), 0 2px 5px rgba(0,0,0,.4)',
+        display:'flex', flexDirection:'column', gap:4,
+      }},
+        R('div', { style:{ display:'flex', alignItems:'center', gap:5 }},
+          R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:12, color:'#ff52d6', textShadow:'0 0 6px rgba(255,82,214,.7),0 1px 0 rgba(0,0,0,.4)' }}, t.sigil),
+          R('div', { style:{ fontFamily:"'Special Elite','Share Tech Mono',monospace", fontSize:11, letterSpacing:'.18em', fontWeight:700, color:'#1c1424', textShadow:'0 1px 0 rgba(255,255,255,.25)' }}, t.label),
+        ),
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:8, letterSpacing:'.18em', color:'#2a2238' }}, `${cards.length} cards · ${t.aspect}`),
+      ),
+      ...this.DELIVERY_COLS.map(col => {
+        const list = cards.filter(c => c.col === col.id);
+        return R('div', { key:col.id, style:{
+          borderRadius:5, padding:6, minHeight:60,
+          background:'linear-gradient(180deg,#0c0814 0%,#06040c 100%)',
+          border:'1px solid #02050a',
+          boxShadow:`inset 0 2px 5px rgba(0,0,0,.7), inset 0 0 12px ${col.color}08`,
+          display:'flex', flexDirection:'column', gap:5,
+        }},
+          list.length
+            ? list.map(c => this.deliveryCard(c, col.color))
+            : R('div', { style:{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Share Tech Mono',monospace", fontSize:9, color:'#3a2b4a', letterSpacing:'.18em' }}, '·'),
+        );
+      }),
+    );
+  }
+
+  deliveryCard(c, color) {
+    const R = React.createElement;
+    const grabbed = this.state.cardGrabbed === `del-${c.id}`;
+    const off = grabbed ? this.state.cardOffset : { x:0, y:0 };
+    return R('div', {
+      key:c.id, onMouseDown:this.grabCard(`del-${c.id}`), onTouchStart:this.grabCard(`del-${c.id}`),
+      style:{
+        position:'relative', borderRadius:4, padding:'6px 8px 6px 13px',
+        background:`
+          repeating-linear-gradient(94deg, rgba(0,0,0,.04) 0, rgba(0,0,0,.04) 1px, transparent 1px, transparent 4px),
+          linear-gradient(180deg, #877a9b 0%, #5b4e72 100%)`,
+        boxShadow: grabbed
+          ? `0 14px 22px rgba(0,0,0,.7), 0 0 0 1px ${color}cc, 0 0 22px ${color}99, inset 0 1px 0 rgba(255,255,255,.2)`
+          : `inset 0 1px 0 rgba(255,255,255,.18), inset 0 -1px 2px rgba(0,0,0,.4), 0 3px 5px rgba(0,0,0,.45), 0 0 0 1px ${color}33`,
+        cursor: grabbed ? 'grabbing' : 'grab', userSelect:'none',
+        transform: `translate(${off.x}px, ${off.y}px) ${grabbed ? 'scale(1.04) rotate(-.9deg)' : ''}`,
+        transition: grabbed ? 'none' : 'transform .38s cubic-bezier(.34,1.56,.64,1), box-shadow .2s',
+        zIndex: grabbed ? 10 : 1,
+      }
+    },
+      R('div', { style:{ position:'absolute', left:4, top:6, bottom:6, width:2, background:`repeating-linear-gradient(180deg, ${color}cc 0px, ${color}cc 2px, transparent 2px, transparent 4px)`, borderRadius:1, opacity:.85, boxShadow:`0 0 4px ${color}88` }}),
+      R('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:4, marginBottom:3 }},
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:8, letterSpacing:'.18em', color:'#2a2238' }}, c.id),
+        this.prioDot(c.prio),
+      ),
+      R('div', { style:{ fontSize:10.5, color:'#1c1424', fontWeight:500, lineHeight:1.25, textShadow:'0 1px 0 rgba(255,255,255,.15)' }}, c.title),
+    );
+  }
+
+  // ========================= PLANNING =========================
+  PLANNING_STAGES = [
+    { id:'idea',      label:'IDEAS',     glyph:'✦', color:'#5ee5ff', n: 12 },
+    { id:'selected',  label:'SELECTED',  glyph:'◈', color:'#a78bfa', n: 5  },
+    { id:'debate',    label:'DEBATE',    glyph:'⚡', color:'#ffb83a', n: 3  },
+    { id:'consensus', label:'CONSENSUS', glyph:'⏣', color:'#5af28a', n: 2  },
+    { id:'queue',     label:'QUEUE',     glyph:'⌬', color:'#ff52d6', n: 4  },
+  ];
+  PLANNING_ITEMS = [
+    { id:'p-098', status:'consensus', prio:'critical', title:'Queue depth alarm at 80% threshold',      segment:'INFRA', conf:.88 },
+    { id:'p-094', status:'debate',    prio:'high',     title:'Aether routing rewrite — three proposals',segment:'CORE',  conf:.54 },
+    { id:'p-091', status:'queue',     prio:'critical', title:'Root mailbox sweep automation',           segment:'OPS',   conf:.92 },
+    { id:'p-090', status:'selected',  prio:'high',     title:'Planning pipeline v2 architecture',       segment:'PLAN',  conf:.81 },
+    { id:'p-087', status:'selected',  prio:'medium',   title:'Sigil registry garbage collection pass',  segment:'CORE',  conf:.66 },
+    { id:'p-082', status:'idea',      prio:'high',     title:'Inbox triage assistant for unread queue', segment:'FE',    conf:.71 },
+    { id:'p-079', status:'idea',      prio:'medium',   title:'Astral cache prewarm on cold start',      segment:'CACHE', conf:.62 },
+    { id:'p-074', status:'idea',      prio:'low',      title:'Mesh handshake retry policy tuning',      segment:'MESH',  conf:.45 },
+    { id:'p-071', status:'queue',     prio:'high',     title:'Edge rune cache layer',                   segment:'EDGE',  conf:.79 },
+  ];
+
+  buildPlanning() {
+    const R = React.createElement;
+    const empty = this.state.empty;
+    const items = empty ? [] : this.PLANNING_ITEMS;
+
+    const header = R('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }},
+      R('div', { style:{ display:'flex', alignItems:'baseline', gap:10 }},
+        R('div', { style:{ fontFamily:"'Chakra Petch',sans-serif", fontSize:18, letterSpacing:'.22em', fontWeight:700, color:'#f4ebd0' }}, 'RITUAL CIRCLE'),
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, letterSpacing:'.25em', color:'#7b6a99' }}, '// 5-STAGE PLANNING PIPELINE'),
+      ),
+      R('div', { style:{ display:'flex', gap:10, fontFamily:"'Share Tech Mono',monospace", fontSize:10, letterSpacing:'.22em', color:'#b8a8d0' }},
+        R('div', { style:{ padding:'5px 10px', background:'#06040c', border:'1px solid #1a1322', borderRadius:4 }}, 'LAST SCAN 02:14 ago'),
+        R('div', { style:{ padding:'5px 10px', background:'#06040c', border:'1px solid #1a1322', borderRadius:4 }}, 'NEXT 27m'),
+      ),
+    );
+
+    // ─ gauges row
+    const gauges = R('div', { style:{
+      borderRadius:10, padding:'20px 16px 22px', marginBottom:12, position:'relative',
+      background:`
+        radial-gradient(ellipse 12px 5px at 15% 90%, rgba(20,15,30,.55), transparent 100%),
+        radial-gradient(ellipse 8px 3px at 88% 12%, rgba(20,15,30,.45), transparent 100%),
+        repeating-linear-gradient(94deg, rgba(0,0,0,.04) 0, rgba(0,0,0,.04) 1px, transparent 1px, transparent 4px),
+        linear-gradient(180deg, #8a7d9a 0%, #6a5d7e 55%, #4a3f5a 100%)`,
+      boxShadow:'inset 0 1px 0 rgba(255,255,255,.2), inset 0 -2px 4px rgba(0,0,0,.45), 0 4px 10px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.5)',
+      display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:14, alignItems:'end',
+    }},
+      this.PLANNING_STAGES.map((s,i) => this.planningGauge(s, empty ? 0 : s.n, i)),
+    );
+
+    // ─ items list
+    const filters = R('div', { style:{ display:'flex', gap:10, marginBottom:10, alignItems:'center' }},
+      R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, letterSpacing:'.25em', color:'#9b88b0' }}, 'FILTER //'),
+      ['ALL','CRITICAL','HIGH','MEDIUM','LOW'].map((f,i) =>
+        R('button', { key:f, style:{
+          padding:'4px 10px', borderRadius:3,
+          background: i===0 ? 'linear-gradient(180deg,#ff52d6,#a01088)' : '#06040c',
+          border: i===0 ? '1px solid rgba(255,82,214,.7)' : '1px solid #1a1322',
+          fontFamily:"'Share Tech Mono',monospace", fontSize:9, letterSpacing:'.22em', cursor:'pointer',
+          color: i===0 ? '#fff' : '#b8a8d0',
+          boxShadow: i===0 ? '0 0 12px rgba(255,82,214,.5), 0 1px 2px rgba(0,0,0,.5)' : 'inset 0 1px 2px rgba(0,0,0,.5)',
+          textShadow: i===0 ? '0 1px 0 rgba(0,0,0,.5)' : 'none',
+        }}, f)
+      )
+    );
+
+    const itemsList = items.length ? R('div', { style:{
+      borderRadius:10, padding:8, position:'relative',
+      background:`
+        repeating-linear-gradient(94deg, rgba(0,0,0,.04) 0, rgba(0,0,0,.04) 1px, transparent 1px, transparent 4px),
+        linear-gradient(180deg, #6e6086 0%, #4d4262 100%)`,
+      boxShadow:'inset 0 1px 0 rgba(255,255,255,.18), inset 0 -2px 4px rgba(0,0,0,.45), 0 4px 10px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.5)',
+    }},
+      R('div', { style:{ display:'flex', flexDirection:'column', gap:6 }},
+        items.map((it,i) => this.planningTicket(it, i)),
+      )
+    ) : R('div', { style:{
+      borderRadius:10, padding:'40px 16px', minHeight:240, position:'relative',
+      background:'linear-gradient(180deg,#1a1424 0%,#0e0a16 100%)',
+      border:'1px dashed #3a2b4a', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:14,
+      boxShadow:'inset 0 0 60px rgba(255,82,214,.05)',
+    }},
+      R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:64, color:'#3a2b4a', textShadow:'0 0 24px rgba(255,82,214,.35)', animation:'runeFloat 4s ease-in-out infinite' }}, '✦'),
+      R('div', { style:{ fontFamily:"'Chakra Petch',sans-serif", fontSize:16, letterSpacing:'.22em', color:'#7b6a99', fontWeight:600 }}, 'RITUAL DORMANT'),
+      R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, letterSpacing:'.18em', color:'#5a4a7a' }}, 'pipeline will generate ideas every 30m'),
+    );
+
+    return R('div', null, header, gauges, filters, itemsList);
+  }
+
+  planningGauge(s, val, idx) {
+    const R = React.createElement;
+    const max = 20;
+    const pct = Math.min(1, val / max);
+    const arc = -120 + 240 * pct; // sweep from -120° to +120°
+    const active = val > 0;
+    return R('div', { key:s.id, style:{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, position:'relative' }},
+      R('div', { style:{ position:'relative', width:140, height:88 }},
+        // gauge bezel
+        R('div', { style:{
+          position:'absolute', inset:0, borderRadius:'140px 140px 16px 16px / 100% 100% 16px 16px',
+          background:'radial-gradient(ellipse at 50% 100%, #1a1424 0%, #06040c 80%)',
+          boxShadow:'inset 0 3px 8px rgba(0,0,0,.85), inset 0 0 18px rgba(94,229,255,.06), 0 0 0 1px rgba(0,0,0,.5)',
+          overflow:'hidden',
+        }},
+          // tick arc background
+          R('svg', { viewBox:'0 0 140 88', style:{ position:'absolute', inset:0, width:'100%', height:'100%' }},
+            // outer arc
+            R('path', { d:'M 16 78 A 54 54 0 0 1 124 78', stroke:'#2a2336', strokeWidth:2, fill:'none', strokeLinecap:'round' }),
+            // colored arc
+            active ? R('path', {
+              d:'M 16 78 A 54 54 0 0 1 124 78',
+              stroke:s.color, strokeWidth:3, fill:'none', strokeLinecap:'round',
+              strokeDasharray:'170', strokeDashoffset: 170 - 170 * pct,
+              style:{ filter:`drop-shadow(0 0 6px ${s.color})` },
+            }) : null,
+            // ticks
+            ...Array.from({length:9}).map((_,i) => {
+              const a = (-120 + i * 30) * Math.PI / 180;
+              const x1 = 70 + 48 * Math.sin(a);
+              const y1 = 78 - 48 * Math.cos(a);
+              const x2 = 70 + 54 * Math.sin(a);
+              const y2 = 78 - 54 * Math.cos(a);
+              return R('line', { key:i, x1, y1, x2, y2, stroke:'#3a2b4a', strokeWidth:1 });
+            }),
+            // needle
+            active ? R('line', {
+              x1:70, y1:78,
+              x2: 70 + 44 * Math.sin(arc * Math.PI / 180),
+              y2: 78 - 44 * Math.cos(arc * Math.PI / 180),
+              stroke: s.color, strokeWidth:2.5, strokeLinecap:'round',
+              style:{ filter:`drop-shadow(0 0 6px ${s.color})` },
+            }) : null,
+            R('circle', { cx:70, cy:78, r:5, fill:'#1a1424', stroke:s.color, strokeWidth:1.5, style:{ filter:`drop-shadow(0 0 4px ${s.color})` } }),
+            R('circle', { cx:70, cy:78, r:2, fill: active ? s.color : '#3a2b4a' }),
+          ),
+        ),
+        // value readout
+        R('div', { style:{
+          position:'absolute', bottom:6, left:'50%', transform:'translateX(-50%)',
+          padding:'2px 10px',
+          background:'radial-gradient(ellipse at 50% 30%, #0a1822 0%, #03060a 100%)',
+          border:'1px solid #02050a', borderRadius:3,
+          boxShadow:'inset 0 1px 3px rgba(0,0,0,.9), inset 0 0 6px rgba(94,229,255,.08)',
+          fontFamily:"'Share Tech Mono',monospace", fontSize:16, color: active ? s.color : '#2a2336',
+          textShadow: active ? `0 0 6px ${s.color}cc` : 'none', letterSpacing:'.05em',
+        }}, String(val).padStart(2,'0')),
+      ),
+      // label plate
+      R('div', { style:{ display:'flex', alignItems:'center', gap:6, padding:'5px 12px', borderRadius:3,
+        background:'linear-gradient(180deg, rgba(255,255,255,.18), rgba(0,0,0,.15))',
+        boxShadow:'inset 0 1px 0 rgba(255,255,255,.3), 0 1px 2px rgba(0,0,0,.4)',
+      }},
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:13, color: active ? s.color : '#3a2b4a', textShadow: active ? `0 0 6px ${s.color}99` : 'none' }}, s.glyph),
+        R('div', { style:{ fontFamily:"'Special Elite','Share Tech Mono',monospace", fontSize:10, letterSpacing:'.22em', color:'#1c1424', textShadow:'0 1px 0 rgba(255,255,255,.3)' }}, s.label),
+      ),
+    );
+  }
+
+  planningTicket(it, idx) {
+    const R = React.createElement;
+    const stage = this.PLANNING_STAGES.find(s => s.id === it.status) || this.PLANNING_STAGES[0];
+    const grabbed = this.state.cardGrabbed === `plan-${it.id}`;
+    const off = grabbed ? this.state.cardOffset : { x:0, y:0 };
+    return R('div', {
+      key:it.id, onMouseDown:this.grabCard(`plan-${it.id}`), onTouchStart:this.grabCard(`plan-${it.id}`),
+      style:{
+        position:'relative', display:'grid', gridTemplateColumns:'14px 70px 90px 1fr 80px 70px', alignItems:'center', gap:10,
+        padding:'10px 14px 10px 22px', borderRadius:5,
+        background:`
+          radial-gradient(ellipse 10px 4px at 95% 80%, rgba(20,15,30,.4), transparent 100%),
+          repeating-linear-gradient(94deg, rgba(0,0,0,.04) 0, rgba(0,0,0,.04) 1px, transparent 1px, transparent 4px),
+          linear-gradient(180deg, #877a9b 0%, #5b4e72 100%)`,
+        boxShadow: grabbed
+          ? `0 14px 22px rgba(0,0,0,.7), 0 0 0 1px ${stage.color}cc, 0 0 24px ${stage.color}99, inset 0 1px 0 rgba(255,255,255,.22)`
+          : `inset 0 1px 0 rgba(255,255,255,.2), inset 0 -1px 2px rgba(0,0,0,.4), 0 3px 6px rgba(0,0,0,.45), 0 0 0 1px ${stage.color}33`,
+        cursor: grabbed ? 'grabbing' : 'grab', userSelect:'none',
+        transform: `translate(${off.x}px, ${off.y}px) ${grabbed ? 'scale(1.02) rotate(-.4deg)' : ''}`,
+        transition: grabbed ? 'none' : 'transform .38s cubic-bezier(.34,1.56,.64,1), box-shadow .2s',
+        zIndex: grabbed ? 10 : 1,
+      }
+    },
+      // left grip
+      R('div', { style:{ position:'absolute', left:7, top:6, bottom:6, width:4, background:`repeating-linear-gradient(180deg, ${stage.color}cc 0px, ${stage.color}cc 2px, transparent 2px, transparent 4px)`, borderRadius:1, opacity:.9, boxShadow:`0 0 6px ${stage.color}88` }}),
+      R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:'#2a2238', letterSpacing:'.1em' }}, it.id),
+      // status pill
+      R('div', { style:{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 7px', borderRadius:3, background:`${stage.color}26`, border:`1px solid ${stage.color}88`, fontFamily:"'Share Tech Mono',monospace", fontSize:9, letterSpacing:'.18em', color:stage.color, textShadow:`0 0 4px ${stage.color}99` }},
+        R('div', { style:{ width:6, height:6, borderRadius:'50%', background:stage.color, boxShadow:`0 0 6px ${stage.color}` }}),
+        stage.label
+      ),
+      // prio
+      this.prioBadge(it.prio),
+      // title
+      R('div', { style:{ fontSize:13, color:'#1c1424', fontWeight:500, lineHeight:1.3, textShadow:'0 1px 0 rgba(255,255,255,.18)' }}, it.title),
+      // segment chip
+      R('div', { style:{ fontFamily:"'Special Elite','Share Tech Mono',monospace", fontSize:9, letterSpacing:'.22em', color:'#1c1424', textShadow:'0 1px 0 rgba(255,255,255,.2)', textAlign:'center', padding:'2px 6px', borderRadius:3, background:'rgba(0,0,0,.15)', boxShadow:'inset 0 1px 2px rgba(0,0,0,.3)' }}, it.segment),
+      // confidence
+      R('div', { style:{ position:'relative', display:'flex', alignItems:'center', gap:6 }},
+        R('div', { style:{ flex:1, height:8, borderRadius:4, background:'radial-gradient(ellipse at 50% 30%, #0a1822 0%, #03060a 100%)', boxShadow:'inset 0 1px 3px rgba(0,0,0,.9)', overflow:'hidden', position:'relative' }},
+          R('div', { style:{ position:'absolute', inset:'1px 0 1px 1px', width:`${it.conf*100}%`, borderRadius:3, background:`linear-gradient(90deg, ${stage.color}55, ${stage.color})`, boxShadow:`0 0 7px ${stage.color}aa` }})
+        ),
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:stage.color, textShadow:`0 0 4px ${stage.color}88`, minWidth:30 }}, `${Math.round(it.conf*100)}%`),
+      ),
+    );
+  }
+
+  // ========================= PROJECTS =========================
+  PROJECTS = [
+    { id:'pr-12', name:'Astral Gateway',         status:'active',   prio:'high',     terminal:'kernel',  epic:'Connectivity', progress:.62, start:-1.2, end:2.4, tasks:'8/13' },
+    { id:'pr-11', name:'Rune Compiler v3',       status:'active',   prio:'critical', terminal:'plan',    epic:'Toolchain',    progress:.41, start:-.8,  end:3.1, tasks:'5/12' },
+    { id:'pr-10', name:'Joinery Hardwood Theme', status:'planning', prio:'medium',   terminal:'joinery', epic:'Visual',       progress:.08, start: .6,  end:3.4, tasks:'1/9'  },
+    { id:'pr-09', name:'Mesh Storm Failover',    status:'blocked',  prio:'critical', terminal:'mesh',    epic:'Reliability',  progress:.55, start:-1.5, end:1.2, tasks:'7/11' },
+    { id:'pr-08', name:'Sigil Registry',         status:'active',   prio:'high',     terminal:'kernel',  epic:'Toolchain',    progress:.78, start:-1.8, end: .8, tasks:'11/14' },
+    { id:'pr-07', name:'Root Mailbox Sweep',     status:'planning', prio:'critical', terminal:'ops',     epic:'Operations',   progress:0,   start: 1.0, end:3.8, tasks:'0/8'  },
+    { id:'pr-06', name:'Edge Rune Cache',        status:'active',   prio:'high',     terminal:'edge',    epic:'Performance',  progress:.34, start: .2,  end:4.0, tasks:'4/12' },
+    { id:'pr-05', name:'Cocoa Telemetry',        status:'done',     prio:'medium',   terminal:'data',    epic:'Observability',progress:1,   start:-1.9, end:-0.2,tasks:'9/9'  },
+  ];
+  STATUS_COLORS = { active:'#5af28a', planning:'#5ee5ff', blocked:'#ff5566', done:'#9b88b0' };
+
+  buildProjects() {
+    const R = React.createElement;
+    const empty = this.state.empty;
+    const projects = empty ? [] : this.PROJECTS;
+
+    const header = R('div', { style:{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }},
+      R('div', { style:{ display:'flex', alignItems:'baseline', gap:10 }},
+        R('div', { style:{ fontFamily:"'Chakra Petch',sans-serif", fontSize:18, letterSpacing:'.22em', fontWeight:700, color:'#f4ebd0' }}, 'LEY TIMELINE'),
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, letterSpacing:'.25em', color:'#7b6a99' }}, '// 8-MONTH GANTT · −2 / +6'),
+      ),
+      R('div', { style:{ display:'flex', gap:8, alignItems:'center' }},
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, letterSpacing:'.22em', color:'#9b88b0' }}, 'SCALE'),
+        ['WEEK','MONTH','QUARTER'].map((sc,i) =>
+          R('button', { key:sc, style:{
+            padding:'4px 10px', borderRadius:3,
+            background: i===1 ? 'linear-gradient(180deg,#ff52d6,#a01088)' : '#06040c',
+            border: i===1 ? '1px solid rgba(255,82,214,.7)' : '1px solid #1a1322',
+            fontFamily:"'Share Tech Mono',monospace", fontSize:9, letterSpacing:'.22em',
+            color: i===1 ? '#fff' : '#b8a8d0', cursor:'pointer',
+            boxShadow: i===1 ? '0 0 12px rgba(255,82,214,.5)' : 'inset 0 1px 2px rgba(0,0,0,.5)',
+            textShadow: i===1 ? '0 1px 0 rgba(0,0,0,.5)' : 'none',
+          }}, sc)
+        )
+      ),
+    );
+
+    if (empty) {
+      return R('div', null, header, R('div', { style:{
+        borderRadius:10, padding:'60px 16px', minHeight:360,
+        background:'linear-gradient(180deg,#1a1424 0%,#0e0a16 100%)',
+        border:'1px dashed #3a2b4a', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:14,
+        boxShadow:'inset 0 0 80px rgba(255,82,214,.05)',
+      }},
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:80, color:'#3a2b4a', textShadow:'0 0 30px rgba(255,82,214,.4)', animation:'runeFloat 4s ease-in-out infinite' }}, '⏃'),
+        R('div', { style:{ fontFamily:"'Chakra Petch',sans-serif", fontSize:18, letterSpacing:'.22em', color:'#7b6a99', fontWeight:600 }}, 'NO LEY LINES CHARTED'),
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, letterSpacing:'.18em', color:'#5a4a7a' }}, 'register a project to begin timeline tracking'),
+      ));
+    }
+
+    // legend
+    const legend = R('div', { style:{ display:'flex', gap:14, marginBottom:10, paddingLeft:4 }},
+      Object.entries(this.STATUS_COLORS).map(([k,c]) =>
+        R('div', { key:k, style:{ display:'flex', alignItems:'center', gap:5 }},
+          R('div', { style:{ width:9, height:9, borderRadius:'50%', background:`radial-gradient(circle at 35% 30%, ${this.lighten(c)} 0%, ${c} 40%, ${this.darken(c)} 100%)`, boxShadow:`0 0 6px ${c}aa` }}),
+          R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:9, letterSpacing:'.2em', color:'#9b88b0' }}, k.toUpperCase()),
+        )
+      )
+    );
+
+    // gantt scale: 8 months, today at slot 2
+    const months = ['MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const totalUnits = 8;
+    const todayUnit = 2;
+    const unitToPct = (u) => (u + totalUnits/4) / totalUnits * 100; // start at -2 → 0%, +6 → 100%
+
+    const gantt = R('div', { style:{
+      borderRadius:10, padding:'14px 0 16px', position:'relative',
+      background:`
+        repeating-linear-gradient(94deg, rgba(0,0,0,.04) 0, rgba(0,0,0,.04) 1px, transparent 1px, transparent 4px),
+        linear-gradient(180deg, #6e6086 0%, #4d4262 100%)`,
+      boxShadow:'inset 0 1px 0 rgba(255,255,255,.18), inset 0 -2px 4px rgba(0,0,0,.45), 0 4px 10px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.5)',
+    }},
+      // month header
+      R('div', { style:{ display:'grid', gridTemplateColumns:'240px 1fr', gap:0, marginBottom:8, padding:'0 14px' }},
+        R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:9, letterSpacing:'.25em', color:'#2a2238', alignSelf:'center' }}, 'PROJECT // STATUS'),
+        R('div', { style:{ position:'relative', display:'grid', gridTemplateColumns:`repeat(${totalUnits}, 1fr)`, background:'#06040c', borderRadius:4, boxShadow:'inset 0 2px 4px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.04)' }},
+          months.map((m,i) => R('div', { key:m, style:{
+            padding:'5px 0', textAlign:'center',
+            fontFamily:"'Share Tech Mono',monospace", fontSize:10, letterSpacing:'.2em', color:'#9b88b0',
+            borderRight: i < totalUnits-1 ? '1px solid #1a1322' : 'none',
+          }}, m)),
+          // today marker
+          R('div', { style:{
+            position:'absolute', top:-4, bottom:-4, left:`${todayUnit/totalUnits*100}%`,
+            width:2, background:'linear-gradient(180deg,#ff52d6,#a01088)',
+            boxShadow:'0 0 10px #ff52d6, 0 0 18px rgba(255,82,214,.6)',
+            zIndex:5,
+          }},
+            R('div', { style:{
+              position:'absolute', top:-14, left:'50%', transform:'translateX(-50%)',
+              padding:'2px 6px', borderRadius:3, background:'#ff52d6',
+              fontFamily:"'Share Tech Mono',monospace", fontSize:8, color:'#fff', letterSpacing:'.2em', whiteSpace:'nowrap', fontWeight:700,
+              textShadow:'0 1px 0 rgba(0,0,0,.4)', boxShadow:'0 0 10px #ff52d6, 0 2px 4px rgba(0,0,0,.4)',
+            }}, 'TODAY')
+          ),
+        ),
+      ),
+      // project rows
+      R('div', { style:{ display:'flex', flexDirection:'column' }},
+        projects.map((p,i) => this.ganttRow(p, i, unitToPct, todayUnit, totalUnits))
+      ),
+    );
+
+    return R('div', null, header, legend, gantt);
+  }
+
+  ganttRow(p, idx, unitToPct, todayUnit, totalUnits) {
+    const R = React.createElement;
+    const c = this.STATUS_COLORS[p.status];
+    const left = unitToPct(p.start);
+    const width = unitToPct(p.end) - left;
+    const grabbed = this.state.cardGrabbed === `proj-${p.id}`;
+    const off = grabbed ? this.state.cardOffset : { x:0, y:0 };
+    const term = this.TERMINALS.find(t => t.id === p.terminal);
+    return R('div', {
+      key:p.id, onMouseDown:this.grabCard(`proj-${p.id}`), onTouchStart:this.grabCard(`proj-${p.id}`),
+      style:{
+        display:'grid', gridTemplateColumns:'240px 1fr', gap:0, padding:'8px 14px',
+        background: idx % 2 === 0 ? 'rgba(0,0,0,.06)' : 'transparent',
+        borderTop:'1px solid rgba(0,0,0,.2)',
+        cursor: grabbed ? 'grabbing' : 'grab', userSelect:'none', position:'relative',
+        transform: `translate(${off.x}px, ${off.y}px) ${grabbed ? 'scale(1.005) rotate(-.2deg)' : ''}`,
+        transition: grabbed ? 'none' : 'transform .38s cubic-bezier(.34,1.56,.64,1)',
+        zIndex: grabbed ? 10 : 1,
+      }
+    },
+      // left info
+      R('div', { style:{ display:'flex', alignItems:'center', gap:8, paddingRight:14 }},
+        R('div', { style:{ width:9, height:9, borderRadius:'50%', background:`radial-gradient(circle at 35% 30%, ${this.lighten(c)} 0%, ${c} 40%, ${this.darken(c)} 100%)`, boxShadow:`0 0 7px ${c}cc`, flexShrink:0, animation:p.status==='active'||p.status==='blocked'?'ledBreathe 2.4s ease-in-out infinite':'none' }}),
+        R('div', { style:{ flex:1, minWidth:0 }},
+          R('div', { style:{ fontSize:12.5, fontWeight:600, color:'#1c1424', textShadow:'0 1px 0 rgba(255,255,255,.18)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}, p.name),
+          R('div', { style:{ display:'flex', gap:8, fontFamily:"'Share Tech Mono',monospace", fontSize:9, letterSpacing:'.18em', color:'#2a2238' }},
+            R('div', null, term ? term.sigil + ' ' + term.label : p.terminal.toUpperCase()),
+            R('div', null, '· ' + p.tasks),
+          )
+        )
+      ),
+      // bar track
+      R('div', { style:{ position:'relative', height:30, background:'#06040c', borderRadius:4, boxShadow:'inset 0 2px 4px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.04)' }},
+        // month grid
+        Array.from({length:totalUnits-1}).map((_,i) => R('div', { key:i, style:{
+          position:'absolute', top:0, bottom:0, left:`${(i+1)/totalUnits*100}%`, width:1,
+          background:'rgba(255,255,255,.04)',
+        }})),
+        // today marker line
+        R('div', { style:{
+          position:'absolute', top:-2, bottom:-2, left:`${todayUnit/totalUnits*100}%`, width:2,
+          background:'linear-gradient(180deg,#ff52d6,#a01088)',
+          boxShadow:'0 0 8px #ff52d6', zIndex:2,
+        }}),
+        // project bar
+        R('div', { style:{
+          position:'absolute', top:4, bottom:4, left:`${left}%`, width:`${width}%`,
+          borderRadius:3,
+          background:`
+            repeating-linear-gradient(94deg, rgba(255,255,255,.07) 0, rgba(255,255,255,.07) 2px, transparent 2px, transparent 5px),
+            linear-gradient(180deg, ${this.lighten(c)} 0%, ${c} 50%, ${this.darken(c)} 100%)`,
+          boxShadow: `inset 0 1px 0 rgba(255,255,255,.4), inset 0 -1px 1px rgba(0,0,0,.4), 0 0 10px ${c}55, 0 0 0 1px ${c}88`,
+          overflow:'hidden',
+        }},
+          // progress fill
+          R('div', { style:{
+            position:'absolute', inset:0, width:`${p.progress*100}%`,
+            background:`linear-gradient(180deg, ${c}, ${this.darken(c)})`,
+            boxShadow:`inset 0 0 8px ${this.lighten(c)}aa, 0 0 8px ${c}`,
+          }}),
+          // label inside bar
+          R('div', { style:{
+            position:'absolute', inset:0, display:'flex', alignItems:'center', padding:'0 8px',
+            fontFamily:"'Share Tech Mono',monospace", fontSize:9, letterSpacing:'.18em',
+            color:'#0a070f', textShadow:'0 1px 0 rgba(255,255,255,.3)', fontWeight:700,
+          }}, `${Math.round(p.progress*100)}%`),
+        ),
+      )
+    );
+  }
+
+  prioDot(p) {
+    const map = { critical:'#ff5566', high:'#ff9a3a', medium:'#ffb83a', low:'#5ee5ff' };
+    const c = map[p] || '#9b88b0';
+    return React.createElement('div', { style:{ width:7, height:7, borderRadius:'50%', background:`radial-gradient(circle at 35% 30%, ${this.lighten(c)} 0%, ${c} 40%, ${this.darken(c)} 100%)`, boxShadow:`0 0 6px ${c}cc, inset 0 -1px 1px rgba(0,0,0,.4)` }});
+  }
+
+  buildMini(label, val, color) {
+    const R = React.createElement;
+    return R('div', { style:{
+      background:'radial-gradient(ellipse at 50% 30%, #0a1822 0%, #03060a 100%)',
+      border:'1px solid #02050a', borderRadius:3, padding:'4px 7px',
+      boxShadow:'inset 0 1px 3px rgba(0,0,0,.9), inset 0 0 8px rgba(94,229,255,.05), 0 0 0 1px rgba(255,255,255,.05)',
+      display:'flex', alignItems:'baseline', justifyContent:'space-between', gap:4,
+    }},
+      R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:8, color:'#5a4a7a', letterSpacing:'.18em' }}, label),
+      R('div', { style:{ fontFamily:"'Share Tech Mono',monospace", fontSize:14, color, textShadow:`0 0 6px ${color}aa` }}, val),
+    );
+  }
+
+  renderVals() {
+    const s = this.state;
+    const cur = this.PAGES.find(p => p.id === s.page) || this.PAGES[0];
+    return {
+      isDesktop: !s.isMobile,
+      isMobile: s.isMobile,
+      isDashboard: s.page === 'dashboard',
+      isKanban:    s.page === 'kanban',
+      isPlanning:  s.page === 'planning',
+      isProjects:  s.page === 'projects',
+      snapPulse: s.snapPulse,
+      currentPageLabel: cur.label,
+      knobAngle: s.knobAngle,
+      emptySwitchJustify: s.empty ? 'flex-start' : 'flex-end',
+      headerDetents: this.buildHeaderDetents(),
+      statusLEDs: this.buildStatusLEDs(),
+      tickerItems: this.buildTicker(),
+      latency: 42,
+      uptime: '7d 04h',
+      lastSyncStr: this.fmtSync(s.now, s.lastSync),
+      toggleEmpty: this.toggleEmpty,
+      refresh: this.refresh,
+      dashboardPanel: this.buildDashboard(),
+      kanbanPanel: this.buildKanban(),
+      planningPanel: this.buildPlanning(),
+      projectsPanel: this.buildProjects(),
+      mobileShell: this.buildMobile(),
+    };
+  }
+}
+</script>
+</body>
+</html>

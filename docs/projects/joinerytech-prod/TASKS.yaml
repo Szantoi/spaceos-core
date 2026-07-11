@@ -1,0 +1,35 @@
+version: '1.0'
+project: joinerytech-prod
+created: '2026-07-02'
+updated: '2026-07-02'
+config:
+  default_model: sonnet
+  auto_dispatch: true
+  notify_telegram: true
+  retry_on_blocked: 3
+milestones:
+  - id: M1-FOUNDATION
+    name: Foundation - Auth + Core API
+    status: pending
+    blocked_by: []
+    tasks: []
+  - id: M2-CRM-CTRL
+    name: Phase 1 - CRM + Controlling
+    status: pending
+    blocked_by: []
+    tasks: []
+  - id: M3-HR-MAINT
+    name: Phase 2 - HR + Maintenance
+    status: pending
+    blocked_by: []
+    tasks: []
+  - id: M4-QA-EHS
+    name: Phase 3 - QA + EHS
+    status: pending
+    blocked_by: []
+    tasks: []
+  - id: M5-DMS-AI
+    name: Phase 4 - DMS + AI Workspace
+    status: pending
+    blocked_by: []
+    tasks: []

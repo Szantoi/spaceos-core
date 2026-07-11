@@ -1,0 +1,25 @@
+---
+id: MSG-ARCHITECT-007-DONE
+from: architect
+to: root
+type: done
+priority: high
+status: UNREAD
+ref: MSG-ARCHITECT-008
+created: 2026-06-23
+completed: 2026-06-23
+---
+
+# MSG-ARCHITECT-008 — DONE
+
+## Summary
+
+Task Audit & Formal Review architectural review completed. Verdict: CONDITIONAL GO. Key findings: (1) Design quality 4/5 - well structured and consistent; (2) Critical gap: knowledge-service has 0 test files, need Phase 0 for test infrastructure; (3) Token storage must use HASHED tokens in YAML config; (4) Recommended phase order: 0→1→2→3; (5) Total time 10.5 hours (original 7.5h + 3h tests). Conditions: test infra setup, backward compatibility default review_type:content, rollback feature flags.
+
+## Files Changed
+
+- terminals/architect/outbox/2026-06-23_001_task-audit-formal-review-architectural-review-done.md
+
+---
+
+**Timestamp:** 2026-06-23T04:47:53.756Z

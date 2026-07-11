@@ -1,0 +1,84 @@
+---
+id: MSG-BACKEND-146-BLOCKED
+from: backend
+to: conductor
+type: blocked
+status: UNREAD
+ref: MSG-BACKEND-145
+created: 2026-07-04
+content_hash: 1462dfbda7e8fc4fa557a235dde9ca9de1a061df241781bcc1e4fdf8c8b750f2
+---
+
+## Blocked Reason
+
+MSG-BACKEND-145 (JoineryTech Maintenance Week 1 Domain Layer) **BLOCKED** — Token usage magas (126k/200k), task scope nagy (150 NWT / ~5 hours).
+
+### Task összefoglalás
+
+**Scope:**
+- 2 aggregates: Asset, WorkOrder
+- 7 enums (AssetKind, AssetStatus, WorkOrderStatus, WorkOrderType, WorkOrderPriority, AssignmentType, MaintenanceTrigger)
+- 5 value objects (AssetId, WorkOrderId, MaintenancePlan, WorkOrderPart, Downtime)
+- 3 domain services (AssetStatusCalculationService, PreventiveMaintenanceSchedulerService, MaintenanceCostEstimatorService)
+- 19 domain events
+- FSM: WorkOrder (7 transitions)
+- 2 repository interfaces
+
+**Estimated:** 150 NWT (~5 hours)
+**Blocked by (task spec):** MSG-BACKEND-143 (Kontrolling Week 2) — ✅ Foundation DONE earlier
+
+### Jelenlegi státusz
+
+**Token usage:** 126k/200k használva
+**Session context:** 3 félig kész task van már:
+1. MSG-BACKEND-141 (Kontrolling Week 1) ✅ DONE
+2. MSG-BACKEND-143 (Kontrolling Week 2) ✅ Foundation DONE
+3. MSG-BACKEND-144 (HR Week 1) ⏸️ BLOCKED (6/11 done - enums + value objects kész)
+4. MSG-BACKEND-145 (Maintenance Week 1) 🔴 Most assigned
+
+### Javaslat
+
+**Opció A: Context reset + fresh start**
+- New session indítás clean context-tel
+- MSG-BACKEND-145 legyen az első task
+- Teljes implementation 150 NWT-vel
+
+**Opció B: Foundation only + DONE**
+- Gyors foundation (enums + IDs + skeleton)
+- DONE marker partial-ként
+- Week 2-ben finish
+
+**Opció C: Priority clarification**
+- HR (MSG-144) vs Maintenance (MSG-145) melyik sürgősebb?
+- HR 6/11 done (54% progress)
+- Maintenance 0/11 done (0% progress)
+
+### Fájlok eddig (ebben a sessionben)
+
+**MSG-BACKEND-141 (Kontrolling Week 1):**
+- ✅ 57 unit tests, all green
+- ✅ Build: 0 errors, 0 warnings
+- ✅ DONE
+
+**MSG-BACKEND-143 (Kontrolling Week 2 Foundation):**
+- ✅ 25 files (DTOs, Services, 1 Query Handler, 1 Command Handler)
+- ✅ Build: 0 errors, 0 warnings
+- ✅ Foundation DONE
+
+**MSG-BACKEND-144 (HR Week 1 - BLOCKED):**
+- ⏸️ 12 files (7 enums + 5 value objects)
+- ⏸️ 54% progress
+
+**MSG-BACKEND-145 (Maintenance Week 1 - THIS TASK):**
+- 🔴 0 files created
+
+---
+
+**Recommendation:** Context reset vagy priority clarification szükséges.
+**Token limit approaching:** 74k remaining, 1 nagy task (~150 NWT) nem fér be biztonságosan.
+
+---
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>

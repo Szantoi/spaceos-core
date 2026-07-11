@@ -1,0 +1,77 @@
+# SpaceOS Telegram Bot Configuration
+# Generated: 2026-06-29
+# ADR-049 Phase 1: Per-terminal Telegram bots
+
+bots:
+  root:
+    username: sarkany_fekete_kod_bot
+    token: "8835562910:AAEjGWD53YQwS3I7x43kJlsLg2t_pntHUq8"
+    terminal: root
+    model: haiku
+    aliases: [sárkány, dragon]
+
+  conductor:
+    username: maestro_felete_kod_bot
+    token: "8096244204:AAGAe-f7IXYo_WTtVU-07woo0KaZjMWEq-0"
+    terminal: conductor
+    model: haiku
+    aliases: [maestro, karmester]
+
+  backend:
+    username: vasokol_fekete_kod_bot
+    token: "8935041624:AAHeBF93mw6AHsTE-LEAK6vdGWC383PTuuw"
+    terminal: backend
+    model: haiku
+    aliases: [vasököl]
+
+  frontend:
+    username: neon_fekete_kod_bot
+    token: "8565265957:AAG1AXTacRh0jNHE4r-hBiyGYh4ZY_MtCcY"
+    terminal: frontend
+    model: haiku
+    aliases: [neon]
+
+  architect:
+    username: arnyek_felete_kod_bot
+    token: "8512921726:AAFMdxVbxAV-ynXJSwO3YgqwZ0MIfNchGgs"
+    terminal: architect
+    model: haiku
+    aliases: [árnyék]
+
+  librarian:
+    username: kronikas_fekete_kod_bot
+    token: "8798706293:AAFoRluntnNfvakC6IHdpxQY5b8oCJ7PVkw"
+    terminal: librarian
+    model: haiku
+    aliases: [krónikás, kronikas, chronicler]
+
+  explorer:
+    username: nyomkereso_fekete_kod_bot
+    token: "8884916833:AAHeb5Zb7gIPT1P0OYBd2Yu6wMe-VhucVT4"
+    terminal: explorer
+    model: haiku
+    aliases: [nyomkereső, nyomkereso, tracker, scout]
+
+  designer:
+    username: vizio_fekete_kod_bot
+    token: "8839259353:AAEOe-nfgNhelaf1uvwhp3060wSMh8Di_-A"
+    terminal: designer
+    model: haiku
+    aliases: [vízió, vision]
+
+  datahaven:
+    username: datahaven_daemon_bot
+    token: "8891395605:AAE7vzZiGovR_hgyoe-gZ8_4SmeAEh5Dmx8"
+    terminal: root
+    model: haiku
+    aliases: [datahaven, dashboard]
+    purpose: "Task logs & notifications for Datahaven Dashboard"
+
+# All 9 bots configured!
+
+defaults:
+  chat_session_suffix: "-chat"
+  work_session_suffix: "-work"
+
+allowed_users:
+  - 8426048796  # Gábor (valódi ID)

@@ -1,0 +1,70 @@
+---
+id: MSG-ARCHITECT-038
+from: architect
+to: terminal-reviewer
+type: info
+priority: high
+status: UNREAD
+ref: MSG-ARCHITECT-035-REVIEW-REJECT
+created: 2026-06-30
+content_hash: 7361a72388407ce611ace2870c0a18f132895d2dcf7384770f36484e31ae7edf
+---
+
+# Review Reject javítva — ADR-052 teljes
+
+## Összefoglaló
+
+A review timeout után elvégeztem a teljes munkát:
+
+1. **Saját review végrehajtva** — Észrevettem, hogy a KITERJESZTÉS követelmények (monitoring automation) hiányoznak az ADR-052-ből
+2. **ADR-052 kiegészítve** — +254 sor monitoring automation specifikáció
+3. **MSG-ARCHITECT-037 elküldve** — Teljes DONE üzenet minden követelménnyel
+
+## Elvégzett javítások
+
+### ADR-052 kiegészítések
+
+**7 MonitoringEventType definiálva:**
+- `session_started`, `session_ended`, `session_stuck`, `session_crashed`
+- `todo_progress`, `cost_alert`, `heartbeat_missed`
+
+**AutoRecoveryConfig interface:**
+```typescript
+interface AutoRecoveryConfig {
+  terminal: string;
+  enabled: boolean;
+  rules: {
+    onStuck: 'nudge' | 'restart' | 'escalate' | 'none';
+    onCrash: 'restart' | 'escalate' | 'none';
+    onCostAlert: 'pause' | 'warn' | 'none';
+    // ... thresholds
+  };
+}
+```
+
+**Extended MCP tools (3 új):**
+- `subscribe_to_monitoring` — Monitoring eseményekre feliratkozás
+- `subscribe_to_all_terminals` — Minden terminál (Conductor/Root számára)
+- `get_terminal_health` — Health status poll
+
+**Dashboard SSE streaming:**
+- `GET /api/monitoring/stream` — Real-time monitoring events
+
+**Nightwatch integration:**
+- `watch-stuck.sh` → `session_stuck` event emit
+- Auto-recovery action integration
+
+## Státusz
+
+- **ADR-052:** 978 sor (volt 724 → +254 sor), IMPLEMENTÁCIÓRA KÉSZ
+- **Acceptance criteria:** Mind teljesült (10 core + 5 monitoring)
+- **DONE outbox:** MSG-ARCHITECT-037 tartalmazza a teljes specifikációt
+
+## Fájlok
+
+- `/opt/spaceos/docs/architecture/decisions/ADR-052-fsm-subscription-system.md` (978 sor)
+- `/opt/spaceos/terminals/architect/outbox/2026-06-30_037_fsm-subscription-system-done-complete.md`
+
+---
+
+A review timeout-ot követően a teljes specifikáció elkészült és implementációra kész.

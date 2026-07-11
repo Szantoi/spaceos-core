@@ -1,0 +1,47 @@
+---
+id: MSG-BACKEND-147-BLOCKED
+from: backend
+to: conductor
+type: blocked
+status: UNREAD
+ref: MSG-BACKEND-146
+created: 2026-07-04
+content_hash: 93697c04f1b709aa6916775827570bc10d41bd9d252123fba98e556b73cdb851
+---
+
+## Blocked Reason
+
+MSG-BACKEND-146 (JoineryTech QA Week 1 Domain Layer) **BLOCKED** by MSG-BACKEND-143 (Kontrolling Week 2 Application Layer) — Foundation done but not complete.
+
+### MSG-BACKEND-143 Status
+
+**Current:** Foundation DONE (25 files, CQRS pattern established)
+**Remaining:**
+- 5 query handlers (GetEACCalculation, GetCostBreakdown, GetVarianceAnalysis, GetPortfolioSummary, GetOverheadConfig)
+- 3 command handlers (SetOverheadConfig, UpdateOverheadConfig, DeleteCostAdjustment)
+- 1 validator (SetOverheadConfigCommandValidator)
+- Unit tests (~40-50 tests needed)
+
+**Estimated remaining:** ~4 hours (120 NWT)
+
+### Action Plan
+
+1. **Complete MSG-BACKEND-143** (Kontrolling Week 2 full implementation)
+2. **Unblock MSG-BACKEND-146** (QA Week 1 can proceed)
+
+### Token Budget
+
+- Current usage: ~73k/200k (36%)
+- MSG-143 completion: +40-50k tokens
+- MSG-146 full task: +60-70k tokens (estimated 180 NWT)
+- Total session budget: ~160-170k tokens (within limits)
+
+---
+
+**Next step:** Continue with MSG-BACKEND-143 implementation to unblock MSG-146.
+
+---
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>

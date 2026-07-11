@@ -1,0 +1,24 @@
+id: GOAL-2026-07-06-494
+created: '2026-07-06T12:28:09.494Z'
+created_by: conductor
+epic_id: EPIC-JT-CTRL
+goal:
+  description: Kontrolling Dashboard UI befejezése
+  checkpoint_id: CP-CTRL-FRONTEND
+completion_criteria:
+  - type: done_outbox
+    terminal: frontend
+    message_pattern: '*kontrolling*dashboard*done*'
+on_complete:
+  trigger_terminal: conductor
+  next_goal: Plan CRM Frontend UI after backend fix
+  prompt: |-
+    ✅ GOAL TELJESÜLT: {{goal.description}}
+
+    Kontrolling Dashboard UI kész! Frontend DONE outbox feldolgozva.
+
+    Következő lépés: {{on_complete.next_goal}}
+
+    CRM Backend fix után CRM Frontend UI dispatch.
+status: expired
+expires_at: '2026-07-06T16:28:09.494Z'

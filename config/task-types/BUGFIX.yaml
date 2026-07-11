@@ -1,0 +1,37 @@
+type: BUGFIX
+description: "Bug fix, regression fix"
+strictness: high
+require_both: true
+
+criteria:
+  blocking:
+    - id: issue_reproducible
+      name: "Issue reprodukálható volt"
+      check: "manual"
+      weight: 10
+
+    - id: fix_verified
+      name: "Fix verified teszttel"
+      check: "manual"
+      weight: 10
+
+    - id: regression_test
+      name: "Regression teszt hozzáadva"
+      check: "manual"
+      weight: 8
+
+    - id: build_tests_green
+      name: "Build + tesztek zöldek"
+      check: "pnpm test --run || dotnet test"
+      weight: 10
+
+approval_threshold:
+  blocking_score: 36  # 95%
+  total_score: 38     # 95%
+
+escalation_policy:
+  max_attempts: 2
+  escalate_to: root
+  notify: telegram
+
+version: 1.0.0

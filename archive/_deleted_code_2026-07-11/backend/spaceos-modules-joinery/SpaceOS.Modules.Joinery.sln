@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceOS.Modules.Joinery.Domain", "SpaceOS.Modules.Joinery.Domain\SpaceOS.Modules.Joinery.Domain.csproj", "{508FDAC2-AA6A-4BFD-9616-BE8E8EF3C9BE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceOS.Modules.Joinery.Application", "SpaceOS.Modules.Joinery.Application\SpaceOS.Modules.Joinery.Application.csproj", "{A6E69C4F-4ED5-469E-8CF7-59B6B95E10C0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceOS.Modules.Joinery.Infrastructure", "SpaceOS.Modules.Joinery.Infrastructure\SpaceOS.Modules.Joinery.Infrastructure.csproj", "{0265FD95-994E-47D8-95F3-776C61D347AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceOS.Modules.Joinery.Api", "SpaceOS.Modules.Joinery.Api\SpaceOS.Modules.Joinery.Api.csproj", "{DCFD4240-301B-4262-9068-ED46DFC78595}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceOS.Modules.Joinery.Tests", "SpaceOS.Modules.Joinery.Tests\SpaceOS.Modules.Joinery.Tests.csproj", "{E9509E1C-6C00-4291-8E30-BC6EFE76A626}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{508FDAC2-AA6A-4BFD-9616-BE8E8EF3C9BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{508FDAC2-AA6A-4BFD-9616-BE8E8EF3C9BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{508FDAC2-AA6A-4BFD-9616-BE8E8EF3C9BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{508FDAC2-AA6A-4BFD-9616-BE8E8EF3C9BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6E69C4F-4ED5-469E-8CF7-59B6B95E10C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6E69C4F-4ED5-469E-8CF7-59B6B95E10C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6E69C4F-4ED5-469E-8CF7-59B6B95E10C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6E69C4F-4ED5-469E-8CF7-59B6B95E10C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0265FD95-994E-47D8-95F3-776C61D347AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0265FD95-994E-47D8-95F3-776C61D347AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0265FD95-994E-47D8-95F3-776C61D347AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0265FD95-994E-47D8-95F3-776C61D347AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCFD4240-301B-4262-9068-ED46DFC78595}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCFD4240-301B-4262-9068-ED46DFC78595}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCFD4240-301B-4262-9068-ED46DFC78595}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCFD4240-301B-4262-9068-ED46DFC78595}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9509E1C-6C00-4291-8E30-BC6EFE76A626}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9509E1C-6C00-4291-8E30-BC6EFE76A626}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9509E1C-6C00-4291-8E30-BC6EFE76A626}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9509E1C-6C00-4291-8E30-BC6EFE76A626}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

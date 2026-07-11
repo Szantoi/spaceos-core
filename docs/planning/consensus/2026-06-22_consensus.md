@@ -1,0 +1,202 @@
+```yaml
+---
+created: 2026-06-22
+plan_a: /opt/spaceos/docs/planning/plans/2026-06-22_plan-a.md
+plan_b: /opt/spaceos/docs/planning/plans/2026-06-22_plan-b.md
+status: ready_for_conductor
+---
+```
+
+# SpaceOS Konsenzus Implementációs Terv
+
+## Összefoglalás
+
+A terv a **Partner KPI Widget → QR ASN Tracking → Autonóm Kutatás** sorrendet követi, kombinálva Planner-A pragmatikus mock-first megközelítését Planner-B adatminőség-központú diagnosztikájával. Az első sprint (KPI Widget + adataudit) validálja a QR tracking szükségességét, majd kétfázisú QR implementáció következik (mock → production), végül kontextuális research triggers Q4-ben. Összbecslés: **8 nap** (6.5 nap core features + 1.5 nap adataudit/refinement).
+
+## Elfogadott prioritás sorrend
+
+1. **Partner KPI Widget + Adatminőség Audit** (2 nap) — mindkét tervező egyetért a prioritásban, kiegészítve B adatdiagnosztikai szemléletével
+2. **QR ASN Tracking Phase 1** (3 nap mock) — A mock-first approach kockázatcsökkentés
+3. **QR ASN Tracking Phase 2** (2 nap production API) — Hash security réteg bevezetése
+4. **Autonóm Kutatás - Feature Assistant** (Q4, ~2 nap) — Kontextuális triggers, nem globális bot
+
+## Backend szükségletek (összesített)
+
+### KPI Widget
+```
+GET /api/analytics/partners/:id/kpi?period=30d
+Response: {
+  onTimeDelivery: { value: 0.87, trend: -0.05, missing_data_count: 23 },
+  avgLeadTime: { days: 12, trend: -2 },
+  qualityRate: { value: 0.94, data_completeness: 0.77 }
+}
+```
+
+### QR ASN Tracking
+```
+Phase 1 (Mock):
+src/data/mock-asn.js
+└── generateASN(poId) → {asn, qrPayload, timestamp}
+
+Phase 2 (Production):
+POST /api/suppliers/asn/generate
+├── Request: { poId, items[], expectedDate }
+├── Response: { 
+      asn: "ASN-2026-0622-001",
+      qrPayload: "ASN|PO-12345|2026-06-25|sha256_hash",
+      printableUrl: "/print/asn/..." 
+    }
+
+POST /api/inbound/receipt/scan
+├── Request: { qrPayload, scannedBy, actualQuantity }
+├── Response: { 
+      valid: true, 
+      po: {...}, 
+      hashVerified: true,
+      nextAction: "QUANTITY_CONFIRM" 
+    }
+```
+
+**Adatmodell:**
+```javascript
+asn: {
+  id: "ASN-20260622-001",
+  poId: "PO-12345",
+  supplierId: "SUP-01",
+  expectedDate: "2026-06-25",
+  qrPayload: "ASN|PO|DATE|sha256(ASN+PO+DATE+SERVER_SECRET)",
+  status: "SHIPPED" | "RECEIVED" | "PENDING_SYNC",
+  offlineScannedAt?: timestamp  // for sync queue
+}
+```
+
+### Research Triggers (Q4)
+```
+POST /api/research/trigger
+Request: { 
+  feature: "asn_tracking", 
+  context: "scan_failure_rate: 0.15",
+  urgency: "high"
+}
+Response: { jobId, etaMinutes, notificationUrl }
+```
+
+## Frontend megközelítés (legjobb elemek)
+
+### KPI Widget
+```
+src/components/partners/
+├── PartnerKpiCard.jsx
+│   ├── Props: partnerId, dateRange
+│   ├── <Badge color="orange">⚠️ {missing_data_count} hiányzó adat</Badge>  // B ötlet
+│   ├── onClick(metric) → drill-down filtered OrdersTable
+│   └── useEffect: calculateKPIs(orders, filters)
+├── KpiCalculator.js  // Pure function
+├── DateRangePicker.jsx  // Újrahasználható, native <input type="date">
+└── DataQualityAlert.jsx  // Week 1 audit eredmény megjelenítés
+```
+
+**State management:** Component local state (useState), native date input MVP-hez.
+
+### QR ASN Tracking
+```
+src/components/suppliers/
+├── AsnGenerator.jsx
+│   ├── qrcode.react library (7KB)
+│   ├── Mock Phase: localStorage.setItem(`asn_${id}`, JSON.stringify(data))
+│   ├── Production Phase: backend hash validation
+│   └── Print button → PDF/shipping label
+│
+├── QrScanner.jsx
+│   ├── <input type="file" accept="image/*" capture="environment">  // Mobil camera
+│   ├── jsQR library decode
+│   ├── Offline-first: validateFromCache(payload) THEN backend
+│   └── Auto-match → ReceiptConfirmDialog
+│
+├── ReceiptConfirmDialog.jsx
+│   └── Quantity verification + notes
+│
+└── OfflineSyncQueue.jsx
+    ├── LocalStorage: pendingReceipts[]
+    ├── window.addEventListener('online', syncPending)
+    └── Sync status indicator
+
+src/lib/
+└── offline-asn.js
+    ├── validateFromCache(payload) → instant feedback
+    ├── queueForSync(receiptData)
+    └── syncPendingReceipts() → background POST
+```
+
+**Offline strategy (hibrid):**
+```javascript
+// Phase 1: LocalStorage cache csak
+const cachedAsn = localStorage.getItem(`asn_${asnId}`);
+if (cachedAsn) return JSON.parse(cachedAsn);
+
+// Phase 2: Hash pre-validation (client nem tárolja SECRET-et!)
+const [asn, po, date, hash] = payload.split('|');
+// Hash check MINDIG backend-en történik, de cache hit = instant UX
+```
+
+**UX Flow:**
+1. Supplier desktop: "Feladás" → ASN modal → QR generálás → Nyomtat
+2. Warehouse worker mobil: "Szkennelés" tab → Camera/upload → Dekódol → Cache hit OR backend call → "PO-12345, 20 db?" → Confirm
+3. Offline: Queue → Badge jelzi pending count → Auto-sync when online → Email notification
+
+## Amit Planner-A-tól veszünk át
+
+✅ **Mock-first stratégia** — Phase 1 `mock-asn.js` kockázatmentes fejlesztést biztosít backend késleltetés esetén  
+✅ **Native `<input type="date">`** — MVP-hez pragmatikus, library overhead elkerülése  
+✅ **LocalStorage offline queue** — egyszerű, tesztelhető, production-ready alapmegoldás  
+✅ **Component újrahasználhatóság** — DateRangePicker, OrdersTable reuse  
+✅ **Párhuzamos fejlesztés lehetősége** — KPI és QR Phase 1 nincs blokkolva egymás által  
+✅ **Realisztikus időbecslés** — 6.5 nap core + buffer ésszerű
+
+## Amit Planner-B-től veszünk át
+
+✅ **Adatminőség audit Week 1-ben** — `missing_data_count` badge validálja QR tracking ROI-t stakeholdereknek  
+✅ **Self-validating QR payload** — `ASN|PO|DATE|HASH` formátum offline security + self-documenting  
+✅ **Kontextuális research triggers** — Feature-specific, YAML-based, `on_error` frequency intelligensebb mint globális bot  
+✅ **Diagnosztikai KPI szemlélet** — Widget nem csak output, hanem problémafeltárás  
+✅ **Hash security Phase 2-ben** — sha256 validáció production-ben kritikus manufacturing környezetben  
+✅ **Feedback loop fázisok között** — Week 1 audit eredménye befolyásolja Week 2 prioritásokat
+
+## Implementációs fázisok
+
+### Week 1: KPI Widget + Audit (2 nap)
+- **Day 1:** KPI komponensek, native date picker, calculator logic
+- **Day 1-2:** `sim.partners[].orders` adatminőség audit, missing data analízis
+- **Day 2:** DataQualityAlert komponens, stakeholder demo
+- **Output:** KPI dashboard + audit report (QR tracking justification)
+
+### Week 2: QR Phase 1 Mock (3 nap)
+- **Day 3:** `mock-asn.js`, LocalStorage cache strategy
+- **Day 4:** AsnGenerator komponens, qrcode.react integráció, print feature
+- **Day 5:** QrScanner mock (file upload), ReceiptConfirmDialog, offline queue UI
+- **Output:** End-to-end mock flow, warehouse demo-ready
+
+### Week 3: QR Phase 2 Production (2 nap)
+- **Day 6:** Backend API (`/asn/generate`, `/receipt/scan`), sha256 hash implementáció
+- **Day 7:** Frontend → backend integráció, hash validation, sync mechanism
+- **Output:** Production-ready QR tracking
+
+### Q4: Research Assistant (2 nap)
+- **TBD:** YAML triggers config, per-feature research mode, Haiku integration
+- **Trigger:** Production metrics (scan failure rate, KPI data gaps) alapján
+
+## Nyitott kérdések a Conductor-nak
+
+1. **Backend kapacitás:** Van-e dedikált backend resource Week 3-ra, vagy Phase 2 csúszik? (Mock addig is működik)
+
+2. **Adataudit scope:** Week 1 audit csak `sim.partners[].orders` vagy teljes Doorstar history? (Időbecslés +1 nap lehet)
+
+3. **QR SECRET kezelés:** Server-side SECRET rotációs policy szükséges? (Security best practice, de +0.5 nap)
+
+4. **Research triggers approval:** Q4 feature-assistant infrastruktúra költségvetés jóváhagyva? (Haiku API usage)
+
+5. **Mobil device support:** Céleszközök specifikációja? (Camera API compatibility, iOS/Android fallback stratégia)
+
+6. **Offline sync konfliktus:** Mi történik ha két worker ugyanazt az ASN-t szkenneli offline? (Last-write-wins vs merge strategy)
+
+7. **Stakeholder demo timing:** Week 1 audit után egyeztetés szükséges QR scope finomításhoz, vagy auto-proceed Phase 1-re?

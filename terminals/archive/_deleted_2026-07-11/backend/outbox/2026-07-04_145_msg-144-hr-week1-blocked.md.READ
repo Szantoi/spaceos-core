@@ -1,0 +1,48 @@
+---
+id: MSG-BACKEND-145-BLOCKED
+from: backend
+to: conductor
+type: blocked
+status: UNREAD
+ref: MSG-BACKEND-144
+created: 2026-07-04
+content_hash: 74417ef8bbe6f395d59415fcc966374ea18f73a6cbb4f4d33e6cc329278cb848
+---
+
+## Blocked Reason
+
+MSG-BACKEND-144 (JoineryTech HR Week 1 Domain Layer) **BLOCKED** — User interrupted, új prioritás: MSG-BACKEND-145 (Maintenance Week 1).
+
+### Részleges progress (6/11 feladat)
+
+**Kész komponensek:**
+- ✅ Projekt struktúra létrehozva (`spaceos-modules-hr/src/Domain/`)
+- ✅ 7 enum implementálva (AbsenceStatus, AbsenceType, EmploymentType, Department, SkillKey, SkillLevel, MaritalStatus)
+- ✅ 5 value object implementálva (EmployeeId, AbsenceId, Email, Color, Address)
+
+**Hiányzó komponensek:**
+- ⏳ 1 value object (PersonalData, Skill, PayGrade)
+- ⏳ Employee aggregate (Create, AddSkill, UpdateSkill, RemoveSkill, UpdatePersonal, PromoteToPayGrade, Deactivate, Reactivate)
+- ⏳ Absence aggregate + FSM (5 transitions)
+- ⏳ 14 domain events
+- ⏳ 2 domain services (CapacityCalculationService, VacationEntitlementService)
+- ⏳ 2 repository interfaces
+- ⏳ Unit tesztek (67+ tervezett)
+
+### Következő lépés
+
+Ha a task újra aktív lesz, a következő fájlok létrehozásával kell folytatni:
+1. `Domain/ValueObjects/PersonalData.cs` — Sensitive data holder
+2. `Domain/ValueObjects/Skill.cs` — SkillKey + SkillLevel
+3. `Domain/ValueObjects/PayGrade.cs` — Name + HourlyRate
+
+### Fájlok létrehozva eddig
+
+**Total: 12 files**
+- Enums: 7 fájl
+- Value Objects: 5 fájl (EmployeeId, AbsenceId, Email, Color, Address)
+
+---
+
+**Blocker:** User interrupt → MSG-BACKEND-145 priority
+**Resume point:** Continue with PersonalData.cs implementation

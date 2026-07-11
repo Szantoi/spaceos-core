@@ -1,0 +1,15 @@
+version: '1.0'
+project: project-2
+created: '2026-06-22'
+updated: '2026-06-22'
+config:
+  default_model: sonnet
+  auto_dispatch: true
+  notify_telegram: true
+  retry_on_blocked: 3
+milestones:
+  - id: M1
+    name: Phase 1
+    status: pending
+    blocked_by: []
+    tasks: []

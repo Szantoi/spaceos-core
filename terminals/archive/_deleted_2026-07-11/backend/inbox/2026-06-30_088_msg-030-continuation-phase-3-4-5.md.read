@@ -1,0 +1,344 @@
+---
+id: MSG-BACKEND-088
+from: conductor
+to: backend
+type: task
+priority: high
+status: UNREAD
+model: sonnet
+ref: MSG-BACKEND-030,MSG-BACKEND-081-PARTIAL,MSG-BACKEND-083
+created: 2026-06-30
+---
+
+# MSG-030 Continuation — Phase 3-4-5: Persistence + Domain Events
+
+## Kontextus
+
+MSG-030 (Quote Request API) **Phase 1-2 approved** (40% complete, MSG-081).
+
+**Most következik:** Phase 3-4-5 implementation — persistence, domain events, integration tests.
+
+**Blocker feloldás:** MSG-031 (Email Notification) ezen a taskon múlik.
+
+---
+
+## Phase 3-4-5 Requirements
+
+### Phase 3: Database Persistence ✅
+
+**Feladat:**
+1. Database migration:
+   ```sql
+   CREATE TABLE public_quote_requests (
+       id UUID PRIMARY KEY,
+       tenant_id UUID NOT NULL REFERENCES tenants(id),
+       customer_name VARCHAR(255) NOT NULL,
+       customer_email VARCHAR(255) NOT NULL,
+       customer_phone VARCHAR(50),
+       item_description TEXT NOT NULL,
+       quantity INTEGER NOT NULL,
+       tracking_token VARCHAR(50) UNIQUE NOT NULL,
+       status VARCHAR(50) NOT NULL, -- 'pending', 'quoted', 'accepted', 'rejected'
+       created_at TIMESTAMPTZ NOT NULL,
+       updated_at TIMESTAMPTZ NOT NULL,
+       INDEX idx_tenant_id (tenant_id),
+       INDEX idx_tracking_token (tracking_token),
+       INDEX idx_status (status)
+   );
+   ```
+
+2. Update `CreateQuoteRequestHandler`:
+   ```csharp
+   public async Task<Result<Guid>> Handle(CreateQuoteRequest request, CancellationToken ct)
+   {
+       // Validate tenant (✅ already implemented)
+       var tenant = await _tenantResolver.ResolveAsync(request.Subdomain, ct);
+
+       // Create entity (✅ already implemented)
+       var quoteRequest = PublicQuoteRequest.Create(...);
+
+       // ✅ NEW: Persist to database
+       await _repository.AddAsync(quoteRequest, ct);
+       await _unitOfWork.SaveChangesAsync(ct);
+
+       return Result.Success(quoteRequest.Id);
+   }
+   ```
+
+3. Repository implementation (`IPublicQuoteRequestRepository`):
+   ```csharp
+   public interface IPublicQuoteRequestRepository
+   {
+       Task<PublicQuoteRequest?> GetByIdAsync(Guid id, CancellationToken ct);
+       Task<PublicQuoteRequest?> GetByTrackingTokenAsync(string token, CancellationToken ct);
+       Task AddAsync(PublicQuoteRequest request, CancellationToken ct);
+       Task UpdateAsync(PublicQuoteRequest request, CancellationToken ct);
+   }
+   ```
+
+4. DbContext configuration:
+   ```csharp
+   public class AppDbContext : DbContext
+   {
+       public DbSet<PublicQuoteRequest> PublicQuoteRequests { get; set; }
+
+       protected override void OnModelCreating(ModelBuilder modelBuilder)
+       {
+           modelBuilder.Entity<PublicQuoteRequest>(entity =>
+           {
+               entity.ToTable("public_quote_requests");
+               entity.HasKey(e => e.Id);
+               entity.Property(e => e.TrackingToken).IsRequired();
+               entity.HasIndex(e => e.TrackingToken).IsUnique();
+               // ... more config
+           });
+       }
+   }
+   ```
+
+### Phase 4: Domain Events ✅
+
+**Feladat:** Implement domain event system for `QuoteRequestCreated`.
+
+**1. Domain Event:**
+```csharp
+// Domain/Events/QuoteRequestCreated.cs
+public record QuoteRequestCreated(
+    Guid QuoteId,
+    Guid TenantId,
+    string CustomerEmail,
+    string TrackingToken,
+    DateTime CreatedAt
+) : IDomainEvent;
+```
+
+**2. Aggregate Root (upgrade `PublicQuoteRequest`):**
+```csharp
+public class PublicQuoteRequest : AggregateRoot<Guid>
+{
+    // ... existing properties
+
+    public static PublicQuoteRequest Create(...)
+    {
+        var request = new PublicQuoteRequest { ... };
+
+        // Raise domain event
+        request.RaiseDomainEvent(new QuoteRequestCreated(
+            request.Id,
+            request.TenantId,
+            request.CustomerEmail,
+            request.TrackingToken,
+            request.CreatedAt
+        ));
+
+        return request;
+    }
+}
+```
+
+**3. Domain Event Dispatcher (infrastructure):**
+```csharp
+// Infrastructure/Events/DomainEventDispatcher.cs
+public class DomainEventDispatcher : IDomainEventDispatcher
+{
+    private readonly IServiceProvider _serviceProvider;
+
+    public async Task DispatchAsync(IDomainEvent domainEvent, CancellationToken ct)
+    {
+        var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEvent.GetType());
+        var handlers = _serviceProvider.GetServices(handlerType);
+
+        foreach (var handler in handlers)
+        {
+            await ((dynamic)handler).HandleAsync((dynamic)domainEvent, ct);
+        }
+    }
+}
+```
+
+**4. UnitOfWork integration:**
+```csharp
+public class UnitOfWork : IUnitOfWork
+{
+    private readonly AppDbContext _context;
+    private readonly IDomainEventDispatcher _eventDispatcher;
+
+    public async Task<int> SaveChangesAsync(CancellationToken ct)
+    {
+        // Collect domain events from aggregates
+        var domainEvents = _context.ChangeTracker
+            .Entries<AggregateRoot<Guid>>()
+            .SelectMany(e => e.Entity.DomainEvents)
+            .ToList();
+
+        // Save changes first
+        var result = await _context.SaveChangesAsync(ct);
+
+        // Dispatch events after successful save
+        foreach (var domainEvent in domainEvents)
+        {
+            await _eventDispatcher.DispatchAsync(domainEvent, ct);
+        }
+
+        return result;
+    }
+}
+```
+
+**5. DI registration:**
+```csharp
+services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+services.AddScoped<IUnitOfWork, UnitOfWork>();
+```
+
+### Phase 5: Integration Tests ✅
+
+**Feladat:** Integration tests for persistence + domain events.
+
+**Test 1: Persistence works**
+```csharp
+[Fact]
+public async Task CreateQuoteRequest_ShouldPersistToDatabase()
+{
+    // Arrange
+    var handler = new CreateQuoteRequestHandler(...);
+    var command = new CreateQuoteRequest("acme", "John", "john@acme.com", null, "Windows", 10);
+
+    // Act
+    var result = await handler.Handle(command, CancellationToken.None);
+
+    // Assert
+    result.IsSuccess.Should().BeTrue();
+    var saved = await _repository.GetByIdAsync(result.Value, CancellationToken.None);
+    saved.Should().NotBeNull();
+    saved.CustomerName.Should().Be("John");
+}
+```
+
+**Test 2: Domain event dispatched**
+```csharp
+[Fact]
+public async Task CreateQuoteRequest_ShouldDispatchQuoteRequestCreatedEvent()
+{
+    // Arrange
+    var eventHandlerMock = new Mock<IDomainEventHandler<QuoteRequestCreated>>();
+    var handler = new CreateQuoteRequestHandler(..., eventHandlerMock.Object);
+    var command = new CreateQuoteRequest("acme", "John", "john@acme.com", null, "Windows", 10);
+
+    // Act
+    var result = await handler.Handle(command, CancellationToken.None);
+
+    // Assert
+    eventHandlerMock.Verify(h => h.HandleAsync(
+        It.Is<QuoteRequestCreated>(e => e.QuoteId == result.Value),
+        It.IsAny<CancellationToken>()
+    ), Times.Once);
+}
+```
+
+**Test 3: End-to-end (API → persistence → event)**
+```csharp
+[Fact]
+public async Task POST_PublicQuoteRequest_ShouldPersistAndDispatchEvent()
+{
+    // Arrange
+    var client = _factory.CreateClient();
+    var request = new { subdomain = "acme", customerName = "John", ... };
+
+    // Act
+    var response = await client.PostAsJsonAsync("/api/public/quote-requests", request);
+
+    // Assert
+    response.StatusCode.Should().Be(HttpStatusCode.Created);
+    var quoteId = await response.Content.ReadFromJsonAsync<Guid>();
+
+    var saved = await _repository.GetByIdAsync(quoteId, CancellationToken.None);
+    saved.Should().NotBeNull();
+
+    // Verify event was dispatched (check email handler was called, etc.)
+}
+```
+
+---
+
+## Acceptance Criteria
+
+- [ ] Database migration executed (CREATE TABLE public_quote_requests)
+- [ ] Repository implemented (`IPublicQuoteRequestRepository`)
+- [ ] Handler persistence logic uncommented and working
+- [ ] `PublicQuoteRequest` upgraded to `AggregateRoot`
+- [ ] `QuoteRequestCreated` domain event raised
+- [ ] Domain event dispatcher implemented and registered
+- [ ] UnitOfWork dispatches events after save
+- [ ] 3 integration tests passing (persistence, event dispatch, end-to-end)
+- [ ] 0 build errors
+- [ ] MSG-031 (Email Notification) UNBLOCKED (can hook into `QuoteRequestCreated` event)
+
+---
+
+## Files to Modify/Create
+
+**New files:**
+```
+Domain/Events/QuoteRequestCreated.cs
+Domain/Events/IDomainEvent.cs
+Domain/Events/IDomainEventHandler.cs
+Infrastructure/Events/DomainEventDispatcher.cs
+Infrastructure/Persistence/Repositories/PublicQuoteRequestRepository.cs
+Infrastructure/Persistence/Configurations/PublicQuoteRequestConfiguration.cs
+Application.Tests/Integration/PublicQuoteRequestIntegrationTests.cs
+```
+
+**Modified files:**
+```
+Domain/Entities/PublicQuoteRequest.cs (upgrade to AggregateRoot)
+Application/Commands/CreateQuoteRequestHandler.cs (uncomment persistence)
+Infrastructure/Persistence/AppDbContext.cs (add DbSet, OnModelCreating)
+Infrastructure/Persistence/UnitOfWork.cs (dispatch events)
+Infrastructure/DependencyInjection.cs (register dispatcher, repository)
+```
+
+---
+
+## Dependencies
+
+**External packages (already in codebase):**
+- ✅ Entity Framework Core
+- ✅ PostgreSQL provider
+- ✅ Testcontainers (integration tests)
+
+**Pattern reference:**
+- See existing `CuttingQuoteRequest` aggregate for domain event pattern
+- See `IEmailService` for event handler example
+
+---
+
+## Timeline Estimate
+
+**Phase 3:** 1.5-2 hours (migration + persistence + repository)
+**Phase 4:** 2-2.5 hours (domain events + dispatcher + UnitOfWork)
+**Phase 5:** 1-1.5 hours (integration tests)
+
+**Total:** 4.5-6 hours
+
+---
+
+## Blocker Resolution
+
+**After MSG-032 completion:**
+- MSG-031 (Email Notification) UNBLOCKED → can implement `QuoteRequestCreatedEventHandler`
+- End-to-end flow working: API → persistence → event → email
+
+---
+
+## Notes
+
+- **No redesign needed** — follow existing patterns (`CuttingQuoteRequest` aggregate)
+- **Event-driven architecture** — proper CQRS/DDD pattern (no tight coupling)
+- **Testcontainers** — use for integration tests (same pattern as existing tests)
+
+---
+
+**Conductor**
+2026-06-30 07:03 UTC
+*Continuation task — MSG-030 Phase 3-4-5*

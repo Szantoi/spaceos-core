@@ -1,30 +1,33 @@
-# Planning Domain Fókusz
+---
+domain: joinerytech
+updated_at: '2026-07-01T14:00:00.000Z'
+---
 
-A Haiku scanner ezt a fájlt olvassa hogy tudja milyen szempontokat tartson szem előtt.
-Módosítható bármikor — a következő scan-futásnál életbe lép.
+## Aktuális Fókusz: JoineryTech + Datahaven Flow Migration
 
-## Aktív domain fókusz
+### Prioritások
 
-```
-domain: manufacturing
-```
+1. **EPIC-GRAPH-WORKFLOW befejezése** — Flow editor Datahaven-ben, majd átemelés JoineryTech-be
+2. **Cutting Q3** — Lapszabász modul: nesting, CNC integráció
+3. **Doorstar Soft Launch** — Első éles ügyfél előkészítés (2026 Q3 target)
 
-## Szempont lista
+### Aktív Epik-ek
 
-- **Felhasználói érték**: Milyen funkció segíti legjobban az asztalosipar napi munkáját?
-- **Backend kapcsolhatóság**: Van-e már meglévő endpoint ami még nincs bekötve a frontendbe?
-- **Iparági minták**: Mi az ami más ERP/MES rendszerekben standard, de SpaceOS-ben hiányzik?
-- **Mobil első**: A funkciónak működnie kell kis képernyőn a gyártócsarnoban is
-- **Offline tűrés**: Ha az internet kimegy a gyárban, a kritikus funkciók degradáltan működnek
+| Epic | Státusz | Target | Megjegyzés |
+|------|---------|--------|------------|
+| EPIC-GRAPH-WORKFLOW | 🔄 active | 2026-07-30 | Flow editor → JoineryTech migration |
+| EPIC-CUTTING-Q3 | 🔄 active | 2026-09-30 | Lapszabász modul |
+| EPIC-DOORSTAR-SOFTLAUNCH | ⏳ pending | 2026-09-30 | Első ügyfél |
 
-## Elérhető domain értékek
+### Befejezett Datahaven Epik-ek
 
-| Domain | Fókusz |
-|---|---|
-| `manufacturing` | Gyártás, műhely, gépek, munkalapok |
-| `sales` | CRM, ajánlatok, ügyfelek, előrejelzés |
-| `logistics` | Szállítás, raktár, készlet |
-| `finance` | Számlák, kifizetések, kontrolling |
-| `quality` | NCR, audit, minőségellenőrzés |
-| `hr` | Jelenléti, műszak, alkalmazottak |
-| `all` | Teljes rendszer áttekintés |
+| Epic | Státusz |
+|------|---------|
+| EPIC-NEXUS-V1 | ✅ done |
+| EPIC-DATAHAVEN-UI | ✅ done (5/5 checkpoint) |
+
+### Értékelési Kritériumok
+
+- **Üzleti érték**: Doorstar ügyfél igényeit szolgálja-e?
+- **Flow reusability**: Datahaven flow editor átültethető JoineryTech-be?
+- **Technikai megvalósíthatóság**: Meglévő Kernel/Orch API-kra épül?

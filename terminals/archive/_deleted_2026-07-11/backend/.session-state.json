@@ -1,0 +1,15 @@
+{
+  "epicId": "EPIC-NEXUS-V1",
+  "epicName": "Nexus Agent Infrastructure",
+  "epicProgress": 65,
+  "nextCheckpointId": "CP-NEXUS-PRODUCTION",
+  "nextCheckpointName": "Nexus Production Deployment",
+  "completedCheckpoints": [
+    "CP-KONTROLLING-WEEK3-PARTIAL",
+    "CP-FAIPAR-RAG-INDEXING"
+  ],
+  "lastTurnCount": 0,
+  "lastActiveTask": "MSG-BACKEND-185",
+  "savedAt": "2026-07-07T21:32:10.488Z",
+  "sessionId": "session-1783459253984-2zp8pl"
+}

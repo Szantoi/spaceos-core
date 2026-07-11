@@ -1,0 +1,2455 @@
+openapi: 3.1.0
+
+info:
+  title: JoineryTech Maintenance & Asset Management API
+  version: 1.0.0
+  description: |
+    Asset registry, work order management (FSM), preventive maintenance scheduling, downtime tracking.
+
+    **Key Features:**
+    - Asset lifecycle management (Machine, Vehicle, Tool, Infrastructure, IT, Room)
+    - Work order FSM (Reported -> Scheduled -> InProgress -> Completed)
+    - Preventive maintenance scheduling (time-based and usage-based triggers)
+    - Downtime blocking integration with Production module
+    - Parts consumption tracking integrated with Procurement module
+
+    **Domain Model:** MSG-ARCHITECT-047 (JoineryTech Maintenance Domain Model)
+    **Epic:** EPIC-JT-MAINT
+    **Contract-First Development:** This spec is locked before implementation to enable parallel Frontend/Backend development.
+  license:
+    name: Proprietary
+    url: https://joinerytech.hu/license
+  contact:
+    name: SpaceOS Engineering Team
+    email: engineering@joinerytech.hu
+
+servers:
+  - url: https://api.joinerytech.local
+    description: Local development
+  - url: https://api-staging.joinerytech.hu
+    description: Staging environment
+  - url: https://api.joinerytech.hu
+    description: Production environment
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Asset Management
+    description: Asset registry (CRUD, operating hours, retirement lifecycle)
+  - name: Work Orders
+    description: Work order management (CRUD, FSM transitions, parts consumption)
+  - name: Maintenance Plans
+    description: Preventive maintenance scheduling (time-based and usage-based triggers)
+  - name: Downtime Tracking
+    description: Downtime queries and production integration
+
+paths:
+  # ========================================
+  # ASSET MANAGEMENT
+  # ========================================
+
+  /api/maintenance/assets:
+    get:
+      summary: List assets
+      description: |
+        Retrieve a list of assets with optional filtering.
+
+        **Filters:**
+        - kind (Machine, Vehicle, Tool, Infrastructure, IT, Room)
+        - facilityId (facility UUID)
+        - status (Operational, UnderMaintenance, TemporarilyRetired, Retired)
+
+        **RBAC:** Requires `maintenance.view` permission
+      operationId: listAssets
+      tags:
+        - Asset Management
+      parameters:
+        - name: kind
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/AssetKind'
+        - name: facilityId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/AssetStatus'
+      responses:
+        '200':
+          description: List of assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssetDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Create asset
+      description: |
+        Register a new asset in the system.
+
+        **Asset Kinds:**
+        - Machine: Production machinery (linked to SHOPFLOOR_MACHINES)
+        - Vehicle: Logistics vehicles (linked to LOGISTICS_VEHICLES)
+        - Tool: Hand tools, power tools
+        - Infrastructure: Building infrastructure (HVAC, electrical)
+        - IT: Computers, servers, network equipment
+        - Room: Facility rooms (meeting rooms, storage)
+
+        **RBAC:** Requires `maintenance.manage` permission
+      operationId: createAsset
+      tags:
+        - Asset Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssetCommand'
+      responses:
+        '201':
+          description: Asset created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Asset code already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/assets/{assetId}:
+    get:
+      summary: Get asset by ID
+      description: |
+        Retrieve a single asset by ID.
+
+        **Includes:**
+        - Asset details
+        - Maintenance plans
+        - Operating hours history
+        - Current status
+        - Linked machine/vehicle ID (if applicable)
+
+        **RBAC:** Requires `maintenance.view` permission
+      operationId: getAssetById
+      tags:
+        - Asset Management
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Asset found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      summary: Update asset
+      description: |
+        Update asset details (partial updates allowed).
+
+        **Updateable Fields:**
+        - name, location, vendor, model
+        - NOT updateable: code, kind, facilityId (immutable)
+
+        **RBAC:** Requires `maintenance.manage` permission
+      operationId: updateAsset
+      tags:
+        - Asset Management
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAssetCommand'
+      responses:
+        '200':
+          description: Asset updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      summary: Delete asset
+      description: |
+        Soft-delete an asset.
+
+        **Validation:**
+        - Asset must not have active work orders
+        - Asset must be in Retired status
+
+        **RBAC:** Requires `maintenance.admin` permission
+      operationId: deleteAsset
+      tags:
+        - Asset Management
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Asset deleted
+        '400':
+          description: Asset has active work orders or not retired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/assets/{assetId}/record-hours:
+    post:
+      summary: Record operating hours
+      description: |
+        Record operating hours for an asset (usage-based maintenance trigger).
+
+        **Usage:**
+        - Machines: Production module records hours after job completion
+        - Vehicles: Logistics module records hours after shipment
+        - Tools: Manual entry
+
+        **Trigger:** May trigger overdue maintenance plans (OperatingHours trigger)
+
+        **RBAC:** Requires `maintenance.manage` permission
+      operationId: recordOperatingHours
+      tags:
+        - Asset Management
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordOperatingHoursCommand'
+      responses:
+        '200':
+          description: Operating hours recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/assets/{assetId}/retire:
+    post:
+      summary: Retire asset
+      description: |
+        Permanently retire an asset (terminal lifecycle state).
+
+        **Validation:**
+        - Asset must not have active work orders
+        - Asset status becomes Retired
+
+        **RBAC:** Requires `maintenance.admin` permission
+      operationId: retireAsset
+      tags:
+        - Asset Management
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Asset retired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDto'
+        '400':
+          description: Asset has active work orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/assets/{assetId}/reactivate:
+    post:
+      summary: Reactivate retired asset
+      description: |
+        Bring a retired asset back to operational status.
+
+        **Use Case:** Asset was temporarily retired, now back in service
+
+        **RBAC:** Requires `maintenance.admin` permission
+      operationId: reactivateAsset
+      tags:
+        - Asset Management
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Asset reactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDto'
+        '400':
+          description: Asset not retired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/assets/{assetId}/status:
+    get:
+      summary: Get asset status
+      description: |
+        Get current operational status of an asset.
+
+        **Status Calculation:**
+        - Operational: No active work orders, not retired
+        - UnderMaintenance: InProgress work order exists
+        - TemporarilyRetired: Temporarily out of service
+        - Retired: Permanently retired
+
+        **RBAC:** Requires `maintenance.view` permission
+      operationId: getAssetStatus
+      tags:
+        - Asset Management
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Asset status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetStatusDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ========================================
+  # WORK ORDERS
+  # ========================================
+
+  /api/maintenance/work-orders:
+    get:
+      summary: List work orders
+      description: |
+        Retrieve a list of work orders with optional filtering.
+
+        **Filters:**
+        - assetId (asset UUID)
+        - type (Corrective, Preventive, Cleaning)
+        - status (Reported, Scheduled, InProgress, Completed, Postponed, Rejected)
+        - priority (Critical, High, Medium, Low)
+        - assignedTechnicianId (technician UUID)
+        - startDate, endDate (date range)
+
+        **RBAC:** Requires `maintenance.view` permission
+      operationId: listWorkOrders
+      tags:
+        - Work Orders
+      parameters:
+        - name: assetId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/WorkOrderType'
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/WorkOrderStatus'
+        - name: priority
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/WorkOrderPriority'
+        - name: assignedTechnicianId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: List of work orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkOrderDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Create work order
+      description: |
+        Create a new work order (initial status: Reported).
+
+        **Types:**
+        - Corrective: Reactive maintenance (breakdown)
+        - Preventive: Scheduled preventive maintenance
+        - Cleaning: Routine cleaning
+
+        **Priorities:**
+        - Critical: Immediate attention (production stopped)
+        - High: Within 24 hours
+        - Medium: Within 3 days
+        - Low: Within 1 week
+
+        **RBAC:** Requires `maintenance.manage` permission
+      operationId: createWorkOrder
+      tags:
+        - Work Orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkOrderCommand'
+      responses:
+        '201':
+          description: Work order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/work-orders/{workOrderId}:
+    get:
+      summary: Get work order by ID
+      description: |
+        Retrieve a single work order by ID.
+
+        **Includes:**
+        - Work order details
+        - Parts list
+        - Downtime information
+        - Assignment details
+
+        **RBAC:** Requires `maintenance.view` permission
+      operationId: getWorkOrderById
+      tags:
+        - Work Orders
+      parameters:
+        - name: workOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Work order found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      summary: Update work order
+      description: |
+        Update work order details (partial updates allowed).
+
+        **Updateable Fields (Reported status only):**
+        - description, priority, requiresDowntime
+
+        **RBAC:** Requires `maintenance.manage` permission
+      operationId: updateWorkOrder
+      tags:
+        - Work Orders
+      parameters:
+        - name: workOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkOrderCommand'
+      responses:
+        '200':
+          description: Work order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Invalid FSM transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      summary: Delete work order
+      description: |
+        Soft-delete a work order (Reported status only).
+
+        **Validation:**
+        - Work order must be in Reported status
+
+        **RBAC:** Requires `maintenance.admin` permission
+      operationId: deleteWorkOrder
+      tags:
+        - Work Orders
+      parameters:
+        - name: workOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Work order deleted
+        '400':
+          description: Work order not in Reported status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ========================================
+  # WORK ORDER FSM TRANSITIONS
+  # ========================================
+
+  /api/maintenance/work-orders/{workOrderId}/schedule:
+    post:
+      summary: "Schedule work order (FSM: Reported -> Scheduled)"
+      description: |
+        Manager schedules work order and assigns technician.
+
+        **FSM Transition:** Reported -> Scheduled
+        **Validation:**
+        - Work order must be in Reported status
+        - Technician exists and has required skills
+        - Scheduled date >= today
+        - Estimated hours > 0
+
+        **RBAC:** Requires `maintenance.manage` permission
+      operationId: scheduleWorkOrder
+      tags:
+        - Work Orders
+      parameters:
+        - name: workOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleWorkOrderCommand'
+      responses:
+        '200':
+          description: Work order scheduled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Invalid FSM transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/work-orders/{workOrderId}/start:
+    post:
+      summary: "Start work order (FSM: Scheduled -> InProgress)"
+      description: |
+        Technician starts work on scheduled work order.
+
+        **FSM Transition:** Scheduled -> InProgress
+        **Validation:**
+        - Work order must be in Scheduled status
+        - Scheduled date reached
+        - Technician assigned
+
+        **Downtime:** If requiresDowntime=true, downtime begins (blocks production capacity)
+
+        **RBAC:** Requires `maintenance.technician` permission
+      operationId: startWorkOrder
+      tags:
+        - Work Orders
+      parameters:
+        - name: workOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartWorkOrderCommand'
+      responses:
+        '200':
+          description: Work order started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Invalid FSM transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/work-orders/{workOrderId}/complete:
+    post:
+      summary: "Complete work order (FSM: InProgress -> Completed)"
+      description: |
+        Technician completes work order and logs actual hours.
+
+        **FSM Transition:** InProgress -> Completed
+        **Validation:**
+        - Work order must be in InProgress status
+        - Actual hours > 0
+        - Work done description required
+
+        **Downtime:** If requiresDowntime=true, downtime ends (production capacity released)
+
+        **RBAC:** Requires `maintenance.technician` permission
+      operationId: completeWorkOrder
+      tags:
+        - Work Orders
+      parameters:
+        - name: workOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteWorkOrderCommand'
+      responses:
+        '200':
+          description: Work order completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Invalid FSM transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/work-orders/{workOrderId}/postpone:
+    post:
+      summary: "Postpone work order (FSM: Scheduled/InProgress -> Postponed)"
+      description: |
+        Manager postpones work order (reschedule needed).
+
+        **FSM Transition:** Scheduled -> Postponed OR InProgress -> Postponed
+        **Validation:**
+        - Work order must be in Scheduled or InProgress status
+        - Postpone reason required (min 10 chars)
+        - Rescheduled date > today
+
+        **Auto-Reopen:** When rescheduled date is reached, status changes to Reported
+
+        **RBAC:** Requires `maintenance.manage` permission
+      operationId: postponeWorkOrder
+      tags:
+        - Work Orders
+      parameters:
+        - name: workOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostponeWorkOrderCommand'
+      responses:
+        '200':
+          description: Work order postponed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Invalid FSM transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/work-orders/{workOrderId}/reject:
+    post:
+      summary: "Reject work order (FSM: Reported/Scheduled -> Rejected)"
+      description: |
+        Manager rejects work order (not executed).
+
+        **FSM Transition:** Reported -> Rejected OR Scheduled -> Rejected
+        **Validation:**
+        - Work order must be in Reported or Scheduled status
+        - Rejection reason required (min 10 chars)
+
+        **Auto-Reopen:** Rejected work orders can be manually reopened to Reported
+
+        **RBAC:** Requires `maintenance.manage` permission
+      operationId: rejectWorkOrder
+      tags:
+        - Work Orders
+      parameters:
+        - name: workOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectWorkOrderCommand'
+      responses:
+        '200':
+          description: Work order rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Invalid FSM transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ========================================
+  # WORK ORDER PARTS
+  # ========================================
+
+  /api/maintenance/work-orders/{workOrderId}/parts:
+    post:
+      summary: Add part to work order
+      description: |
+        Add a part to work order parts list.
+
+        **Procurement Integration:**
+        - partCode references Procurement.PartCode
+        - Stock is decremented when work order is completed
+
+        **RBAC:** Requires `maintenance.technician` permission
+      operationId: addWorkOrderPart
+      tags:
+        - Work Orders
+      parameters:
+        - name: workOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddWorkOrderPartCommand'
+      responses:
+        '200':
+          description: Part added to work order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/work-orders/{workOrderId}/parts/{partId}:
+    delete:
+      summary: Remove part from work order
+      description: |
+        Remove a part from work order parts list (InProgress status only).
+
+        **RBAC:** Requires `maintenance.technician` permission
+      operationId: removeWorkOrderPart
+      tags:
+        - Work Orders
+      parameters:
+        - name: workOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: partId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Part removed from work order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderDto'
+        '400':
+          description: Work order not in InProgress status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ========================================
+  # MAINTENANCE PLANS
+  # ========================================
+
+  /api/maintenance/assets/{assetId}/maintenance-plans:
+    get:
+      summary: List maintenance plans for asset
+      description: |
+        Retrieve all preventive maintenance plans for an asset.
+
+        **RBAC:** Requires `maintenance.view` permission
+      operationId: listMaintenancePlans
+      tags:
+        - Maintenance Plans
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of maintenance plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaintenancePlanDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Create maintenance plan
+      description: |
+        Create a preventive maintenance plan for an asset.
+
+        **Triggers:**
+        - Interval: Time-based (every N days)
+        - OperatingHours: Usage-based (every N operating hours)
+
+        **Kinds:**
+        - Preventive: Preventive maintenance
+        - Inspection: Periodic inspection
+
+        **RBAC:** Requires `maintenance.manage` permission
+      operationId: createMaintenancePlan
+      tags:
+        - Maintenance Plans
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMaintenancePlanCommand'
+      responses:
+        '201':
+          description: Maintenance plan created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenancePlanDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/assets/{assetId}/maintenance-plans/{planId}:
+    put:
+      summary: Update maintenance plan
+      description: |
+        Update maintenance plan details.
+
+        **Updateable Fields:**
+        - label, intervalDays, operatingHoursInterval
+
+        **RBAC:** Requires `maintenance.manage` permission
+      operationId: updateMaintenancePlan
+      tags:
+        - Maintenance Plans
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: planId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMaintenancePlanCommand'
+      responses:
+        '200':
+          description: Maintenance plan updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenancePlanDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      summary: Delete maintenance plan
+      description: |
+        Delete a preventive maintenance plan.
+
+        **RBAC:** Requires `maintenance.admin` permission
+      operationId: deleteMaintenancePlan
+      tags:
+        - Maintenance Plans
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: planId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Maintenance plan deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/maintenance-plans/due:
+    get:
+      summary: Get due maintenance plans
+      description: |
+        Retrieve all maintenance plans that are due within N days.
+
+        **Logic:**
+        - Interval trigger: (LastDone + IntervalDays) <= (Today + withinDays)
+        - OperatingHours trigger: (CurrentHours - LastDoneHours) >= (OperatingHoursInterval - threshold)
+
+        **RBAC:** Requires `maintenance.view` permission
+      operationId: getDueMaintenancePlans
+      tags:
+        - Maintenance Plans
+      parameters:
+        - name: withinDays
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 7
+          description: "Number of days to look ahead (default: 7)"
+      responses:
+        '200':
+          description: List of due maintenance plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DueMaintenancePlanDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/maintenance-plans/overdue:
+    get:
+      summary: Get overdue maintenance plans
+      description: |
+        Retrieve all maintenance plans that are overdue (past their due date).
+
+        **RBAC:** Requires `maintenance.view` permission
+      operationId: getOverdueMaintenancePlans
+      tags:
+        - Maintenance Plans
+      parameters: []
+      responses:
+        '200':
+          description: List of overdue maintenance plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DueMaintenancePlanDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ========================================
+  # DOWNTIME TRACKING
+  # ========================================
+
+  /api/maintenance/downtimes:
+    get:
+      summary: List downtimes
+      description: |
+        Retrieve all downtimes with optional filtering.
+
+        **Filters:**
+        - assetId (asset UUID)
+        - startDate, endDate (date range)
+
+        **RBAC:** Requires `maintenance.view` permission
+      operationId: listDowntimes
+      tags:
+        - Downtime Tracking
+      parameters:
+        - name: assetId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: List of downtimes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DowntimeDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/assets/{assetId}/downtimes:
+    get:
+      summary: List downtimes for asset
+      description: |
+        Retrieve all downtimes for a specific asset.
+
+        **RBAC:** Requires `maintenance.view` permission
+      operationId: listDowntimesForAsset
+      tags:
+        - Downtime Tracking
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of downtimes for asset
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DowntimeDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/downtimes/{year}/{month}:
+    get:
+      summary: Get downtime summary for month
+      description: |
+        Retrieve downtime summary for a specific month (all assets).
+
+        **RBAC:** Requires `maintenance.view` permission
+      operationId: getDowntimeSummaryForMonth
+      tags:
+        - Downtime Tracking
+      parameters:
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 2020
+            maximum: 2030
+        - name: month
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+      responses:
+        '200':
+          description: Downtime summary for month
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DowntimeSummaryDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/downtimes/active:
+    get:
+      summary: Get active downtimes (Production integration)
+      description: |
+        Retrieve all active downtimes (InProgress work orders with requiresDowntime=true).
+
+        **Production Integration:**
+        - Returns machineId for assets linked to production machines
+        - Production module blocks capacity for these machines
+
+        **RBAC:** Requires `maintenance.view` permission
+      operationId: getActiveDowntimes
+      tags:
+        - Downtime Tracking
+      parameters: []
+      responses:
+        '200':
+          description: List of active downtimes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActiveDowntimeDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ========================================
+# COMPONENTS
+# ========================================
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token (Bearer scheme)
+
+  # ========================================
+  # SCHEMAS - REQUEST DTOs (COMMANDS)
+  # ========================================
+
+  schemas:
+    CreateAssetCommand:
+      type: object
+      required:
+        - code
+        - name
+        - kind
+        - facilityId
+      properties:
+        code:
+          type: string
+          description: Unique asset code (e.g., "M-001", "V-042")
+          minLength: 1
+          maxLength: 50
+        name:
+          type: string
+          description: Asset name
+          minLength: 1
+          maxLength: 200
+        kind:
+          $ref: '#/components/schemas/AssetKind'
+        facilityId:
+          type: string
+          format: uuid
+          description: Facility UUID
+        location:
+          anyOf:
+            - type: string
+              maxLength: 200
+            - type: "null"
+          description: Physical location within facility
+        vendor:
+          anyOf:
+            - type: string
+              maxLength: 200
+            - type: "null"
+          description: Vendor/manufacturer
+        model:
+          anyOf:
+            - type: string
+              maxLength: 200
+            - type: "null"
+          description: Model/version
+        serialNumber:
+          anyOf:
+            - type: string
+              maxLength: 200
+            - type: "null"
+          description: Serial number
+        purchasedAt:
+          anyOf:
+            - type: string
+              format: date
+            - type: "null"
+          description: Purchase date
+        purchaseValue:
+          anyOf:
+            - type: number
+              minimum: 0
+            - type: "null"
+          description: Purchase value (HUF)
+        machineId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+          description: Link to Production SHOPFLOOR_MACHINES (if kind=Machine)
+        vehicleId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+          description: Link to Logistics VEHICLES (if kind=Vehicle)
+
+    UpdateAssetCommand:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        location:
+          anyOf:
+            - type: string
+              maxLength: 200
+            - type: "null"
+        vendor:
+          anyOf:
+            - type: string
+              maxLength: 200
+            - type: "null"
+        model:
+          anyOf:
+            - type: string
+              maxLength: 200
+            - type: "null"
+        serialNumber:
+          anyOf:
+            - type: string
+              maxLength: 200
+            - type: "null"
+
+    RecordOperatingHoursCommand:
+      type: object
+      required:
+        - hours
+        - recordedAt
+      properties:
+        hours:
+          type: number
+          minimum: 0
+          description: Operating hours to add
+        recordedAt:
+          type: string
+          format: date-time
+          description: Timestamp when hours were recorded
+
+    CreateWorkOrderCommand:
+      type: object
+      required:
+        - assetId
+        - type
+        - priority
+        - description
+        - requiresDowntime
+      properties:
+        assetId:
+          type: string
+          format: uuid
+          description: Asset UUID
+        type:
+          $ref: '#/components/schemas/WorkOrderType'
+        priority:
+          $ref: '#/components/schemas/WorkOrderPriority'
+        description:
+          type: string
+          minLength: 10
+          maxLength: 2000
+          description: Work order description
+        requiresDowntime:
+          type: boolean
+          description: If true, downtime blocks production capacity during InProgress status
+
+    UpdateWorkOrderCommand:
+      type: object
+      properties:
+        description:
+          type: string
+          minLength: 10
+          maxLength: 2000
+        priority:
+          $ref: '#/components/schemas/WorkOrderPriority'
+        requiresDowntime:
+          type: boolean
+
+    ScheduleWorkOrderCommand:
+      type: object
+      required:
+        - scheduledDate
+        - assignedTechnicianId
+        - estimatedHours
+      properties:
+        scheduledDate:
+          type: string
+          format: date
+          description: Scheduled work date
+        assignedTechnicianId:
+          type: string
+          format: uuid
+          description: Technician UUID (from HR module)
+        estimatedHours:
+          type: number
+          minimum: 0.5
+          maximum: 40
+          description: Estimated work hours
+
+    StartWorkOrderCommand:
+      type: object
+      required:
+        - startedAt
+      properties:
+        startedAt:
+          type: string
+          format: date-time
+          description: Work start timestamp
+        actualTechnicianId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+          description: Actual technician UUID (if different from assigned)
+
+    CompleteWorkOrderCommand:
+      type: object
+      required:
+        - completedAt
+        - actualHours
+        - workDone
+      properties:
+        completedAt:
+          type: string
+          format: date-time
+          description: Work completion timestamp
+        actualHours:
+          type: number
+          minimum: 0.1
+          description: Actual work hours
+        workDone:
+          type: string
+          minLength: 10
+          maxLength: 2000
+          description: Description of work done
+        nextInspectionDate:
+          anyOf:
+            - type: string
+              format: date
+            - type: "null"
+          description: Next inspection date (for Preventive work orders)
+
+    PostponeWorkOrderCommand:
+      type: object
+      required:
+        - postponeReason
+        - rescheduledDate
+      properties:
+        postponeReason:
+          type: string
+          minLength: 10
+          maxLength: 500
+          description: Reason for postponement
+        rescheduledDate:
+          type: string
+          format: date
+          description: Rescheduled work date
+
+    RejectWorkOrderCommand:
+      type: object
+      required:
+        - rejectionReason
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 10
+          maxLength: 500
+          description: Reason for rejection
+
+    AddWorkOrderPartCommand:
+      type: object
+      required:
+        - partCode
+        - quantity
+        - unitPrice
+        - source
+      properties:
+        partCode:
+          type: string
+          description: Part code (reference to Procurement.PartCode)
+          minLength: 1
+          maxLength: 100
+        quantity:
+          type: number
+          minimum: 0.01
+          description: Quantity used
+        unitPrice:
+          type: number
+          minimum: 0
+          description: Unit price (HUF)
+        source:
+          type: string
+          enum: [FromStock, Purchased, FromSupplier]
+          description: Part source
+
+    CreateMaintenancePlanCommand:
+      type: object
+      required:
+        - label
+        - kind
+        - trigger
+      properties:
+        label:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Plan label (e.g., "Monthly oil change")
+        kind:
+          $ref: '#/components/schemas/MaintenancePlanKind'
+        trigger:
+          $ref: '#/components/schemas/MaintenanceTrigger'
+        intervalDays:
+          anyOf:
+            - type: integer
+              minimum: 1
+            - type: "null"
+          description: Interval in days (for Interval trigger)
+        operatingHoursInterval:
+          anyOf:
+            - type: number
+              minimum: 1
+            - type: "null"
+          description: Operating hours interval (for OperatingHours trigger)
+
+    UpdateMaintenancePlanCommand:
+      type: object
+      properties:
+        label:
+          type: string
+          minLength: 1
+          maxLength: 200
+        intervalDays:
+          anyOf:
+            - type: integer
+              minimum: 1
+            - type: "null"
+        operatingHoursInterval:
+          anyOf:
+            - type: number
+              minimum: 1
+            - type: "null"
+
+  # ========================================
+  # SCHEMAS - RESPONSE DTOs
+  # ========================================
+
+    AssetDto:
+      type: object
+      required:
+        - assetId
+        - code
+        - name
+        - kind
+        - facilityId
+        - operatingHours
+        - status
+        - maintenancePlans
+      properties:
+        assetId:
+          type: string
+          format: uuid
+        code:
+          type: string
+          description: Unique asset code
+        name:
+          type: string
+          description: Asset name
+        kind:
+          $ref: '#/components/schemas/AssetKind'
+        facilityId:
+          type: string
+          format: uuid
+        location:
+          anyOf:
+            - type: string
+            - type: "null"
+        vendor:
+          anyOf:
+            - type: string
+            - type: "null"
+        model:
+          anyOf:
+            - type: string
+            - type: "null"
+        serialNumber:
+          anyOf:
+            - type: string
+            - type: "null"
+        purchasedAt:
+          anyOf:
+            - type: string
+              format: date
+            - type: "null"
+        purchaseValue:
+          anyOf:
+            - type: number
+            - type: "null"
+        operatingHours:
+          type: number
+          description: Total operating hours
+        machineId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+          description: Linked Production machine UUID
+        vehicleId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+          description: Linked Logistics vehicle UUID
+        status:
+          $ref: '#/components/schemas/AssetStatus'
+        maintenancePlans:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaintenancePlanDto'
+          description: Preventive maintenance plans for this asset
+
+    AssetStatusDto:
+      type: object
+      required:
+        - assetId
+        - status
+      properties:
+        assetId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/AssetStatus'
+        activeWorkOrderId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+          description: UUID of InProgress work order (if UnderMaintenance)
+        estimatedAvailableAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+          description: Estimated availability (if UnderMaintenance)
+
+    WorkOrderDto:
+      type: object
+      required:
+        - workOrderId
+        - assetId
+        - type
+        - priority
+        - status
+        - description
+        - requiresDowntime
+        - parts
+      properties:
+        workOrderId:
+          type: string
+          format: uuid
+        assetId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/WorkOrderType'
+        priority:
+          $ref: '#/components/schemas/WorkOrderPriority'
+        status:
+          $ref: '#/components/schemas/WorkOrderStatus'
+        description:
+          type: string
+        requiresDowntime:
+          type: boolean
+        assignedTechnicianId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        assignedTechnicianName:
+          anyOf:
+            - type: string
+            - type: "null"
+        scheduledDate:
+          anyOf:
+            - type: string
+              format: date
+            - type: "null"
+        estimatedHours:
+          anyOf:
+            - type: number
+            - type: "null"
+        startedAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        completedAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+        actualHours:
+          anyOf:
+            - type: number
+            - type: "null"
+        workDone:
+          anyOf:
+            - type: string
+            - type: "null"
+        nextInspectionDate:
+          anyOf:
+            - type: string
+              format: date
+            - type: "null"
+        postponeReason:
+          anyOf:
+            - type: string
+            - type: "null"
+        rescheduledDate:
+          anyOf:
+            - type: string
+              format: date
+            - type: "null"
+        rejectionReason:
+          anyOf:
+            - type: string
+            - type: "null"
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkOrderPartDto'
+          description: Parts used in this work order
+        downtime:
+          anyOf:
+            - $ref: '#/components/schemas/DowntimeDto'
+            - type: "null"
+          description: Downtime information (if requiresDowntime=true and status=InProgress/Completed)
+
+    WorkOrderPartDto:
+      type: object
+      required:
+        - partId
+        - partCode
+        - quantity
+        - unitPrice
+        - source
+      properties:
+        partId:
+          type: string
+          format: uuid
+        partCode:
+          type: string
+          description: Part code (Procurement reference)
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+          description: Unit price (HUF)
+        source:
+          type: string
+          enum: [FromStock, Purchased, FromSupplier]
+
+    MaintenancePlanDto:
+      type: object
+      required:
+        - planId
+        - assetId
+        - label
+        - kind
+        - trigger
+      properties:
+        planId:
+          type: string
+          format: uuid
+        assetId:
+          type: string
+          format: uuid
+        label:
+          type: string
+          description: Plan label
+        kind:
+          $ref: '#/components/schemas/MaintenancePlanKind'
+        trigger:
+          $ref: '#/components/schemas/MaintenanceTrigger'
+        intervalDays:
+          anyOf:
+            - type: integer
+            - type: "null"
+          description: Interval in days (for Interval trigger)
+        operatingHoursInterval:
+          anyOf:
+            - type: number
+            - type: "null"
+          description: Operating hours interval (for OperatingHours trigger)
+        lastDone:
+          anyOf:
+            - type: string
+              format: date
+            - type: "null"
+          description: Last execution date
+        lastDoneHours:
+          anyOf:
+            - type: number
+            - type: "null"
+          description: Operating hours at last execution
+        nextDue:
+          anyOf:
+            - type: string
+              format: date
+            - type: "null"
+          description: Next due date (calculated)
+        isOverdue:
+          type: boolean
+          description: True if plan is overdue
+
+    DueMaintenancePlanDto:
+      type: object
+      required:
+        - planId
+        - assetId
+        - assetCode
+        - assetName
+        - kind
+        - trigger
+        - dueDate
+      properties:
+        planId:
+          type: string
+          format: uuid
+        assetId:
+          type: string
+          format: uuid
+        assetCode:
+          type: string
+        assetName:
+          type: string
+        kind:
+          $ref: '#/components/schemas/MaintenancePlanKind'
+        trigger:
+          $ref: '#/components/schemas/MaintenanceTrigger'
+        dueDate:
+          type: string
+          format: date
+          description: Due date
+        overdueDays:
+          type: integer
+          description: Days overdue (negative if not yet overdue)
+
+    DowntimeDto:
+      type: object
+      required:
+        - downtimeId
+        - assetId
+        - workOrderId
+        - startedAt
+        - durationMinutes
+        - affectsProduction
+      properties:
+        downtimeId:
+          type: string
+          format: uuid
+        assetId:
+          type: string
+          format: uuid
+        workOrderId:
+          type: string
+          format: uuid
+        startedAt:
+          type: string
+          format: date-time
+          description: Downtime start
+        endedAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+          description: Downtime end (null if InProgress)
+        durationMinutes:
+          type: integer
+          description: Duration in minutes (calculated)
+        reason:
+          type: string
+          description: Work order description
+        affectsProduction:
+          type: boolean
+          description: True if linked to production machine and requiresDowntime=true
+
+    DowntimeSummaryDto:
+      type: object
+      required:
+        - assetId
+        - assetCode
+        - assetName
+        - totalDowntimeHours
+        - downtimeCount
+        - averageDowntimeMinutes
+      properties:
+        assetId:
+          type: string
+          format: uuid
+        assetCode:
+          type: string
+        assetName:
+          type: string
+        totalDowntimeHours:
+          type: number
+          description: Total downtime hours (for month)
+        downtimeCount:
+          type: integer
+          description: Number of downtime events
+        averageDowntimeMinutes:
+          type: number
+          description: Average downtime duration (minutes)
+
+    ActiveDowntimeDto:
+      type: object
+      required:
+        - workOrderId
+        - assetId
+        - downtimeStart
+      properties:
+        workOrderId:
+          type: string
+          format: uuid
+        assetId:
+          type: string
+          format: uuid
+        machineId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+          description: Production machine UUID (if linked)
+        downtimeStart:
+          type: string
+          format: date-time
+        estimatedEnd:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+          description: Estimated downtime end (scheduledDate + estimatedHours)
+        isPlannedDowntime:
+          type: boolean
+          description: True if type=Preventive
+
+  # ========================================
+  # SCHEMAS - INTEGRATION DTOs
+  # ========================================
+
+    AssetDowntimeData:
+      type: object
+      required:
+        - assetId
+        - downtimeStart
+        - isPlannedDowntime
+        - workOrderId
+      description: Integration DTO consumed by Production module for downtime blocking
+      properties:
+        assetId:
+          type: string
+          format: uuid
+        machineId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+          description: Reference to Production SHOPFLOOR_MACHINES
+        downtimeStart:
+          type: string
+          format: date-time
+        downtimeEnd:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+          description: Downtime end (null if InProgress)
+        isPlannedDowntime:
+          type: boolean
+          description: True if type=Preventive
+        workOrderId:
+          type: string
+          format: uuid
+
+    MaintenanceCostData:
+      type: object
+      required:
+        - workOrderId
+        - assetId
+        - type
+        - laborCost
+        - partsCost
+        - externalCost
+        - totalCost
+        - completedAt
+      description: Integration DTO consumed by Kontrolling module for cost tracking
+      properties:
+        workOrderId:
+          type: string
+          format: uuid
+        assetId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/WorkOrderType'
+        laborCost:
+          type: number
+          description: TechnicianHourlyRate × ActualHours × 1.9
+        partsCost:
+          type: number
+          description: Sum of (Quantity × UnitPrice) for all parts
+        externalCost:
+          type: number
+          description: External contractor fee (if AssignmentType=External)
+        totalCost:
+          type: number
+          description: laborCost + partsCost + externalCost
+        completedAt:
+          type: string
+          format: date-time
+
+  # ========================================
+  # SCHEMAS - ENUMS
+  # ========================================
+
+    AssetKind:
+      type: string
+      enum:
+        - Machine
+        - Vehicle
+        - Tool
+        - Infrastructure
+        - IT
+        - Room
+      description: Asset category
+
+    AssetStatus:
+      type: string
+      enum:
+        - Operational
+        - UnderMaintenance
+        - TemporarilyRetired
+        - Retired
+      description: Asset operational status (calculated)
+
+    WorkOrderType:
+      type: string
+      enum:
+        - Corrective
+        - Preventive
+        - Cleaning
+      description: Work order category
+
+    WorkOrderPriority:
+      type: string
+      enum:
+        - Critical
+        - High
+        - Medium
+        - Low
+      description: Work order urgency level
+
+    WorkOrderStatus:
+      type: string
+      enum:
+        - Reported
+        - Scheduled
+        - InProgress
+        - Completed
+        - Postponed
+        - Rejected
+      description: Work order FSM status
+
+    MaintenancePlanKind:
+      type: string
+      enum:
+        - Preventive
+        - Inspection
+      description: Maintenance plan category
+
+    MaintenanceTrigger:
+      type: string
+      enum:
+        - Interval
+        - OperatingHours
+      description: Maintenance plan trigger type
+
+  # ========================================
+  # SCHEMAS - ERROR RESPONSES
+  # ========================================
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+          enum:
+            - VALIDATION_FAILED
+            - UNAUTHORIZED
+            - FORBIDDEN
+            - NOT_FOUND
+            - CONFLICT
+            - STATE_INVALID
+            - INTERNAL_ERROR
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          anyOf:
+            - type: object
+            - type: "null"
+          description: Additional error details (validation errors, field-level errors)
+        timestamp:
+          type: string
+          format: date-time
+
+    StateError:
+      type: object
+      required:
+        - code
+        - message
+        - currentStatus
+        - allowedTransitions
+        - timestamp
+      description: FSM state transition error (422 Unprocessable Entity)
+      properties:
+        code:
+          type: string
+          enum: [STATE_INVALID]
+        message:
+          type: string
+          description: Human-readable error message
+        currentStatus:
+          $ref: '#/components/schemas/WorkOrderStatus'
+        allowedTransitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkOrderStatus'
+          description: Valid next states from current status
+        timestamp:
+          type: string
+          format: date-time
+
+  # ========================================
+  # STANDARD RESPONSES
+  # ========================================
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: VALIDATION_FAILED
+            message: "Validation failed: estimatedHours must be > 0"
+            details:
+              estimatedHours: "must be greater than 0"
+            timestamp: "2026-07-04T10:00:00Z"
+
+    Unauthorized:
+      description: Token expired or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: UNAUTHORIZED
+            message: "Token expired - refresh required"
+            timestamp: "2026-07-04T10:00:00Z"
+
+    Forbidden:
+      description: Permission denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: FORBIDDEN
+            message: "Permission denied: maintenance.manage required"
+            timestamp: "2026-07-04T10:00:00Z"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: NOT_FOUND
+            message: "Asset not found: assetId=123e4567-e89b-12d3-a456-426614174000"
+            timestamp: "2026-07-04T10:00:00Z"
+
+    InternalServerError:
+      description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: INTERNAL_ERROR
+            message: "An unexpected error occurred"
+            timestamp: "2026-07-04T10:00:00Z"

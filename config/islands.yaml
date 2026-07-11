@@ -1,0 +1,217 @@
+# Island Registry — Központi sziget nyilvántartás
+# Ez a fájl az "igazság forrása" minden sziget konfigurációhoz
+# Autonóm műveletek ezt olvassák és frissítik
+#
+# Frissítve: 2026-07-11
+
+version: "1.0"
+
+# Port tartományok (ütközés elkerülés)
+port_ranges:
+  internal_start: 3456
+  internal_end: 3480
+  reserved:
+    - 3457  # Datahaven Web (Nexus)
+
+# Sziget definíciók
+islands:
+  nexus:
+    id: nexus
+    name: Nexus
+    role: infra
+    description: "Agent Infrastructure Development"
+    host:
+      type: vps
+      path: /opt/nexus
+      address: 127.0.0.1
+    ports:
+      knowledge: 3456
+      dashboard: 3457
+    security:
+      token_file: config/.mcp-token
+      federation_only: false
+    status: active
+    created: 2026-07-11
+
+  joinerytech:
+    id: joinerytech
+    name: JoineryTech
+    role: platform
+    description: "Faipar SaaS Platform Development"
+    host:
+      type: vps
+      path: /opt/joinerytech
+      address: 127.0.0.1
+    ports:
+      knowledge: 3458
+    security:
+      token_file: config/.mcp-token
+      federation_only: false
+    status: active
+    created: 2026-07-11
+
+  doorstar:
+    id: doorstar
+    name: Doorstar
+    role: customer
+    description: "Doorstar Kft. Customer Instance"
+    host:
+      type: vps
+      path: /opt/doorstar
+      address: 127.0.0.1
+    ports:
+      knowledge: 3460
+    security:
+      token_file: config/.mcp-token
+      federation_only: false
+    status: active
+    created: 2026-07-11
+
+  spaceos:
+    id: spaceos
+    name: SpaceOS
+    role: orchestration
+    description: "Operatív Központ - Multi-island Coordination"
+    host:
+      type: vps
+      path: /opt/spaceos
+      address: 127.0.0.1
+    ports:
+      knowledge: 3462
+    security:
+      token_file: config/.mcp-token
+      federation_only: false
+    status: active
+    created: 2026-07-11
+
+# Külső partnerek (NEM szigetek, de federation résztvevők)
+external_partners:
+  cabinet:
+    id: cabinet
+    name: Cabinet
+    type: cad_system
+    description: "Cabinet CAD - Doorstar lokális gép"
+    host:
+      type: local
+      owner: doorstar
+    communication:
+      method: federation_bridge
+      polling_interval_sec: 30
+      # VPS → Cabinet: to: cabinet-bridge
+      # Cabinet → VPS: to: doorstar vagy to: spaceos
+      vps_terminal: cabinet-bridge  # SpaceOS terminál a bridge kommunikációhoz
+    security:
+      token_type: bridge_token
+      sha256_required: true
+    allowed_connections:
+      - doorstar
+      - spaceos
+    status: active
+
+# Bridge terminálok (VPS oldali végpontok külső partnerek számára)
+bridge_terminals:
+  cabinet-bridge:
+    id: cabinet-bridge
+    name: "Cabinet Bridge"
+    description: "VPS terminál a Cabinet kommunikációhoz"
+    path: /opt/spaceos/terminals/cabinet-bridge
+    external_partner: cabinet
+    allowed_message_types:
+      - info
+      - question
+      - blocked
+    forbidden_types:
+      - task  # Bridge nem agent, nem tud feladatot végrehajtani
+
+# Federation routing szabályok
+federation:
+  # Ki küldhet kinek
+  routing_rules:
+    # SpaceOS mindenkinek küldhet (orchestrator)
+    - from: spaceos
+      to: ["*"]
+      types: ["*"]
+
+    # Nexus csak SpaceOS-nak és JoineryTech-nek
+    - from: nexus
+      to: [spaceos, joinerytech]
+      types: [info, release, bug_report]
+
+    # JoineryTech Doorstar-nak és SpaceOS-nak
+    - from: joinerytech
+      to: [spaceos, doorstar]
+      types: [info, release, config_update]
+
+    # Doorstar csak SpaceOS-nak és Cabinet-nek
+    - from: doorstar
+      to: [spaceos, cabinet]
+      types: [production_data, query]
+
+    # Cabinet csak Doorstar-nak és SpaceOS-nak
+    - from: cabinet
+      to: [doorstar, spaceos]
+      types: [production_data, query]
+
+  # Üzenet típusok
+  message_types:
+    info: "Tájékoztató üzenet"
+    task: "Feladat kiadás"
+    done: "Feladat kész"
+    blocked: "Blokkolva"
+    release: "Új verzió"
+    config_update: "Konfiguráció frissítés"
+    production_data: "Gyártási adat"
+    query: "Lekérdezés"
+
+# Automatikus műveletek policy
+automation:
+  # Health check
+  health_check:
+    enabled: true
+    interval_sec: 60
+    timeout_sec: 5
+    alert_after_failures: 3
+
+  # Auto-restart
+  auto_restart:
+    enabled: true
+    max_restarts_per_hour: 3
+    cooldown_sec: 300
+
+  # Új sziget létrehozás
+  island_creation:
+    requires_approval: true  # true = humán jóváhagyás kell
+    auto_approve_roles: []   # üres = mindig kérdez
+
+  # Token rotáció
+  token_rotation:
+    enabled: false  # majd később
+    interval_days: 90
+
+# Schema verzió (validációhoz)
+schema:
+  island_required_fields:
+    - id
+    - name
+    - role
+    - host.type
+    - host.path
+    - ports.knowledge
+    - security.token_file
+    - status
+
+  valid_roles:
+    - infra
+    - platform
+    - customer
+    - orchestration
+
+  valid_host_types:
+    - vps
+    - local
+    - cloud
+
+  valid_statuses:
+    - active
+    - inactive
+    - maintenance

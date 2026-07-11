@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591;1574</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SpaceOS.Kernel.Application\SpaceOS.Kernel.Application.csproj" />
+    <ProjectReference Include="..\SpaceOS.Infrastructure\SpaceOS.Infrastructure.csproj" />
+    <ProjectReference Include="..\SpaceOS.Modules.FlowManagement\SpaceOS.Modules.FlowManagement.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Dev RSA key — copied to publish output so DevRsaKeyManager can load it on VPS deploy. -->
+    <!-- Production deployments use Key Vault-backed INodeAuthService (no dependency on this file). -->
+    <None Include="keys/dev-private-key.pem" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+  </ItemGroup>
+
+
+</Project>

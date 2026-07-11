@@ -1,0 +1,581 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SpaceOS.Modules.Abstractions</name>
+    </assembly>
+    <members>
+        <member name="T:SpaceOS.Modules.Abstractions.Actors.INodeUrlValidator">
+            <summary>
+            Contract for validating a node server URL before it is persisted or used in
+            outbound HTTP calls — primary SSRF-prevention boundary.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Actors.INodeUrlValidator.Validate(System.String)">
+            <summary>
+            Validates that <paramref name="serverUrl"/> is a well-formed, non-private,
+            non-loopback HTTPS URL suitable for inter-node communication.
+            </summary>
+            <param name="serverUrl">The URL to validate.</param>
+            <returns>
+            <c>null</c> when the URL is valid; otherwise a human-readable error message
+            describing why the URL was rejected.
+            </returns>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Actors.ITenantProfile">
+            <summary>
+            Read-only profile of a tenant node as exposed at the module boundary.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Actors.ITenantProfile.TenantId">
+            <summary>Gets the unique identifier of this tenant.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Actors.ITenantProfile.Name">
+            <summary>Gets the display name of this tenant.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Actors.ITenantProfile.Type">
+            <summary>Gets the supply-chain role of this tenant.</summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Actors.ManufacturerType">
+            <summary>
+            Identifies the category of goods a manufacturer specialises in.
+            Drives which cut-list and pricing engines are applied to their products.
+            </summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Actors.ManufacturerType.Cabinet">
+            <summary>Produces cabinet carcasses and storage units.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Actors.ManufacturerType.Door">
+            <summary>Produces interior and exterior doors.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Actors.ManufacturerType.Window">
+            <summary>Produces windows and glazed units.</summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Actors.TenantType">
+            <summary>
+            Classifies the role a tenant plays within the SpaceOS supply chain.
+            </summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Actors.TenantType.Manufacturer">
+            <summary>Produces finished goods (cabinets, doors, windows, etc.).</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Actors.TenantType.Supplier">
+            <summary>Supplies raw materials or components to manufacturers.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Actors.TenantType.Dealer">
+            <summary>Sells and distributes products to end clients.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Actors.TenantType.Installer">
+            <summary>Performs on-site installation of products.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Actors.TenantType.Designer">
+            <summary>Creates design specifications and drawings.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Actors.TenantType.Client">
+            <summary>End customer who commissions or purchases work.</summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Catalog.IMaterialSpec">
+            <summary>
+            Describes the physical properties of a board or sheet material available
+            from a supplier.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Catalog.IMaterialSpec.Id">
+            <summary>Gets the unique identifier of this material specification.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Catalog.IMaterialSpec.MaterialType">
+            <summary>
+            Gets the substrate type of the material (e.g. <c>"MDF"</c>,
+            <c>"Particle"</c>, <c>"Plywood"</c>).
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Catalog.IMaterialSpec.Thickness">
+            <summary>Gets the nominal thickness of the board in millimetres.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Catalog.IMaterialSpec.Surface">
+            <summary>
+            Gets the surface finish applied to the board (e.g. <c>"Melamine"</c>,
+            <c>"Veneer"</c>, <c>"Laminate"</c>).
+            </summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Catalog.IProductCatalog">
+            <summary>
+            Read-only query surface for a tenant's parametric product catalogue.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Catalog.IProductCatalog.GetProductsAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Returns all parametric products belonging to <paramref name="tenantId"/>.
+            </summary>
+            <param name="tenantId">The tenant whose catalogue is being queried.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>A read-only list of products; never <c>null</c>, may be empty.</returns>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Catalog.IProductCatalog.GetByIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Returns the parametric product with the given identifier, or <c>null</c> when
+            no product with that identifier exists in the catalogue.
+            </summary>
+            <param name="productId">The product identifier to look up.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>The matching product, or <c>null</c>.</returns>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Catalog.ISupplierCatalog">
+            <summary>
+            Provides real-time material availability and pricing data from a supplier's
+            catalogue.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Catalog.ISupplierCatalog.GetMaterialsAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Returns all materials listed in the catalogue of <paramref name="supplierId"/>.
+            </summary>
+            <param name="supplierId">The supplier identifier to query.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>A read-only list of material specs; never <c>null</c>, may be empty.</returns>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Catalog.ISupplierCatalog.GetPriceAsync(System.Guid,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Returns the current unit price for <paramref name="materialCode"/> from
+            <paramref name="supplierId"/>, or <c>null</c> when the material is not priced.
+            </summary>
+            <param name="supplierId">The supplier to query.</param>
+            <param name="materialCode">The supplier material code to look up.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>Unit price as a <see cref="T:System.Decimal"/>, or <c>null</c>.</returns>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Catalog.ISupplierCatalog.GetStockAsync(System.Guid,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Returns the current stock quantity for <paramref name="materialCode"/> held
+            by <paramref name="supplierId"/>, or <c>null</c> when stock data is unavailable.
+            </summary>
+            <param name="supplierId">The supplier to query.</param>
+            <param name="materialCode">The supplier material code to look up.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>Available stock count as an <see cref="T:System.Int32"/>, or <c>null</c>.</returns>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Crypto.IColumnEncryptionService">
+            <summary>
+            Provides symmetric column-level encryption for sensitive fields stored in the
+            database. Implementations are expected to use an authenticated encryption scheme
+            (e.g. AES-256-GCM) with a key sourced from <c>IKeyVaultService</c>.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Crypto.IColumnEncryptionService.Encrypt(System.String)">
+            <summary>
+            Encrypts <paramref name="plaintext"/> and returns a Base64-encoded ciphertext
+            string suitable for storage.
+            </summary>
+            <param name="plaintext">The sensitive value to encrypt.</param>
+            <returns>Base64-encoded authenticated ciphertext.</returns>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Crypto.IColumnEncryptionService.Decrypt(System.String)">
+            <summary>
+            Decrypts a Base64-encoded ciphertext previously produced by
+            <see cref="M:SpaceOS.Modules.Abstractions.Crypto.IColumnEncryptionService.Encrypt(System.String)"/> and returns the original plaintext value.
+            </summary>
+            <param name="ciphertext">The Base64-encoded authenticated ciphertext.</param>
+            <returns>The original plaintext value.</returns>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Crypto.IKeyVaultService">
+            <summary>
+            Retrieves cryptographic key material from a secure key store (e.g. Azure Key Vault).
+            All keys are returned as raw byte arrays so that callers remain independent of
+            any particular key serialisation format.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Crypto.IKeyVaultService.GetSigningKeyAsync(System.Threading.CancellationToken)">
+            <summary>
+            Retrieves the current RSA private key used to sign inter-node JWTs.
+            </summary>
+            <param name="ct">Cancellation token.</param>
+            <returns>The raw key bytes.</returns>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Crypto.IKeyVaultService.GetEncryptionKeyAsync(System.Threading.CancellationToken)">
+            <summary>
+            Retrieves the current AES key used for column-level encryption.
+            </summary>
+            <param name="ct">Cancellation token.</param>
+            <returns>The raw key bytes.</returns>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Handshake.AnchorType">
+            <summary>
+            Identifies the kind of SpaceOS entity that a <see cref="T:SpaceOS.Modules.Abstractions.Handshake.HandshakeAnchor"/> points to.
+            </summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.AnchorType.Epic">
+            <summary>The anchor targets a FlowEpic.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.AnchorType.Project">
+            <summary>The anchor targets a project-level entity.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.AnchorType.Program">
+            <summary>The anchor targets a program-level entity.</summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Handshake.HandshakeAnchor">
+            <summary>
+            Immutable value object that anchors one side of a handshake to a specific
+            SpaceOS entity owned by a tenant.
+            </summary>
+            <param name="Type">The hierarchy level of the anchor.</param>
+            <param name="TenantId">The tenant that owns the anchored entity.</param>
+            <param name="FlowNodeId">The identifier of the anchored flow node.</param>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Handshake.HandshakeAnchor.#ctor(SpaceOS.Modules.Abstractions.Handshake.AnchorType,System.Guid,System.Guid)">
+            <summary>
+            Immutable value object that anchors one side of a handshake to a specific
+            SpaceOS entity owned by a tenant.
+            </summary>
+            <param name="Type">The hierarchy level of the anchor.</param>
+            <param name="TenantId">The tenant that owns the anchored entity.</param>
+            <param name="FlowNodeId">The identifier of the anchored flow node.</param>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Handshake.HandshakeAnchor.Type">
+            <summary>The hierarchy level of the anchor.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Handshake.HandshakeAnchor.TenantId">
+            <summary>The tenant that owns the anchored entity.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Handshake.HandshakeAnchor.FlowNodeId">
+            <summary>The identifier of the anchored flow node.</summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Handshake.HandshakeState">
+            <summary>
+            FSM states for the lifecycle of a handshake between two SpaceOS nodes.
+            </summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeState.Proposed">
+            <summary>The initiator has proposed the handshake; awaiting response.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeState.Accepted">
+            <summary>The responsible party has accepted the proposal.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeState.InProgress">
+            <summary>Both parties are actively engaged on delivery.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeState.AwaitingApproval">
+            <summary>Delivery is complete and the initiator's approval is pending.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeState.Completed">
+            <summary>All obligations have been fulfilled and the initiator has approved.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeState.Rejected">
+            <summary>The responsible party has declined the proposal.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeState.Cancelled">
+            <summary>The initiator has withdrawn the handshake.</summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Handshake.HandshakeType">
+            <summary>
+            Identifies the directional relationship between the two parties in a handshake,
+            representing the role-to-role flow in the SpaceOS supply chain.
+            </summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeType.DesignToManufacturer">
+            <summary>Handshake initiated by a designer toward a manufacturer.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeType.ManufacturerToSupplier">
+            <summary>Handshake initiated by a manufacturer toward a supplier.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeType.DesignToInstaller">
+            <summary>Handshake initiated by a designer toward an installer.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeType.ClientToDesigner">
+            <summary>Handshake initiated by a client toward a designer.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeType.DealerToManufacturer">
+            <summary>Handshake initiated by a dealer toward a manufacturer.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeType.SupplierToManufacturer">
+            <summary>Handshake initiated by a supplier toward a manufacturer.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeType.InstallerToSupplier">
+            <summary>Handshake initiated by an installer toward a supplier.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeType.SelfTask">
+            <summary>A self-assigned task with a single actor on both sides.</summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Handshake.HandshakeVisibilityScope">
+            <summary>
+            Controls how much information each party in a handshake can see.
+            </summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeVisibilityScope.PublicMilestone">
+            <summary>Only public milestone data is visible to both parties.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeVisibilityScope.DeliveryOnly">
+            <summary>Delivery schedule and status are shared.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeVisibilityScope.SpecShared">
+            <summary>Specification documents are also shared.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Handshake.HandshakeVisibilityScope.FullTransparent">
+            <summary>Full transparency — all data is visible to both parties.</summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Handshake.IHandshake">
+            <summary>
+            Cross-module contract for a handshake — a bilateral commitment between two
+            tenant nodes within a SpaceOS workflow.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Handshake.IHandshake.Id">
+            <summary>Gets the unique identifier of this handshake.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Handshake.IHandshake.InitiatorTenantId">
+            <summary>Gets the tenant identifier of the party who initiated the handshake.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Handshake.IHandshake.ResponsibleTenantId">
+            <summary>Gets the tenant identifier of the party responsible for delivery.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Handshake.IHandshake.InitiatorAnchor">
+            <summary>
+            Gets the optional anchor that links the initiator side of this handshake to a
+            specific SpaceOS entity.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Handshake.IHandshake.ResponsibleAnchor">
+            <summary>
+            Gets the optional anchor that links the responsible side of this handshake to a
+            specific SpaceOS entity.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Handshake.IHandshake.Scope">
+            <summary>Gets the data visibility level agreed between both parties.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Handshake.IHandshake.State">
+            <summary>Gets the current FSM state of this handshake.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Handshake.IHandshake.Type">
+            <summary>Gets the directional type of this handshake.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Handshake.IHandshake.ContractHash">
+            <summary>
+            Gets the optional SHA-256 hash of the contract document attached to this handshake.
+            <c>null</c> when no contract has been attached.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Handshake.IHandshake.CreatedAt">
+            <summary>Gets the UTC timestamp at which this handshake was created.</summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.IFlowNode">
+            <summary>
+            Represents a node within a workflow flow — the cross-module contract for any
+            unit of work that participates in a SpaceOS flow.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.IFlowNode.Id">
+            <summary>Gets the unique identifier of this flow node.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.IFlowNode.Name">
+            <summary>Gets the human-readable name of this flow node.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.IFlowNode.Phase">
+            <summary>Gets the current workflow phase of this flow node.</summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Products.ICutListCalculator">
+            <summary>
+            Calculates the cut-list (panel schedule) for a parametric product given a
+            JSON-encoded set of configuration parameters.
+            Implementations are resolved per manufacturer type and registered in the
+            module's composition root.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Products.ICutListCalculator.CalculateAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Derives the ordered list of panels required to build a product with the
+            supplied <paramref name="parametersJson"/> configuration.
+            </summary>
+            <param name="parametersJson">
+            A JSON object whose keys are parameter names and whose values are the
+            configured values (e.g. <c>{"Width":600,"Doors":2}</c>).
+            </param>
+            <param name="ct">Cancellation token.</param>
+            <returns>
+            A JSON-encoded cut-list document; never <c>null</c> or empty.
+            </returns>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Products.IHardwareResolver">
+            <summary>
+            Resolves the hardware bill-of-materials for a parametric product given a
+            JSON-encoded set of configuration parameters.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Products.IHardwareResolver.ResolveAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Returns the list of hardware components required to build a product with
+            the supplied <paramref name="parametersJson"/> configuration.
+            </summary>
+            <param name="parametersJson">
+            A JSON object whose keys are parameter names and whose values are the
+            configured values (e.g. <c>{"HingeCount":4,"DrawerCount":2}</c>).
+            </param>
+            <param name="ct">Cancellation token.</param>
+            <returns>
+            A JSON-encoded hardware list document; never <c>null</c> or empty.
+            </returns>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Products.IParametricProduct">
+            <summary>
+            Describes a configurable product whose dimensions and bill-of-materials are
+            derived from a set of named parameters at order time.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Products.IParametricProduct.Id">
+            <summary>Gets the unique identifier of this product definition.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Products.IParametricProduct.Sku">
+            <summary>
+            Gets the stock-keeping unit code that uniquely identifies this product
+            within the manufacturer's catalogue.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Products.IParametricProduct.Name">
+            <summary>Gets the human-readable product name.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Products.IParametricProduct.ParametersJson">
+            <summary>
+            Gets the JSON-encoded parameter schema for this product.
+            The schema defines the names, types, and constraints of configuration
+            values accepted by the cut-list and hardware calculators.
+            </summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Products.IPricingResolver">
+            <summary>
+            Resolves the sell price for a fully-configured parametric product, incorporating
+            both the supplier's material cost and an optional dealer margin.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Products.IPricingResolver.ResolvePriceAsync(System.Guid,System.Guid,System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Resolves the price for a product, including supplier cost and, when
+            <paramref name="dealerId"/> is provided, the dealer's margin.
+            </summary>
+            <param name="productId">The identifier of the product to price.</param>
+            <param name="supplierId">
+            The identifier of the supplier whose material pricing is used as the
+            cost base.
+            </param>
+            <param name="dealerId">
+            The optional identifier of the dealer whose margin is applied to the
+            supplier price. Pass <c>null</c> to return the supplier price only.
+            </param>
+            <param name="ct">Cancellation token.</param>
+            <returns>The resolved price as a non-negative <see cref="T:System.Decimal"/>.</returns>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Sync.INodeAuthService">
+            <summary>
+            Issues and validates short-lived JWTs used for inter-node authentication during
+            SIP synchronisation.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Sync.INodeAuthService.IssueNodeJwtAsync(System.Guid,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Issues a signed JWT that authorises <paramref name="tenantId"/> to call the
+            node at <paramref name="nodeUrl"/>.
+            </summary>
+            <param name="tenantId">The tenant on whose behalf the token is issued.</param>
+            <param name="nodeUrl">The target node URL to embed as the audience claim.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>A compact-serialised JWT string.</returns>
+        </member>
+        <member name="M:SpaceOS.Modules.Abstractions.Sync.INodeAuthService.ValidateNodeJwtAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Validates a previously issued node JWT and returns whether it is currently
+            valid (signature, expiry, and audience all pass).
+            </summary>
+            <param name="token">The compact-serialised JWT to validate.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns><c>true</c> when the token is valid; otherwise <c>false</c>.</returns>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Sync.INodeManifest">
+            <summary>
+            Describes a registered SpaceOS node as seen by the Kernel during discovery
+            and heartbeat exchanges.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Sync.INodeManifest.TenantId">
+            <summary>Gets the tenant identifier that owns this node.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Sync.INodeManifest.ServerUrl">
+            <summary>Gets the base HTTPS URL at which this node's public API is reachable.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Sync.INodeManifest.PublicApiVersion">
+            <summary>Gets the SIP API version advertised by this node (e.g. <c>"1.0"</c>).</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Sync.INodeManifest.LastHeartbeatAt">
+            <summary>
+            Gets the UTC timestamp of the last heartbeat received from this node, or
+            <c>null</c> when no heartbeat has been received yet.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Sync.INodeManifest.MaxGuestLod">
+            <summary>
+            Gets the maximum level-of-detail (LOD) that guest callers may request from
+            this node. A value of <c>0</c> means guests receive no data.
+            </summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Sync.ISyncable">
+            <summary>
+            Marks an entity as eligible for two-way synchronisation with the SpaceOS Kernel.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Sync.ISyncable.Id">
+            <summary>Gets the unique identifier of this entity.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Sync.ISyncable.IsSyncedToKernel">
+            <summary>
+            Gets a value indicating whether this entity has been successfully synchronised
+            with the Kernel at least once.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.Abstractions.Sync.ISyncable.LastSyncAt">
+            <summary>
+            Gets the UTC timestamp of the most recent successful sync, or <c>null</c> if the
+            entity has never been synchronised.
+            </summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.Sync.SyncConstants">
+            <summary>
+            Compile-time constants for the SpaceOS Inter-node Protocol (SIP) sync layer.
+            These values are part of the public module contract and must not be changed
+            without a SIP version bump.
+            </summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Sync.SyncConstants.GenesisHash">
+            <summary>
+            The all-zeros hash used as the previous-hash value for the very first audit
+            entry in a chain (genesis block sentinel).
+            </summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Sync.SyncConstants.SipVersion">
+            <summary>
+            The current SpaceOS Inter-node Protocol (SIP) version string.
+            </summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Sync.SyncConstants.NodeJwtTtlHours">
+            <summary>
+            Lifetime in hours of a node-to-node JWT issued by <c>INodeAuthService</c>.
+            </summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.Sync.SyncConstants.OfflineQueueTtlDays">
+            <summary>
+            Maximum age in days that an undelivered offline sync command is kept in the
+            outbox before being discarded.
+            </summary>
+        </member>
+        <member name="T:SpaceOS.Modules.Abstractions.WorkflowPhase">
+            <summary>
+            Represents the workflow phase of a flow node at the module boundary.
+            This is the canonical definition shared across all SpaceOS modules.
+            </summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.WorkflowPhase.Discovery">
+            <summary>Discovery phase — requirements gathering and initial scoping.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.WorkflowPhase.Delivery">
+            <summary>Delivery phase — active production or execution.</summary>
+        </member>
+        <member name="F:SpaceOS.Modules.Abstractions.WorkflowPhase.ClosedDone">
+            <summary>Closed / done — the unit of work is complete.</summary>
+        </member>
+    </members>
+</doc>

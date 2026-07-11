@@ -1,0 +1,5 @@
+#!/bin/bash
+# Datahaven CLI wrapper
+export DATAHAVEN_HOME="/opt/spaceos/datahaven"
+source "/opt/spaceos/datahaven/config/.env" 2>/dev/null || true
+exec "/home/gabor/datahaven-core/cli/datahaven-ask.sh" "$@"

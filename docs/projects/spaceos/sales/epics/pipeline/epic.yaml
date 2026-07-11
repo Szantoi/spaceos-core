@@ -1,0 +1,44 @@
+id: pipeline
+title: Sales Pipeline
+type: epic
+parent: sales
+status: pending
+priority: medium
+created: 2026-05-15
+target: 2026-07-15
+
+goal: |
+  Sales pipeline vizualizáció, stage kezelés,
+  forecast és reporting funkciók.
+
+owner: conductor
+terminals:
+  - kernel
+  - orch
+  - fe
+
+milestones:
+  - id: m1-spec
+    title: Pipeline Specification
+    terminal: architect
+    status: pending
+    target: 2026-06-20
+
+  - id: m2-backend
+    title: Pipeline Backend
+    terminal: kernel
+    status: pending
+    blocked_by: m1-spec
+    target: 2026-07-01
+
+  - id: m3-frontend
+    title: Pipeline UI
+    terminal: fe
+    status: pending
+    blocked_by: m2-backend
+    target: 2026-07-15
+
+documents: []
+
+tags:
+  - phase-2

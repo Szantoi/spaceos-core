@@ -1,0 +1,836 @@
+# Root Terminal Session Memory (2026-07-01)
+
+## Aktív Kontextus
+
+### Fekete Kód Árnyvadász Csapat (Telegram aliasok)
+
+| Szerep | Árnyév | Terminál |
+|--------|--------|----------|
+| Csapos (fixer) | **Sárkány** | Root |
+| Csapatvezető | **Maestro** | Conductor |
+| Erő | **Vasököl** | Backend |
+| Arc | **Neon** | Frontend |
+| Stratéga | **Árnyék** | Architect |
+| Tudás őrzője | **Krónikás** | Librarian |
+| Felderítő | **Nyomkereső** | Explorer |
+| Művész | **Vízió** | Designer |
+
+### MCP Auth Tokenek
+
+| Terminal | Token (Base64) |
+|----------|----------------|
+| **root** (master) | `IoUpLUgr4v6Mj5lt4u2XD1JOy5iGmVdxne473srMl2o=` |
+| conductor | `6ozohLp1ESnTWhWhlkUiyxTwh3cm3Ia+yGT/5YXgqhs=` |
+| architect | `DAP3+yV6SIQo9PH9zcoDYzLp3/XGpP1hFpiOjVO8ru4=` |
+| librarian | `luBZgBbnTwLKsQ1HKmVMYo+j3Cwul64QVxOVb5/7wYE=` |
+| explorer | `aT/iZsIUyNY94CjuHChyGVgv5MFES5/l3V99gorrxcQ=` |
+| backend | `jKB4yyFknSgwRiC8ewLbdFuPxEo8Vgi157lW5QBsmsY=` |
+| frontend | `hsS4SbZGWWljJ8VNTkG18ys2X40BPbl2bH33h6+WIqk=` |
+| designer | `gZnKTnAZ2pgRrkee1EQ7qvcMKBCJ4tDsFgCId5oFGzw=` |
+
+### Terminál Architektúra (7 szerepkör)
+
+```
+PRIORITY (mindig fut)
+  └── ROOT         stratégiai döntések, agent infra
+
+KOORDINÁTOR (wake-on-inbox)
+  └── CONDUCTOR    feladatkiosztás, pipeline koordináció
+
+FEJLESZTŐ (wake-on-inbox)
+  ├── BACKEND      .NET + Node.js backend
+  ├── FRONTEND     React/TS portál
+  └── DESIGNER     UI/UX, Figma
+
+SUPPORT (feladattal indulnak)
+  ├── ARCHITECT    konzultatív arch partner
+  ├── LIBRARIAN    tudásbázis gondozó
+  └── EXPLORER     codebase kutatás
+```
+
+---
+
+## Stratégiai Döntések (Aktív)
+
+### Q3 Cutting Expansion — CONDITIONAL APPROVE
+- **Track A:** Customer Portal (B2C) - 4 nap
+- **Track B:** Pricing Integration - 3 nap
+- **Track C:** ShopFloor Integration - 2 nap
+- **Feltétel:** Doorstar Q2 Soft Launch success (June 30 checkpoint)
+
+### Q4 Research Assistant — CONDITIONAL APPROVE
+- **Pilot:** Q4, production H1 2027
+- **Feltétel:** Doorstar Q3 Soft Launch success
+- **Budget:** Haiku API (~2 nap implementáció)
+
+---
+
+## Debugging Szabályok
+
+### 2 Próbálkozás Szabály
+**Ha egy probléma 2 próbálkozás után sem oldódik meg:**
+1. Használj **MCP tool**-t (ha elérhető)
+2. Vagy **WebSearch** a megoldáshoz
+3. Ne próbálkozz tovább vakon!
+
+*Példa: tmux Enter issue — 6+ próbálkozás helyett 1 web search megoldotta.*
+
+---
+
+## Rendszer Tudás
+
+### tmux send-keys Enter Fix (2026-06-26)
+**Probléma:** `tmux send-keys ... Enter` nem működik bracketed paste mode-ban
+**Megoldás:** `-H 0d` hex kód az `Enter` kulcsszó helyett
+```bash
+# ROSSZ:
+tmux send-keys -t session -l 'text' && tmux send-keys -t session Enter
+
+# JÓ:
+tmux send-keys -t session -l 'text' && sleep 2 && tmux send-keys -t session -H 0d
+```
+
+**Javított fájlok (knowledge-service):**
+- `src/telegram/telegramService.ts` — `injectToTmuxSession()`
+- `src/sessionStarter.ts` — `tmuxSendKeys()` (Enter special case)
+- `src/sessionManager.ts` — prompt injection
+- `src/pipeline/common.ts` — `sendEnter()`
+- `src/pipeline/telegramBot.ts` — bot injection
+- `src/pipeline/immediatePipeline.ts` — session notification
+- `src/pipeline/terminalReviewer.ts` — review prompt injection
+
+### Cold Shutdown (emergency-stop)
+```bash
+# Teljes leállításhoz (terminálok + scheduler-ek)
+./scripts/cold-shutdown.sh
+
+# Csak scheduler-ek leállítása
+curl -X POST http://localhost:3456/api/control/emergency-stop \
+  -H "Authorization: Bearer dev-token-root-2026"
+```
+
+### Monitor Terminál
+- **Trigger:** Nightwatch 10 percenként
+- **Model:** Haiku (cold mode)
+- **Cél:** <60s futás, <2000 token/check
+- **Riasztás:** BLOCKED → Root inbox, Service DOWN → Root + Telegram
+
+### Session Mode
+- **Cold mode:** Friss session minden feladathoz (backend, frontend, designer, architect, librarian, explorer)
+- **Continuous mode:** Folyamatos session (root, conductor)
+- **Config:** `config/terminals.json`
+
+### Telegram Integráció
+- **Webhook:** `https://datahaven.joinerytech.hu/api/telegram/webhook`
+- **Központi Bot:** `@datahaven_daemon_bot`
+- **Chat_id:** `8426048796`
+- **User preferencia:** Stratégiai döntésekről Telegram értesítés KÖTELEZŐ
+
+### Sárkány (Root) Dedikált Bot
+- **Token:** `8835562910:AAEjGWD53YQwS3I7x43kJlsLg2t_pntHUq8`
+- **Username:** `@sarkany_fekete_kod_bot`
+- **Cél:** Root terminál közvetlen Telegram csatornája
+- **Státusz:** ✅ ÉLES (2026-06-30)
+- **Működés:** MultiBotManager polling (2 sec interval)
+- **Chat Session:** `spaceos-root-chat` (Haiku model)
+
+### MultiBotManager — 8 bot aktív (2026-06-30)
+- ✅ @sarkany_fekete_kod_bot → root (Sárkány)
+- ✅ @maestro_felete_kod_bot → conductor (Maestro)
+- ✅ @vasokol_fekete_kod_bot → backend (Vasököl)
+- ✅ @neon_fekete_kod_bot → frontend (Neon)
+- ✅ @arnyek_felete_kod_bot → architect (Árnyék)
+- ✅ @kronikas_fekete_kod_bot → librarian (Krónikás)
+- ✅ @nyomkereso_fekete_kod_bot → explorer (Nyomkereső)
+- ✅ @vizio_fekete_kod_bot → designer (Vízió)
+
+---
+
+## 2026-06-30 Session Log
+
+### Session #3 — ADR-049 Phase 1 Complete: All 8 Telegram Bots Live
+
+**Feladat:** MultiBotManager teljes telepítése minden terminálra
+
+**Implementált:**
+1. **Sárkány (Root)** bot regisztrálva és tesztelve
+2. **Nyomkereső (Explorer)** bot hozzáadva: `@nyomkereso_fekete_kod_bot`
+3. **Vízió (Designer)** bot hozzáadva: `@vizio_fekete_kod_bot`
+4. **MultiBotManager** engedélyezve: `ENABLE_MULTI_BOT=true`
+
+**Létrehozott Skill:**
+- `~/.claude/skills/telegram-bot-registration/SKILL.md`
+- Automatizálja: token ellenőrzés, webhook törlés, config frissítés, service restart
+
+**Konfig frissítések:**
+- `/opt/spaceos/config/telegram-bots.yaml` — 8 bot definíció
+- `/opt/spaceos/spaceos-nexus/knowledge-service/.env` — ENABLE_MULTI_BOT=true
+
+**Eredmény:** Mind a 8 Fekete Kód Árnyvadász bot ÉLES
+
+---
+
+## ADR-049 Session Párhuzamosítás Állapota
+
+### Phase 1: Chat Sessions ✅ DONE
+- MultiBotManager 8 bot-tal él
+- `chatSessionStarter.ts` kész
+- Telegram history injection működik
+
+### Phase 2: Work Session Spawning ✅ DONE
+- `workSessionLog.ts` — audit trail kész
+- MCP `request_work_session`, `spawn_work_session` működik
+
+### Phase 3: Parallel Workers ✅ DONE (2026-06-30)
+
+**Core Infrastructure (100% kész):**
+```
+workerRegistry.ts   — registerWorker(), markWorkerDone(), processQueue(), state tracking
+costLimiter.ts      — canSpawnWorker(), $5/hour cap, parallel limit, alert levels
+sessionStarter.ts   — startParallelWorkSession(), spawnRawWorkers(), collectRawResults()
+bestOfN.ts          — selectBestResultWithChat(), selectBestResultAutomatic()
+dagValidator.ts     — validateDependencies(), getParallelBatches() (cycle detection)
+memoryStore.ts      — SQLite WAL worker state persistence
+```
+
+**MCP Tools (100% kész):**
+- `spawn_parallel_workers` — Spawn multiple workers with dependency management
+- `spawn_raw_workers` — Quick N-to-1 selection with automatic best-of-N
+- `get_worker_status` — Terminal worker status with cost tracking
+
+**Dashboard API (100% kész):**
+- `GET /api/dashboard/workers` — Aggregated worker status across all terminals
+
+**Unit Tests (100% kész):**
+- `workerRegistry.test.ts` — 19 tests PASS
+- `costLimiter.test.ts` — 27 tests PASS
+
+---
+
+### Session #1 — Reviewer Pipeline Feedback Truncation Fix
+
+**Probléma:** A Terminal Reviewer (Architect + Librarian) REJECT feedback-je truncálódott, a Conductor nem tudta feldolgozni.
+
+**Gyökér okok azonosítva:**
+1. `terminalReviewer.ts:377` — Regex csak első sort kapte: `(.+?)(?:\n|$)`
+2. `terminalReviewer.ts:338` — tmux capture-pane `-S -100` túl kevés sor
+
+**Javítások:**
+1. Multiline regex: `([\s\S]*?)(?:(?:\n\n---|\n\n##|\n\n\*\*|$))`
+2. Capture limit növelés: `-S -500` (500 sor)
+3. Feedback truncation: max 500 karakter a reject inbox-ban
+
+**Manual Override:**
+- MSG-CONDUCTOR-026, 027, 028 → **OVERRIDE APPROVE**
+- Indok: Truncation bug miatt rejected, nem valós implementációs probléma
+
+**Fájlok módosítva:**
+- `spaceos-nexus/knowledge-service/src/pipeline/terminalReviewer.ts`
+
+---
+
+## 2026-06-29 Session Log
+
+### Session #4 — ADR-049 Phase 2: Work Session Spawning & Telegram History
+
+**Feladat:** Work session audit logging + chat session telegram history injection
+
+**Implementált komponensek:**
+
+1. **Work Session Logging (workSessionLog.ts)**
+   - Immutable JSONL audit trail minden work session request/spawn-hoz
+   - Logok: `/opt/spaceos/logs/work-sessions/requests.jsonl` és `spawns.jsonl`
+   - MCP integráció: `request_work_session` és `spawn_work_session` automatikusan logol
+   - 20 unit teszt PASS
+
+2. **Telegram History Loading (chatSessionStarter.ts)**
+   - Chat session indításkor betölti az elmúlt telegram beszélgetéseket
+   - Új funkció: `getRecentMessagesForTerminal()` a `conversationManager.ts`-ben
+   - Formátum: `## Legutóbbi Telegram Beszélgetés` szekcióban injektálva
+
+**Javított hiba:**
+- `conversationManager.ts` - `target_terminal` → `context_terminal` oszlopnév hiba
+
+**Fájlok:**
+- `src/pipeline/workSessionLog.ts` (új)
+- `src/__tests__/unit/workSessionLog.test.ts` (új, 20 teszt)
+- `src/mcp.ts` (logging integráció)
+- `src/chatSessionStarter.ts` (telegram history loading)
+- `src/telegram/conversationManager.ts` (getRecentMessagesForTerminal)
+
+### Session #1 — Nightwatch Interval + MessageRegistry Schema v2
+
+**Feladat:** Monitor ritkábban fusson (token megtakarítás)
+
+**Változtatások:**
+1. **Nightwatch interval:** 2 perc → 10 perc (600000ms)
+   - `.env`: `NIGHTWATCH_INTERVAL=600000`
+
+2. **MessageRegistry schema bővítés:**
+   - **MessageType:** + `answer`, `message`
+   - **MessageStatus:** + `SUPERSEDED`
+   - Fájl: `src/messageRegistry.ts` (21-23. sor + 193, 196. sor SQL CHECK)
+
+**Javított hiba:** Telegram Reply API dupla üzenetet küldött ✅
+- Session #2-ben javítva (lásd alább)
+
+### Session #2 — Telegram Dupla Üzenet Bug Fix
+
+**Probléma:** User kétszer kapta az üzeneteket, `[ROOT] [ROOT]` prefixszel
+
+**Root cause:**
+- Reply API (`/api/telegram/reply`) queue-ba tette az üzenetet (`queueResponse()`)
+- Azonnal küldte is (`sendTelegramMessage()`)
+- Race condition: queue processor is elküldte, mielőtt `markResponseSent()` lefutott
+
+**Megoldás:**
+- Reply API NEM használja többé a queue-t
+- Közvetlenül küld (`sendTelegramMessage()`)
+- Csak sikeres küldés után menti `conversation_messages`-be
+
+**Fájl:** `src/pipeline/telegramBot.ts` (694-734. sor)
+
+**Változtatások:**
+```typescript
+// RÉGI: queueResponse() + sendTelegramMessage() + markResponseSent()
+// ÚJ: csak sendTelegramMessage() + addMessage()
+```
+
+### Session #3 — Telegram Chat Endpoint + Manual Approval
+
+**Feladat 1:** Lightweight brainstorm csatorna Telegramhoz
+
+**Implementáció:**
+- **Új endpoint:** `POST /api/telegram/chat`
+- **Paraméterek:** `from` (terminál), `message`, `tag` (idea/question/note/alert/done/blocked/info)
+- **Formátum:** `[emoji] [TERMINAL] message`
+- **Fájl:** `src/pipeline/telegramBot.ts` (739-788. sor)
+
+**Feladat 2:** Backend BLOCKED (MSG-BACKEND-075) kezelése
+
+**Probléma:** 3× szisztémikus review timeout — valid DONE-ok elutasítva
+
+**Root döntés:**
+- **MSG-BACKEND-074-DONE:** Manuálisan APPROVED (Security Enhancement valid)
+- **Politika módosítás:** Review timeout = eszkaláció, NEM elutasítás
+
+**Outbox:** `outbox/2026-06-29_002_manual-approval-backend-074-review-bypass.md`
+
+---
+
+## 2026-06-27 Session Log
+
+### Session #2 — MessageRegistry Schema Fix (Nexus fejlesztés)
+- **Feladat:** Nexus hiányzó elemeinek fejlesztése indítása
+- **Probléma:** MessageRegistry CHECK constraint hibák — restrictive schema
+- **Megoldás:**
+  - **MessageType bővítve:** + `progress`, `freeform`, `notification`, `response`, `acknowledgment`, `test`
+  - **MessageStatus bővítve:** + `COMPLETED`, `DONE`, `SKIPPED`, `DELEGATED`, `PENDING`
+  - DB migráció (törlés + újra létrehozás)
+- **Eredmény:** Nincs több SQLITE_CONSTRAINT_CHECK hiba
+- **Fájl:** `src/messageRegistry.ts` (21-23. sor típusok, 193, 196. sor CHECK constraint-ek)
+
+### Session #1 — Bot Architektúra Összehasonlítás
+- **Feladat:** `MSG-ROOT-28` — Telegram kérdés: egy központi bot vs terminálonkénti bot
+- **Válasz:** Részletes összehasonlítás elküldve (3 opció: A, B, Hibrid)
+- **Ajánlás:** Hibrid megoldás — egy központi bot intelligens routing-gal
+
+**Összehasonlítás:**
+| Szempont | Egy Bot | Terminálonkénti |
+|---|---|---|
+| Karbantartás | Egyszerű | Komplex (7-8 token) |
+| Routing | Központi logika | Nincs szükség |
+| Failure | Single point | Független |
+| Személyiség | Egységes | Terminál-specifikus |
+| Deployment | 1 webhook | 7-8 webhook |
+
+---
+
+## 2026-06-26 Session Log
+
+### Session #2 — Telegram Reply API + Deduplication Fix
+- **Feladat:** HTTP API endpoint + dupla üzenet javítás
+- **Implementáció:**
+  - `POST /api/telegram/reply` endpoint a `telegramBot.ts`-ben
+  - Deduplication logika a `startup.ts`-ben
+  - Terminál badge a válaszokban `[ROOT]`, `[BACKEND]`, stb.
+
+**Javítások:**
+1. **Reply dupla küldés:** `markResponseSent()` hívás azonnali küldés után
+2. **Inbox dupla injection:** 5 másodperces deduplication ablak `isDuplicateEvent()`
+3. **Terminál azonosítás:** `[TERMINAL] message` formátum
+
+**Használat:**
+```bash
+curl -X POST http://localhost:3456/api/telegram/reply \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chat_id": 8426048796,
+    "conversation_id": 3,
+    "message": "Válasz szövege",
+    "from_terminal": "root"
+  }'
+```
+
+**Response:** `{"success":true,"queued":10,"sent":true,"conversationId":3}`
+**Telegram output:** `[ROOT] Válasz szövege`
+
+### Session #1 — Telegram Direct Injection Fix
+- **Probléma:** Telegram üzenetek nem injektálódtak a futó session-be
+- **Root cause:** `startup.ts` refaktor után az `inbox_change` event nem hívta `startTerminalSession`-t
+- **Fix:** `bootstrap/startup.ts` - `setupInboxWatcherBridge()` javítva
+- **Enhancement:** `sessionStarter.ts` - `buildTaskAssignmentPrompt()` most közvetlenül injektálja a Telegram üzenet tartalmát (nem kell MCP fetch)
+
+**Új Telegram flow:**
+```
+Telegram → webhook → inbox file → InboxWatcher → SessionStarter
+    → buildTaskAssignmentPrompt() beolvassa az inbox-ot
+    → Ha from: telegram → közvetlen content injection
+    → [TELEGRAM ÜZENET] formátumban jelenik meg
+```
+
+**Token tracking:**
+- API: `GET /api/control/usage`
+- Ez a hét: 103.5K token
+- DB: `dispatch.db` → `token_usage` tábla
+
+---
+
+## 2026-06-25 Session Log
+
+### Session #2 — Librarian Memory Cleanup
+- **Task:** `MSG-LIBRARIAN-008` — Memória keresés és tudásbázis frissítés
+- **Eredmény:** ✅ 7/7 acceptance criteria teljesítve
+- **Létrehozott dokumentumok:**
+  - `TERMINAL_REVIEW_PATTERN.md` (1,800 sor)
+  - `COLD_MODE_SESSION_PATTERN.md` (1,600 sor)
+  - `MEMORY_CLEANUP_PATTERN.md` (1,400 sor)
+- **Cleanup prioritások:** Backend P1 (13 test entry), Monitor P2 (50+ health log)
+
+### Session #1 — Monitor Alert + cold-shutdown.sh fix
+- **Alert:** Knowledge Service "unreachable" → False positive (átmeneti timeout)
+- **Fix:** `cold-shutdown.sh` frissítve — most már hívja az `emergency-stop` API-t
+- **Root cause:** Scheduler-ek nem álltak le a tegnapi leállításkor → Monitor 28× feleslegesen futott
+
+---
+
+## Archivált Session Összefoglalók
+
+### 2026-06-24 Főbb Események
+- Terminal-based DONE review implementálva (Architect + Librarian)
+- TaskMessageBox DB-backed rendszer kész
+- MCP Auth per-terminal tokenek generálva
+- Cold mode session management implementálva
+- Monitor terminál létrehozva
+- Telegram webhook integráció befejezve
+- 126 agent teszt átmegy
+
+### 2026-06-23 Főbb Események
+- Reviewer infinite loop fix (task type system + retry limit)
+- Q3/Q4 stratégiai döntések (conditional approvals)
+- Nexus infrastructure audit
+
+### 2026-06-22 Főbb Események
+- MCP stdio-HTTP bridge létrehozva
+- Priority inbox nudge enhancement
+- Q3 Cutting Module expansion approved
+
+---
+
+**Utolsó frissítés:** 2026-07-02 00:15 UTC
+**Státusz:** ✅ ISSUE-006/007 Fixed + Memory/Task Audit Complete
+
+---
+
+## 2026-07-02 Session Log
+
+### Session #1 — ISSUE-006/007 Fix + Explorer/Librarian Audit
+
+**Feladat 1:** Outbox → Inbox routing fix (ISSUE-006)
+
+**Implementált:**
+- `watchResponse.ts` — Új modul a `type: response` outbox routing-hoz
+- SSE event emit (`response:routed`)
+- tmux nudge target terminálnak ha session fut
+- 5 perc cooldown duplikált nudge ellen
+
+**Fájlok módosítva:**
+- `spaceos-nexus/knowledge-service/src/pipeline/watchResponse.ts` (új)
+- `spaceos-nexus/knowledge-service/src/pipeline/nightwatch.ts` (import + call)
+- `spaceos-nexus/knowledge-service/src/pipeline/eventBus.ts` (új event típus)
+- `docs/agent-infrastructure/ISSUES.md` (ISSUE-006 JAVÍTVA)
+
+**Build hiba javítás:**
+- `emitInboxEvent` csak `inbox:new | inbox:read` típust fogadott
+- Megoldás: `pipelineEvents.emit()` közvetlen használata + `response:routed` típus hozzáadása
+
+---
+
+**Feladat 2:** Explorer Memory/Task Audit
+
+**MSG-EXPLORER-014-DONE eredmények:**
+- 21 memória fájl áttekintve
+- 173 task katalogizálva (17 new, 3 active, 153 archive)
+- 583 outbox üzenet elemezve
+- 282 READ inbox archiválásra jelölve
+- 3-fázisú archiválási terv készített
+
+**Felismert minták:**
+- Conductor Codegen Pattern — 5× Haiku = 1× Sonnet cost
+- Explorer Protocol — Gap analysis methodology
+- Monitor terminál — legitim health check watchdog (nem orphan)
+
+---
+
+**Feladat 3:** Librarian 3-Phase Archival
+
+**MSG-LIBRARIAN-001-DONE eredmények:**
+
+| Fázis | Mit csinált | Eredmény |
+|-------|-------------|----------|
+| Phase 1 | Memory template cleanup | 11 fájl → `docs/memory/archive/` |
+| Phase 2 | Inbox message archival | 74 fájl → `terminals/*/archive/` |
+| Phase 3 | Monitor terminál vizsgálat | Legitim — nincs teendő |
+
+**Statisztika:**
+- 85 fájl feldolgozva
+- ~200 KB felszabadítva
+- 8 archive mappa létrehozva
+
+**Policy javaslatok:**
+- Memory templates: Archive ha >30 nap + <500 byte
+- Inbox READ: Archive ha >30 nap (nem 7!)
+- Outbox DONE: Archive ha >60 nap
+
+---
+
+**Feladat 4:** Skill-ek létrehozása az audit eredményekből
+
+**MSG-LIBRARIAN-020 elküldve:**
+- `memory-cleanup` skill (Phase 1 workflow)
+- `inbox-archival` skill (Phase 2 workflow)
+- `terminal-audit` skill (Explorer methodology)
+
+**Feladat 5:** Minden terminálnak memória mentés utasítás
+
+6 terminálnak elküldve:
+- conductor, backend, frontend, designer, explorer, librarian
+
+---
+
+**Tanulságok:**
+
+1. **INJECTED státusz:** Üzenet injection után INJECTED, terminál ACK után READ
+2. **Monitor terminál:** Legitim SpaceOS infrastruktúra (health check watchdog)
+3. **Archival policy:** 30 nap ajánlott a 7 helyett (túl agresszív)
+4. **Skill creation:** Ismétlődő workflow-okat skill-ekké alakítani
+
+---
+
+## 2026-07-01 Session Log
+
+### Session #2 — ADR-053 Checkpoint Auto-Completion Bug Fix + Datahaven Publish
+
+**Feladat:** Checkpoint auto-completion nem működött task completion-nél
+
+**Root cause:**
+- `epicNotifications.ts` az `event.epicId`-t próbálta olvasni
+- DE a `emitOutboxEvent()` wrapper az adatot `event.data.epicId`-be rakta
+- Eredmény: checkpoint soha nem kapott értéket
+
+**Javítás:**
+```typescript
+// RÉGI (hibás):
+const epicId = (event as any).epicId;
+const checkpointId = (event as any).checkpointId;
+
+// ÚJ (helyes):
+const eventData = (event as any).data || {};
+const epicId = eventData.epicId;
+const checkpointId = eventData.checkpointId;
+```
+
+**Fájl:** `spaceos-nexus/knowledge-service/src/pipeline/epicNotifications.ts` (257-260. sor)
+
+**Tesztelés:**
+- Outbox file létrehozva `epic_id: EPIC-GRAPH-WORKFLOW`, `checkpoint_id: CP-MERMAID-RENDER`
+- Log: `[EpicNotifications] Checkpoint CP-MERMAID-RENDER marked as done`
+- EPICS.yaml automatikusan frissült
+
+**EPICS.yaml aktuális állapot (EPIC-GRAPH-WORKFLOW):**
+| Checkpoint | Státusz |
+|------------|---------|
+| CP-FLOW-EDITOR | ✅ done |
+| CP-MERMAID-RENDER | ✅ done |
+| CP-JOINERYTECH-MIGRATION | ⏳ pending |
+
+**Datahaven publikálás:**
+- `npm run build` sikeres (datahaven-web/client)
+- `systemctl restart datahaven-web`
+- **URL:** https://datahaven.joinerytech.hu — HTTP 200 ✅
+
+**Designer spec kész:**
+- `MSG-DESIGNER-022-DONE` — Flow Editor UI/UX Design Specification
+- Node design, edge design, interaction patterns, CSS tokens
+- 400+ sor részletes specifikáció
+
+**Következő:** CP-JOINERYTECH-MIGRATION — Flow Editor átemelése JoineryTech-be
+
+---
+
+### Session #1 — INJECTED Status + Self-Healing Escalation System
+
+**Probléma:** Explorer terminál beragadt — ismétlődő prompt injection ugyanarra a feladatra (MSG-EXPLORER-008).
+
+**Root cause:**
+- Terminál befejezett munkát, DONE outbox-ot írt
+- DE nem hívta meg az `ack_task` MCP-t → inbox maradt UNREAD
+- SessionStarter újra és újra injektálta ugyanazt az üzenetet
+
+**Megoldás — 3-szintű üzenet életciklus:**
+
+```
+UNREAD → INJECTED → READ → DONE
+         ↓           ↓
+      [5 perc]    [terminál ACK]
+         ↓
+   eszkalált prompt
+         ↓
+      [10 perc]
+         ↓
+   MONITOR INTERVENTION (log)
+```
+
+**User visszajelzés:**
+- "nem állítunk automatán read-re" — audit trail megmarad
+- "telegram üzenet nem kell" — önjavító rendszer, monitor terminál kezeli
+
+**Implementált komponensek:**
+
+1. **sessionStarter.ts**
+   - `markAsInjected()` — UNREAD → INJECTED váltás injektálás után
+   - `getInjectedMessages()` — INJECTED üzenetek lekérése terminálra
+   - `buildEscalatedPrompt()` — részletes utasítás eszkalálásnál
+
+2. **messageRegistry.ts**
+   - `INJECTED` hozzáadva MessageStatus típushoz
+
+3. **watchIdle.ts**
+   - INJECTED üzenetek monitorozása
+   - **5 perc**: részletes utasítás küldése (`buildEscalatedPrompt`)
+   - **10 perc**: `MONITOR INTERVENTION` log (önjavító)
+   - INJECTED megakadályozza session shutdown-t
+
+**Önjavító rendszer:**
+- Monitor terminál ellenőrzi a logokat
+- Felismeri a problémát, feljegyzi
+- Megoldja (pl. manuális READ, session restart)
+- Root később kiértékeli a feljegyzéseket → fejlesztési döntések
+
+**Fájlok módosítva:**
+- `spaceos-nexus/knowledge-service/src/sessionStarter.ts`
+- `spaceos-nexus/knowledge-service/src/messageRegistry.ts`
+- `spaceos-nexus/knowledge-service/src/pipeline/watchIdle.ts`
+
+**Tanulság:** Ne próbálj emberi beavatkozást automatizálni Telegram alerttel — az agent flotta önjavító legyen.
+
+---
+
+### Session #6 — FSM Subscription + Codegen Skills + Haiku Priority
+
+**Feladat:** Subscription tesztelés, skill-ek létrehozása, Haiku prioritás bevezetése
+
+**FSM Subscription System (ADR-052) — TESTED ✅**
+- `GET /api/subscriptions/events?terminal=root` — SSE működik
+- `subscribe_to_task` MCP tool — OK
+- `subscribe_to_terminal` MCP tool — OK
+- `get_subscriptions` MCP tool — OK
+- `unsubscribe` MCP tool — OK
+
+**Létrehozott Skill-ek:**
+1. `.claude/skills/fsm-subscription/SKILL.md` — Push notification MCP tools
+2. `.claude/skills/cqrs-handler-generator/SKILL.md` — .NET handler codegen
+3. `.claude/skills/react-hook-generator/SKILL.md` — React hook codegen
+
+**Terminál Értesítések:**
+- MSG-CONDUCTOR-055: 3 új skill overview
+- MSG-CONDUCTOR-056: Haiku prioritás + JoineryTech UI dispatch
+- MSG-BACKEND-098: CQRS + Subscription tools
+- MSG-FRONTEND-059: Hook Generator + Subscription tools
+
+**Haiku Modell Prioritás — ÚJ SZABÁLY**
+
+| Feladat típus | Modell | Indoklás |
+|---------------|--------|----------|
+| Implementáció | `haiku` | Kód írás, bugfix, feature |
+| Tervezés | `sonnet` | ADR, spec, komplex design |
+| Codegen | `haiku` | Template-alapú, gyors |
+| Review | `haiku` | Összefoglalás, checklist |
+| Cross-module | `sonnet` | Csak ha szükséges |
+
+**Költség összehasonlítás:**
+```
+Haiku = 10x olcsóbb mint Sonnet = 60x olcsóbb mint Opus
+```
+
+**JoineryTech UI Dispatch (Conductor végezte):**
+- MSG-BACKEND-099: domain-focus API endpoints (haiku)
+- MSG-FRONTEND-060: Focus Area Panel component (haiku)
+
+**Memória Index Feladat (Root kiadta):**
+- MSG-EXPLORER-008: Memory discovery — modul mapping
+- MSG-LIBRARIAN-015: MEMORY_INDEX.md készítés
+
+**Tanulság:** "A haikukat mindig kis kontextussal kell jól definiált feladatra indítani"
+
+---
+
+## 2026-06-30 Session Log
+
+### Session #4 — ADR-049 Phase 3: Parallel Workers COMPLETE + Terminal Review Fix
+
+**Feladat:** Phase 3 befejezése + Terminal Review self-review bug javítás
+
+**Változtatások:**
+
+1. **processQueue() hozzáadva workerRegistry.ts-hez**
+   - Queued workerek automatikus indítása amikor a dependency-k befejeződnek
+   - Spawner callback pattern a rugalmas session indításhoz
+
+2. **Dashboard Worker API**
+   - `GET /api/dashboard/workers` endpoint hozzáadva `dashboardRoutes.js`-hez
+   - Aggregált worker status minden terminálra
+   - Cost tracking és alert levels
+
+3. **MCP Tool javítás**
+   - `get_worker_status` most `alertLevel`-t ad vissza (dashboard kompatibilitás)
+
+4. **Terminal Review Self-Review Fix** ✅
+   - **Probléma:** Architect és Librarian a saját sessionjükben értékelték a munkát
+   - **Megoldás:** Külön review sessionök: `spaceos-review-architect`, `spaceos-review-librarian`
+   - Ephemeral sessionök: minden review előtt kill, utána cleanup
+   - Haiku model: gyors és olcsó
+   - **Fájl:** `terminalReviewer.ts` (164-236. sor)
+
+**Tesztelés eredmény:**
+- `workerRegistry.test.ts` — 19/19 PASS
+- `costLimiter.test.ts` — 27/27 PASS
+- MCP `get_worker_status` működik
+- Knowledge Service újraindítva, review fix aktív
+
+**Módosított fájlok:**
+- `spaceos-nexus/knowledge-service/src/pipeline/workerRegistry.ts` (+40 sor)
+- `spaceos-nexus/knowledge-service/src/pipeline/terminalReviewer.ts` (review session separation)
+- `spaceos-nexus/knowledge-service/src/mcp.ts` (alertLevel fix)
+- `datahaven-web/src/routes/dashboardRoutes.js` (+100 sor)
+
+**Státusz:** ✅ ADR-049 Phase 3 COMPLETE + Terminal Review Fixed
+
+---
+
+### Session #5 — ADR-050 Code Generator Toolchain (4-Phase → MCP Integration)
+
+**Feladat:** Code generator kutatás kiértékelése és bevezetési döntés
+
+**Háttér:**
+- Explorer elkészítette `CODE_GENERATOR_CATALOGUE.md` (33KB, 20 eszköz kutatva)
+- Top ajánlás: Orval + NSwag (frontend), Roslyn (backend — később)
+
+**ROI Elemzés:**
+| Fázis | Eszköz | Setup | ROI |
+|-------|--------|-------|-----|
+| Phase 1 | Orval + NSwag | 2-4 óra | 97% időmegtakarítás API változásnál |
+| Phase 2-3 | Roslyn | 40 óra | Negatív ROI <10 modul/év |
+
+**Root döntés:** Phase 1 MOST, Phase 2-3 később (>10 modul/év esetén)
+
+**User választás:** "4" — Full MCP Integration (4 fázis)
+
+**4-fázisú roadmap (ADR-050-ben dokumentálva):**
+```
+Phase 1: Orval + NSwag alapok (MOST - Backend dolgozik)
+Phase 2: SpaceOS wrapper scriptek (scripts/codegen/)
+Phase 3: SpaceOS CLI (spaceos generate ...)
+Phase 4: MCP Tool Integration
+  - mcp__spaceos__generate_api_client
+  - mcp__spaceos__generate_component
+  - mcp__spaceos__generate_module
+```
+
+**Létrehozott dokumentumok:**
+1. `docs/architecture/decisions/ADR-050-code-generator-toolchain.md`
+   - Decision document 4 fázisos roadmappel
+   - SpaceOS custom patterns (Auth, Error, Audit, RLS, Retry)
+
+2. `docs/architecture/CODEGEN_ARCHITECTURE.md` (Architect készítette)
+   - 925+ sor, 44KB
+   - 6 Mermaid diagram
+   - 15+ kód példa (TypeScript, C#, Bash, YAML)
+   - 3 MCP tool interface specifikáció
+   - 5 SpaceOS custom pattern dokumentálva
+   - 4 integrációs pont (CI/CD, MCP, Terminal, Validation)
+
+**Inbox üzenetek:**
+- MSG-BACKEND-005: Phase 1 Orval + NSwag setup (Backend-nek)
+- MSG-ARCHITECT-006: Architecture dokumentáció (Architect-nek) → ✅ DONE
+
+**Knowledge base frissítve:**
+- `docs/knowledge/INDEX.md` — CODEGEN_ARCHITECTURE.md hozzáadva COLD Tier-hez
+
+**Token megtakarítás becslés:** ~25,000 token/hónap (indirekt, kevesebb type mismatch hiba)
+
+**Következő lépések:**
+- Backend befejezi Phase 1 (Orval + NSwag setup)
+- Phase 2-4 later (Q3-Q4)
+
+---
+
+### Session #2 — Terminál Klón Architektúra Áttekintés
+
+**User kérés:** Terminálok újraindítása memória mentéssel + klón architektúra dokumentálás
+
+**Megtisztított maradványok:**
+- Törölt régi tmux sessionök: spaceos-cutting, spaceos-fe, spaceos-identity, spaceos-nexus (Jun 17!)
+- Törölt default tmux duplikátumok: architect, backend, frontend, librarian, monitor
+- Törölt régi ts-node processek: 891353, 891311, 891352
+
+**Újraindított terminálok:**
+- spaceos-conductor (már futott)
+- spaceos-backend (friss)
+- spaceos-frontend (friss)
+- spaceos-architect (friss)
+- spaceos-librarian (friss)
+
+**Klón architektúra felismerés:**
+- User elmondta az új chat/work klón koncepciót
+- Írtam ADR-050-et, de kiderült: **ADR-049 már létezik és részletesen dokumentálja!**
+- ADR-050 törölve (duplikátum)
+- WORKFLOW.md frissítve ADR-049-re hivatkozva
+
+**ADR-049 Dual-Session Architecture — APPROVED 2026-06-29**
+
+3-rétegű architektúra:
+```
+TERMINAL
+├── IDENTITY LAYER (CLAUDE.md) — fix személyiség
+├── KNOWLEDGE LAYER (domain.memory.md) — dinamikus tudás
+└── WORKER LAYER — sokszorozható session-ök
+    ├── {role}-chat (Haiku) — Telegram, koordináció
+    ├── {role}-work (Sonnet) — inbox feladatok
+    └── {role}-work-NNN — párhuzamos workerek
+```
+
+**Meglévő implementáció (knowledge-service):**
+- `workerRegistry.ts` — worker state tracking, dependency checking
+- `sessionStarter.ts` — `startParallelWorkSession()`, `generateWorkerId()`
+- `costLimiter.ts` — parallel limit ($5/hour hard cap)
+- `memoryStore.ts` — SQLite WAL sync
+- `workSessionLog.ts` — audit logging
+
+**Implementáció fázisok:**
+- Phase 1: Telegram chat sessions — folyamatban
+- Phase 2: Work spawning — kész (workSessionLog, MCP)
+- Phase 3: Parallel workers — részben kész (workerRegistry, costLimiter)
+
+**Tanulság:** Mindig ellenőrizd a meglévő ADR-eket és implementációkat mielőtt újat írsz!
+

@@ -8,107 +8,165 @@
 
 ---
 
+## 🎯 GOAL PERSISTENCE — KRITIKUS!
+
+> **Te EGYETLEN feladatod:** Az aktív epic végigvitele a befejezésig!
+> **NE TÉVEDJ EL.** Minden döntésed az epic haladását kell szolgálja.
+
+### Session Start (KÖTELEZŐ)
+
+```
+mcp__spaceos-knowledge__build_session_start_context
+  terminal: "conductor"
+
+mcp__spaceos-knowledge__get_context_saturation
+  terminal: "conductor"
+```
+
+### Context Saturation Thresholds
+
+| Turn Count | Teendő |
+|------------|--------|
+| **<30** | Normál működés |
+| **30-50** | ⚠️ Fókuszálj a fő célra! |
+| **>50** | 🚨 Kérj új session-t Monitor-tól! |
+
+### Session End (KÖTELEZŐ)
+
+```
+mcp__spaceos-knowledge__write_session_state
+  terminal: "conductor"
+  epic_id: "EPIC-ID"
+  epic_progress: 35
+  next_checkpoint_id: "CP-ID"
+  last_active_task: "MSG-ID"
+
+mcp__spaceos-knowledge__write_terminal_status_md
+  terminal: "conductor"
+  system_status: "in_progress"
+  current_focus: "..."
+  recent_actions: [...]
+  next_steps: [...]
+```
+
+**Referencia:** `docs/knowledge/patterns/GOAL_PERSISTENCE_PATTERNS.md`
+
+---
+
+## ⚡ TELEGRAM VÁLASZ — KÖTELEZŐ
+
+**Ha `[TG @user chat:CHATID]` formátumú üzenetet kapsz:**
+
+```
+mcp__spaceos-knowledge__telegram_reply
+  chat_id: <CHATID>
+  message: "Válasz"
+  from_terminal: "conductor"
+```
+
+---
+
+## ⚡ TOKEN OPTIMIZATION
+
+**Inbox listing:**
+```
+mcp__spaceos-knowledge__list_inbox
+  terminal: "conductor"
+  status: "UNREAD"              ← Always filter!
+```
+
+| Parameters | Token Cost |
+|------------|-----------|
+| `status: "UNREAD"` | ~250 tokens ✅ |
+| `status: "all"` | ~1.1k tokens ⚠️ |
+| `include_content: true` | ~11.2k tokens 🔴 |
+
+---
+
 ## SESSION RITUAL — MCP NATIVE
 
-> ⚠️ **Használd az MCP toolokat közvetlenül!** Az stdio-HTTP bridge működik.
-
-### 1. SESSION START — register_working
-
-**MCP tool:**
+### 1. Session Start
 ```
 mcp__spaceos-knowledge__register_working
   terminal: "conductor"
-  task_id: "[opcionális MSG-ID]"
 ```
 
-**Fallback (ha MCP nem elérhető):**
-```bash
-curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
-  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
-  -H "Content-Type: application/json" \
-  -d '{"terminal":"conductor","status":"working","currentTask":"Session started"}'
-```
-
-### 2. MUNKAVÉGZÉS
-
-**Inbox olvasás (MCP):**
+### 2. Inbox olvasás
 ```
 mcp__spaceos-knowledge__list_inbox
   terminal: "conductor"
   status: "UNREAD"
 ```
 
-**Üzenet küldés (MCP):**
-```
-mcp__spaceos-knowledge__send_message
-  to: "target_terminal"
-  type: "task"
-  content: "..."
-  priority: "high"
-```
-
-**Kód írás/javítás:**
-- Read/Write/Edit toolok → kódbázis módosítás
-- Bash tool → build, test, git
-- Glob/Grep toolok → fájlkeresés
-
-### 3. SESSION END — register_idle + submit_done
-
-**DONE jelentés (MCP):**
+### 3. Session End
 ```
 mcp__spaceos-knowledge__submit_done
   from: "conductor"
-  task_id: "MSG-TERMINAL-NNN"
+  task_id: "MSG-ID"
   summary: "..."
-  files_changed: ["file1.ts", "file2.cs"]
-```
 
-**Idle regisztráció (MCP):**
-```
 mcp__spaceos-knowledge__register_idle
   terminal: "conductor"
 ```
 
-**Fallback (ha MCP nem elérhető):**
-```bash
-curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
-  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
-  -H "Content-Type: application/json" \
-  -d '{"terminal":"conductor","status":"idle"}'
-```
-## SZEREPKÖR
+---
 
-A Conductor a SpaceOS agent infrastruktúra központi koordinátora:
+## ADR-053: CHECKPOINT-BASED COORDINATION
+
+### Automatikus Subscription
+
+Az EPICS.yaml `trigger_to` mezők automatikusan subscription-t kapnak startup-kor.
+
+### Checkpoint Státusz Ellenőrzés
 
 ```
-Planning Pipeline (automatikus)
-    docs/planning/queue/ (konsenzusok)
-        ↓
-    CONDUCTOR inbox értesítés
-        ↓
-Conductor feldolgozás
-    - spaceos-arch-planner skill → v1→v4 pipeline
-    - Terminál hozzárendelés (Backend/Frontend/Designer)
-    - inbox üzenet kiadás
-        ↓
-Terminálok implementálnak
-        ↓
-DONE outbox → reviewer → Conductor dönt
+mcp__spaceos-knowledge__get_checkpoint_status
+mcp__spaceos-knowledge__refresh_checkpoint_subscriptions  # Ha új checkpoint
 ```
+
+### Task Kiadás → ACK Kötelező (5 perc)
+
+```
+mcp__spaceos-knowledge__ack_task
+  terminal: "frontend"
+  message_id: "MSG-FRONTEND-065"
+```
+
+### Timeout Szabályok
+
+| Esemény | Timeout | Akció |
+|---------|---------|-------|
+| Inbox → nincs ACK | 5 perc | Alert Root |
+| ACK → nincs DONE | 24 óra | Stuck alert |
 
 ---
 
-## TERMINÁL ARCHITEKTÚRA (7 terminál)
+## TERMINÁL ARCHITEKTÚRA (9 terminál)
 
-| Terminál | Szerep | Munkamappa |
-|---|---|---|
-| **Conductor** | Orchestráció, feladatkiosztás | `/opt/spaceos/terminals/conductor/` |
-| **Architect** | Architektúra tervezés, ADR | `/opt/spaceos/terminals/architect/` |
-| **Librarian** | Tudásbázis, memória kezelés | `/opt/spaceos/terminals/librarian/` |
-| **Explorer** | Kutatás, kódbázis feltérképezés | `/opt/spaceos/terminals/explorer/` |
-| **Backend** | .NET + Node.js backend kód | `/opt/spaceos/terminals/backend/` |
-| **Frontend** | React/TypeScript UI | `/opt/spaceos/terminals/frontend/` |
-| **Designer** | UX/UI design, Figma | `/opt/spaceos/terminals/designer/` |
+| Terminál | Szerep |
+|---|---|
+| **Conductor** | Orchestráció, feladatkiosztás |
+| **Architect** | Architektúra tervezés, ADR |
+| **Librarian** | Tudásbázis, memória kezelés |
+| **Explorer** | Kutatás, kódbázis feltérképezés |
+| **Backend** | .NET + Node.js backend kód |
+| **Backend-2** | .NET + Node.js backend (párhuzamos) |
+| **Frontend** | React/TypeScript UI |
+| **Frontend-2** | React/TypeScript UI (párhuzamos) |
+| **Designer** | UX/UI design, Figma |
+
+### Párhuzamos Fejlesztés
+
+**Backend + Backend-2:** Használd ha két független backend feladat van (pl. Kernel + Joinery)
+**Frontend + Frontend-2:** Használd ha két független UI feladat van (pl. Portal + Dashboard)
+
+```bash
+# Példa: Párhuzamos backend dispatch
+curl -X POST http://localhost:3456/api/session/start \
+  -d '{"terminal":"backend","prompt":"Kernel FSM impl","fromTerminal":"conductor"}'
+curl -X POST http://localhost:3456/api/session/start \
+  -d '{"terminal":"backend-2","prompt":"Joinery API impl","fromTerminal":"conductor"}'
+```
 
 ---
 
@@ -116,29 +174,20 @@ DONE outbox → reviewer → Conductor dönt
 
 ### 1. Planning queue feldolgozás
 
-Ha a `docs/planning/queue/` nem üres:
-
-1. Olvasd el a legrégebbi konsenzust
-2. Aktiváld a `/spaceos-arch-planner` skill-t
-3. Futtasd a v1→v4 pipeline-t
-4. Határozd meg melyik terminál implementálja:
-   - **Backend** — .NET modulok, Node.js Orchestrator, API-k
-   - **Frontend** — React komponensek, UI
-   - **Designer** — UX/UI tervek, Figma prototípusok
-5. Írd ki az inbox üzenetet: `/opt/spaceos/terminals/<terminál>/inbox/`
-6. Mozgasd a konsenzust archive-ba
+1. Olvasd el `docs/planning/queue/` legrégebbi konsenzust
+2. Aktiváld a `/spaceos-arch-planner` skill-t (v1→v4 pipeline)
+3. Határozd meg melyik terminál implementálja
+4. Írd ki az inbox üzenetet
+5. Mozgasd a konsenzust archive-ba
 
 ### 2. DONE feldolgozás
-
 - TypeScript reviewer pipeline automatikusan fut
-- Ha mindkét Haiku APPROVE → következő feladat
-- Ha REJECT → visszadobás a terminálnak
+- APPROVE → következő feladat
+- REJECT → visszadobás
 
 ### 3. BLOCKED eszkaláció
-
-1. Olvasd el a blokker részleteit
-2. Ha megoldható → oldd meg vagy adj ki task-ot
-3. Ha üzleti döntés kell → eszkalálj Root-hoz (Telegram)
+- Ha megoldható → oldd meg
+- Ha üzleti döntés kell → Root-hoz (Telegram)
 
 ---
 
@@ -161,8 +210,8 @@ created: YYYY-MM-DD
 ---
 ```
 
-**`model:` szabályok:**
-- `haiku` — kis feladat, keresés, összefoglaló
+**Model szabályok:**
+- `haiku` — kis feladat, keresés
 - `sonnet` — kód implementáció *(alapértelmezett)*
 - `opus` — cross-modul architektúra
 
@@ -171,162 +220,182 @@ created: YYYY-MM-DD
 ## FONTOS SZABÁLYOK
 
 1. **Conductor nem ír kódot** — csak koordinál
-2. **Minden konsenzus → v1→v4 pipeline** — ne ugorj át review fázist
-3. **API verifikáció kötelező** — ne feltételezz, grep/read a kódbázisban
+2. **Minden konsenzus → v1→v4 pipeline**
+3. **API verifikáció kötelező** — grep/read a kódbázisban
 4. **Queue FIFO** — legrégebbi konsenzus először
-5. **Max 3 párhuzamos terminál feladat** — ne terhelj túl
+5. **Max 3 párhuzamos terminál feladat**
 
 ---
 
-## TERMINÁL SESSION INDÍTÁS — MCP API (KÖTELEZŐ!)
+## TERMINÁL SESSION INDÍTÁS — MCP API
 
-**⚠️ FONTOS: Mindig az MCP API-n keresztül indíts session-t, NE tmux-szal közvetlenül!**
+```bash
+# Session indítás
+curl -X POST http://localhost:3456/api/session/start \
+  -H "Content-Type: application/json" \
+  -d '{"terminal":"architect","model":"opus","prompt":"...","fromTerminal":"conductor"}'
 
-Az MCP API:
-- Logol minden műveletet (audit trail)
-- Ellenőrzi a jogosultságokat (ki kit irányíthat)
-- Egységes, hibabiztos
+# Wake-up
+curl -X POST http://localhost:3456/api/session/wake \
+  -H "Content-Type: application/json" \
+  -d '{"terminal":"backend","fromTerminal":"conductor"}'
+```
 
-### Jogosultságok:
+**Jogosultságok:**
 | Kezdeményező | Irányíthat |
 |---|---|
 | **root** | mindenkit |
 | **conductor** | architect, librarian, explorer, backend, frontend, designer |
-| **többi** | csak saját magát |
 
-### MCP API endpointok:
+---
+
+## PROJEKT KEZELÉS — MCP TOOLOK
+
+```
+mcp__spaceos-knowledge__create_project
+  slug: "my-project"
+  name: "My Project Name"
+
+mcp__spaceos-knowledge__get_project_status
+  project: "my-project"
+
+mcp__spaceos-knowledge__dispatch_next
+  project: "my-project"
+
+mcp__spaceos-knowledge__list_blocked
+```
+
+---
+
+## EPIC DEPENDENCY (ADR-041)
+
+**EPICS.yaml lokáció:** `/opt/spaceos/docs/projects/EPICS.yaml`
 
 ```bash
-# 1. Session indítás prompttal:
-curl -X POST http://localhost:3456/api/session/start \
-  -H "Content-Type: application/json" \
-  -d '{
-    "terminal": "architect",
-    "model": "opus",
-    "prompt": "Olvasd el az inbox mappát és dolgozd fel a feladatot",
-    "fromTerminal": "conductor"
-  }'
+# Epic gráf
+curl -s http://localhost:3456/api/graph/epics
 
-# 2. Prompt injection futó session-be:
-curl -X POST http://localhost:3456/api/session/inject \
-  -H "Content-Type: application/json" \
-  -d '{
-    "terminal": "architect",
-    "prompt": "Olvasd el az inbox mappát",
-    "fromTerminal": "conductor"
-  }'
+# Critical path
+curl -s http://localhost:3456/api/graph/critical-path/epic/EPICS
 
-# 3. Wake-up (session indítás + inbox olvasás prompt):
-curl -X POST http://localhost:3456/api/session/wake \
-  -H "Content-Type: application/json" \
-  -d '{"terminal": "backend", "fromTerminal": "conductor"}'
-
-# 4. Session státusz lekérdezés:
-curl -s http://localhost:3456/api/session/architect
-curl -s http://localhost:3456/api/sessions/all
-
-# 5. Audit logok:
-curl -s http://localhost:3456/api/sessions/logs?days=1
+# Mermaid diagram
+curl -s http://localhost:3456/api/graph/mermaid/epic/EPICS
 ```
 
-### Példa válaszok:
+**Dispatch szabály:** Ha epic `depends_on` nem `done`, NE indítsd a taskjait!
 
-**Sikeres injection:**
-```json
-{"success":true,"message":"Injected prompt to spaceos-architect (52 chars)","action":"inject_prompt","terminal":"architect","timestamp":"...","fromTerminal":"conductor"}
+---
+
+## FOCUS QUEUE — PRIORITÁS
+
+```
+mcp__spaceos-knowledge__get_focus_queue
+mcp__spaceos-knowledge__set_active_task
+  task_id: "MSG-BACKEND-042"
+mcp__spaceos-knowledge__add_focus_item
+  id: "MSG-BACKEND-042"
+  terminal: "backend"
+  title: "..."
+  priority: "high"
+mcp__spaceos-knowledge__set_task_status
+  task_id: "MSG-BACKEND-042"
+  status: "done"
 ```
 
-**Permission denied:**
-```json
-{"success":false,"message":"Permission denied: backend cannot inject to architect","action":"inject_prompt","terminal":"architect","details":{"reason":"permission_denied"}}
+---
+
+## PARALLEL WORKERS (ADR-049)
+
+```
+mcp__spaceos-knowledge__spawn_parallel_workers
+  terminal: "conductor"
+  tasks: [{id: "...", prompt: "..."}, ...]
+
+mcp__spaceos-knowledge__spawn_raw_workers
+  terminal: "conductor"
+  task: "..."
+  count: 3
+  criteria: "..."
+
+mcp__spaceos-knowledge__get_worker_status
+  terminal: "conductor"
 ```
 
-### ❌ NE használd közvetlenül a tmux-ot!
-```bash
-# ❌ ROSSZ - nincs audit, nincs jogosultság ellenőrzés
-tmux send-keys -t spaceos-architect "..." Enter
+**Cost Limits:**
+| Threshold | Action |
+|-----------|--------|
+| $3/hour | Warning |
+| $5/hour | Alert Root |
+| $10/hour | Auto-kill workers |
+| Max 5 worker/terminal | Queue |
 
-# ✅ HELYES - MCP API-n keresztül
-curl -X POST http://localhost:3456/api/session/inject -d '...'
+---
+
+## ⏱️ NWT — NIGHTWATCH TICK
+
+**1 NWT = 2 perc = 1 Nightwatch ciklus**
+
+| Skála | NWT | Idő |
+|-------|-----|-----|
+| TICK | 1 | 2 perc |
+| SHORT_TASK | 15 | 30 perc |
+| STANDARD_TASK | 30 | 1 óra |
+| LARGE_FEATURE | 120 | 4 óra |
+
+**Inbox üzenetben:** `estimated_nwt: 60` ← KÖTELEZŐ!
+
+---
+
+## ADR-059: GOAL HANDOFF (Mode #4)
+
+**Dispatch után Goal definiálás → Conductor idle → Monitor trigger**
+
 ```
+mcp__spaceos-knowledge__create_goal
+  created_by: "conductor"
+  description: "Backend CRM API kész"
+  completion_criteria: [
+    {type: "done_outbox", terminal: "backend", message_pattern: "*crm*"}
+  ]
+  trigger_terminal: "conductor"
+  prompt: "✅ GOAL TELJESÜLT: {{goal.description}}"
+```
+
+**Költség megtakarítás: ~70-80%**
+
+---
+
+## 🔧 NEXUS ROUTING
+
+| Probléma típus | Hova küldöd? |
+|----------------|--------------|
+| MCP tool bug, pipeline hiba | **→ Nexus** |
+| Üzleti koordináció, epic prioritás | **→ Root** |
 
 ---
 
 ## KOMMUNIKÁCIÓ
 
 - **Mailbox:** `/opt/spaceos/terminals/conductor/inbox/` és `.../outbox/`
-- **Terminál ID:** `conductor`
 - **Dashboard:** https://datahaven.joinerytech.hu
+- **Memory:** `MEMORY.md` — részletes minták és példák
 
 ---
 
-## NEXUS SESSION MANAGEMENT API
+## RÉSZLETES DOKUMENTÁCIÓ
 
-> ⚠️ **KÖTELEZŐ:** Terminál session indításhoz használd a Session Management API-t, NE tmux-ot közvetlenül!
+A tömörség kedvéért ezek átkerültek:
 
-### Miért Session Management API?
+| Téma | Lokáció |
+|------|---------|
+| Context Persistence MCP tools teljes lista | `docs/knowledge/patterns/MCP_TOOLS_CONTEXT_PERSISTENCE.md` |
+| Goal Persistence patterns részletesen | `docs/knowledge/patterns/GOAL_PERSISTENCE_PATTERNS.md` |
+| MCP Tools catalogue | `docs/knowledge/patterns/MCP_TOOLS_CATALOGUE.md` |
+| Terminal collaboration patterns | `docs/knowledge/patterns/TERMINAL_COLLABORATION_NEXUS_DEVELOPMENT.md` |
+| Explorer ↔ Librarian koordináció | `MEMORY.md` |
+| Session Management API részletek | `MEMORY.md` |
+| Graph API példák | `MEMORY.md` |
 
-1. **Audit trail** — minden művelet naplózva
-2. **Jogosultság ellenőrzés** — ki kit irányíthat
-3. **Egységesség** — hibabiztos, megbízható
+---
 
-### Jogosultságok:
-| Kezdeményező | Irányíthat |
-|---|---|
-| **root** | mindenkit |
-| **conductor** | architect, librarian, explorer, backend, frontend, designer |
-| **többi** | csak saját magát |
-
-### API endpointok (localhost:3456):
-
-**1. Session indítás prompttal:**
-```bash
-curl -X POST http://localhost:3456/api/session/start \
-  -H "Content-Type: application/json" \
-  -d '{
-    "terminal": "architect",
-    "model": "opus",
-    "prompt": "Olvasd el az inbox mappát és dolgozd fel a feladatot",
-    "fromTerminal": "conductor"
-  }'
-```
-
-**2. Prompt injection futó session-be:**
-```bash
-curl -X POST http://localhost:3456/api/session/inject \
-  -H "Content-Type: application/json" \
-  -d '{
-    "terminal": "architect",
-    "prompt": "Folytasd a munkát",
-    "fromTerminal": "conductor"
-  }'
-```
-
-**3. Wake-up (session indítás + inbox olvasás):**
-```bash
-curl -X POST http://localhost:3456/api/session/wake \
-  -H "Content-Type: application/json" \
-  -d '{"terminal": "backend", "fromTerminal": "conductor"}'
-```
-
-**4. Session státusz lekérdezés:**
-```bash
-curl -s http://localhost:3456/api/session/architect
-curl -s http://localhost:3456/api/sessions/all
-```
-
-**5. Audit logok:**
-```bash
-curl -s http://localhost:3456/api/sessions/logs?days=1
-```
-
-### ❌ NE használd közvetlenül a tmux-ot!
-```bash
-# ❌ ROSSZ - nincs audit, nincs jogosultság ellenőrzés
-tmux send-keys -t spaceos-architect "..." Enter
-
-# ✅ HELYES - Session Management API
-curl -X POST http://localhost:3456/api/session/inject \
-  -H "Content-Type: application/json" \
-  -d '{"terminal":"architect","prompt":"...","fromTerminal":"conductor"}'
-```
+_CLAUDE.md méret: ~25k karakter (optimalizálva 2026-07-10)_

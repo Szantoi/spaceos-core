@@ -1,0 +1,118 @@
+---
+id: MSG-BACKEND-001-DONE
+from: backend
+to: root
+type: done
+status: UNREAD
+ref: MSG-BACKEND-001
+created: 2026-06-24
+---
+
+# TMB Test - Direct Store Call Validation Complete
+
+## Összefoglaló
+
+TaskMessageBox (TMB) direct store call teszt **sikeres** — inbox message fogadva és feldolgozva.
+
+## Validation Results
+
+### ✅ Inbox Message Received
+
+**File:** `inbox/2026-06-24 14:52:44_001_tmb-test-direct-store-call.md`
+
+**Filename Format Observations:**
+- Format: `YYYY-MM-DD HH:MM:SS_NNN_slug.md` (timestamp-based)
+- Different from previous format: `YYYY-MM-DD_NNN_slug.md` (date-only)
+- Space in filename (unusual but handled correctly)
+
+### ✅ Frontmatter Validation
+
+**All fields present and valid:**
+
+```yaml
+id: MSG-BACKEND-001                # Sequential ID
+from: root                         # Sender tracked
+to: backend                        # Recipient correct
+type: task                         # Task type
+priority: medium                   # Priority set
+status: UNREAD → DONE              # Status processable
+model: haiku                       # Model specified
+ref: null                          # No reference (new field)
+epic_id: null                      # Epic tracking (new field)
+project_id: null                   # Project tracking (new field)
+created: 2026-06-24 14:52:44      # Timestamp format (with time)
+completed: null → 2026-06-24      # Completion tracked
+content_hash: bfed933f...         # SHA-256 hash present
+```
+
+**New fields observed:**
+- `ref: null` — reference to other messages
+- `epic_id: null` — epic association
+- `project_id: null` — project association
+- Timestamp format includes HH:MM:SS (previous: date only)
+
+### ✅ Content Parsing
+
+**Structure:**
+- ✅ YAML frontmatter parsed correctly
+- ✅ Markdown content readable
+- ✅ Header (H1) present: "TMB Test - Direct Store Call"
+- ✅ Description: "Testing TaskMessageBox directly from store"
+
+**No issues:**
+- No encoding problems
+- No YAML parse errors
+- No markdown rendering issues
+
+## TMB Direct Store Call Features Verified
+
+1. **Message creation:**
+   - ✅ File created in correct inbox directory
+   - ✅ Frontmatter structure valid
+   - ✅ Content hash generated
+
+2. **Extended metadata:**
+   - ✅ `ref` field for message threading
+   - ✅ `epic_id` for epic tracking
+   - ✅ `project_id` for project tracking
+   - ✅ Timestamp with time component
+
+3. **File naming:**
+   - ✅ Timestamp-based naming supported
+   - ✅ Spaces in filename handled (though unusual)
+
+## Observations
+
+**Filename Format Evolution:**
+
+| Previous | Current Test | Notes |
+|---|---|---|
+| `2026-06-24_NNN_slug.md` | `2026-06-24 14:52:44_NNN_slug.md` | Added timestamp |
+| Sequential NNN | Sequential NNN | Preserved |
+| No spaces | Space before time | Unusual but works |
+
+**Frontmatter Evolution:**
+
+| Previous | Current Test | Purpose |
+|---|---|---|
+| N/A | `ref: null` | Message threading |
+| N/A | `epic_id: null` | Epic association |
+| N/A | `project_id: null` | Project tracking |
+| `created: YYYY-MM-DD` | `created: YYYY-MM-DD HH:MM:SS` | Precision timestamp |
+
+## Recommendation
+
+**TMB direct store call is functional** ✅
+
+**Minor considerations:**
+1. **Filename spaces:** While handled correctly, consider using `_` instead of space for consistency (`2026-06-24_14:52:44_001_slug.md`)
+2. **Timestamp format:** Current format `HH:MM:SS` includes colons which may cause issues on some filesystems
+3. **Null fields:** Consider omitting null fields from frontmatter to reduce file size
+
+**None are blockers** — current implementation works correctly.
+
+---
+
+**Status:** ✅ DONE
+
+TMB direct store call test validated — message received and processed successfully.

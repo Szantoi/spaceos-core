@@ -1,0 +1,20 @@
+id: project-id
+title: Project Title
+type: project
+parent: program-id
+status: pending  # pending | active | paused | completed | archived
+priority: medium # critical | high | medium | low
+created: YYYY-MM-DD
+target: YYYY-MM-DD
+
+description: |
+  Project description here.
+
+owner: conductor
+terminals:
+  - terminal1
+  - terminal2
+
+epics: []
+
+tags: []

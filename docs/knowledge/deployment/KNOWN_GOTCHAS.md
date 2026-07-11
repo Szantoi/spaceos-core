@@ -374,11 +374,11 @@ Az atomikus deploy failure recovery-hez:
 
 **Fix — dupla Enter pattern:**
 ```bash
-tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> "Üzenet szövege"
+tmux -S /tmp/spaceos.tmux send-keys -t <session> "Üzenet szövege"
 sleep 0.5
-tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> Enter
+tmux -S /tmp/spaceos.tmux send-keys -t <session> Enter
 sleep 1
-tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> Enter
+tmux -S /tmp/spaceos.tmux send-keys -t <session> Enter
 ```
 
 **Érintett scriptek:** watch-stuck.sh, watch-inbox.sh, telegram-bot.sh, telegram-datahaven-bot.sh
@@ -393,18 +393,18 @@ tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> Enter
 
 **Diagnózis:**
 ```bash
-tmux -S /tmp/spaceos-tmux.sock display-message -t spaceos-fe -p "#{pane_current_path}"
+tmux -S /tmp/spaceos.tmux display-message -t spaceos-fe -p "#{pane_current_path}"
 ```
 
 **Fix — session létrehozás helyes directory-vel:**
 ```bash
-tmux -S /tmp/spaceos-tmux.sock new-session -d -s spaceos-fe \
+tmux -S /tmp/spaceos.tmux new-session -d -s spaceos-fe \
   -c /opt/spaceos/spaceos-doorstar-portal
 ```
 
 **Ha már létezik a session:** Kill és újra létrehozás, vagy explicit `cd` küldése:
 ```bash
-tmux -S /tmp/spaceos-tmux.sock send-keys -t spaceos-fe \
+tmux -S /tmp/spaceos.tmux send-keys -t spaceos-fe \
   "cd /opt/spaceos/spaceos-doorstar-portal" Enter
 ```
 
@@ -418,7 +418,7 @@ tmux -S /tmp/spaceos-tmux.sock send-keys -t spaceos-fe \
 
 **Diagnózis:**
 ```bash
-tmux -S /tmp/spaceos-tmux.sock capture-pane -t <session> -p | grep -E "Noodling|Thinking"
+tmux -S /tmp/spaceos.tmux capture-pane -t <session> -p | grep -E "Noodling|Thinking"
 ```
 
 **Fix:** NE küldj nudge-ot. Várd meg amíg a gondolkodás befejeződik. A watch-stuck.sh-ban exemptáld a "Noodling" és "Thinking" pattern-eket.
@@ -433,7 +433,97 @@ tmux -S /tmp/spaceos-tmux.sock capture-pane -t <session> -p | grep -E "Noodling|
 
 **Fix:**
 ```bash
-tmux -S /tmp/spaceos-tmux.sock send-keys -t <session> Enter
+tmux -S /tmp/spaceos.tmux send-keys -t <session> Enter
 ```
 
 **watch-stuck.sh integráció:** Ha a pane tartalmazza a "shift+tab to cycle" pattern-t, küldj Enter-t.
+
+---
+
+## 22. WatchMonitor testMode bekapcsolva maradt — inbox flooding
+
+**Tünet:** Monitor terminál inbox-a 100+ scheduled-health-check fájlt tartalmaz, session stuck.
+
+```bash
+$ ls terminals/monitor/inbox/ | wc -l
+469
+```
+
+**Ok:** `watchMonitor.ts` fájlban `testMode = true` maradt production-ben:
+```typescript
+const testMode = true; // ← BUG: 5× több health check!
+```
+
+**Fix:**
+```typescript
+const testMode = false; // Production mode
+```
+
+**Cleanup:**
+```bash
+mkdir -p terminals/monitor/archive/health-checks
+mv terminals/monitor/inbox/*scheduled-health-check*.md terminals/monitor/archive/health-checks/
+```
+
+**Referencia:** `docs/knowledge/debugging/WATCHMONITOR_TESTMODE_BUG_2026-07-10.md`
+
+---
+
+## 23. Knowledge-service .js import extension — CommonJS inkompatibilitás
+
+**Tünet:** Knowledge service crash loop, MCP tools nem működnek.
+
+```bash
+Error: Cannot find module './conversationManager.js'
+```
+
+**Ok:** TypeScript fájlban `.js` extension az importban:
+```typescript
+import { ... } from './conversationManager.js'; // ← HIBÁS
+```
+
+CommonJS + ts-node nem oldja fel a `.js` kiterjesztést `.ts` fájlokra.
+
+**Fix:**
+```typescript
+import { ... } from './conversationManager'; // ← extension nélkül
+```
+
+**Rebuild szükséges:**
+```bash
+cd spaceos-nexus/knowledge-service && npm run build
+sudo systemctl restart spaceos-knowledge
+```
+
+**Referencia:** `docs/knowledge/debugging/KNOWLEDGE_SERVICE_IMPORT_BUG_2026-07-10.md`
+
+---
+
+## 24. MessageRegistry.db üres (0 byte) — DONE pipeline megáll
+
+**Tünet:** DONE outbox-ok nem kerülnek feldolgozásra, pipeline.log üres.
+
+```bash
+$ ls -la data/message-registry.db
+-rw-r----- 1 gabor gabor 0 Jul  8 13:29 message-registry.db
+
+$ sqlite3 data/message-registry.db "SELECT * FROM messages;"
+Error: no such table: messages
+```
+
+**Ok:** Knowledge service crash → `initSchema()` nem futott le → üres DB fájl maradt.
+
+**Fix:**
+```bash
+rm spaceos-nexus/knowledge-service/data/message-registry.db
+sudo systemctl restart spaceos-knowledge
+# Service újra inicializálja a DB-t
+```
+
+**Ellenőrzés:**
+```bash
+sqlite3 data/message_registry.db "SELECT COUNT(*) FROM messages;"
+# Várt: >0 (backfill megtörtént)
+```
+
+**Referencia:** `docs/knowledge/debugging/KNOWLEDGE_SERVICE_IMPORT_BUG_2026-07-10.md`

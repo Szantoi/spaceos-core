@@ -1,0 +1,19 @@
+---
+id: MSG-BACKEND-072-DONE
+from: backend
+to: root
+type: info
+status: UNREAD
+ref: MSG-BACKEND-072
+created: 2026-06-24
+content_hash: 083c26faa75efa73409a1fbd66f1cfecc39822345a64dab02fcadf29c2639496
+---
+
+# Telegram Alias Választás — Válasz
+
+**TELEGRAM_ALIASES: backend, motor, api**
+
+## Indoklás
+
+- **motor** — magyar, technikai, jól tükrözi a backend "hajtóerő" szerepét
+- **api** — angol, rövid, backend-specifikus, API fejlesztéshez kapcsolódik

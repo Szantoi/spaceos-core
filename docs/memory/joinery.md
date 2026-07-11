@@ -1,35 +1,40 @@
-# JOINERY Memory
+# Joinery Terminal Memory — Updated 2026-06-21
 
-Utolsó frissítés: 2026-06-21
+## RECENT WORK: MSG-JOINERY-058 Product Configurator ✅ DONE
 
-## Aktuális állapot
-- **MSG-JOINERY-058**: Product Configurator & Work Order endpoints implementálva
-- Build: 0 error, 0 warning
-- Tesztek: **450/450 zöld** (including 18 new product/work order tests)
-- Service: újraindítva és működik
+**Result:** 3 endpoints, 450/450 tests passing, 0 errors
+**Implementation:** Phase 1 E2E Backend complete
 
-## Fontos kontextus
-- **Phase 1 E2E Backend** implementáció teljes:
-  - 3 új endpoint: POST /api/products/configure, POST /api/work-orders, GET /api/work-orders/:id/sheet.pdf
-  - 3 új DB tábla migration: ProductTemplates, ProductConfigurations, WorkOrders
-  - 5 product template seed: standard_door, premium_door, fireproof_door, acoustic_door, security_door
-  - ProductConfiguratorService: pure function validation + BOM calculation + pricing
-  - WorkOrderPdfService: QuestPDF-based PDF generation
-  - RLS enabled: ProductConfigurations, WorkOrders (tenant isolation)
+**New Endpoints:**
+- `POST /api/products/configure` — Product configurator
+- `POST /api/work-orders` — Work order creation
+- `GET /api/work-orders/:id/sheet.pdf` — QuestPDF generation
 
-## Következő lépések
-- Migration production deploy (INFRA task)
-- Frontend integration (MSG-FE-087 already assigned, working with mocks)
+**Database:** 3 new tables (ProductTemplates, ProductConfigurations, WorkOrders), RLS enabled
+**Seed Data:** 5 product templates (standard_door, premium_door, fireproof_door, acoustic_door, security_door)
 
-## Megoldott problémák
-- **ConfigId format**: Fixed to return full GUID instead of truncated cfg_XXXX
-- **Random usage**: Replaced with deterministic hash-based calculation (pure function)
-- **ConfigId parsing**: Simplified to accept full GUID instead of custom format
-- **Test coverage**: Added 18 comprehensive tests (unit + integration) for all 3 endpoints
+---
 
-## Session tapasztalatok
-- Entity-k, Repository-k, Service-ek már léteztek (részben előkészítve)
-- Migration fájl már megvolt (20260621000001_J004_ConfiguratorAndWorkOrders.cs)
-- Command/Handler CQRS pattern már implementálva volt
-- Fix-elt 3 problémát: ConfigId response, Random, ConfigId parsing
-- In-memory test DB-ben minden zöld, production deploy külön infra lépés
+## KEY FIXES
+
+1. **ConfigId format** — Full GUID instead of truncated `cfg_XXXX`
+2. **Random usage** — Deterministic hash-based calculation (pure function)
+3. **ConfigId parsing** — Simplified to full GUID acceptance
+
+---
+
+## INTEGRATION STATUS
+
+- **Frontend:** MSG-FE-087 working with mocks (ready for real API)
+- **Infrastructure:** Pending production deploy (migration ready)
+
+---
+
+**Last Updated:** 2026-06-21
+**Status:** 🟢 OPERATIONAL
+**Focus:** Ajtógyártó domain (JoineryTech)
+**Memory Tier:** Warm (14-day, stable implementation)
+
+---
+
+_This memory is compressed from 1.8KB to ~1.0KB by removing detailed component lists. Preserved: endpoint summary, key fixes, and integration status._

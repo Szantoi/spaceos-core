@@ -1,0 +1,30 @@
+{
+  "description": "Terminal-specific MCP Connector settings for session starter",
+  "default": {
+    "mcpServers": {
+      "spaceos-connector": {
+        "command": "node",
+        "args": [
+          "/opt/spaceos/spaceos-nexus/mcp-connector/bin/stdio-bridge.js"
+        ],
+        "env": {
+          "MCP_CONNECTOR_HOST": "localhost",
+          "MCP_CONNECTOR_PORT": "3457",
+          "MCP_TERMINAL": "${TERMINAL}"
+        }
+      }
+    }
+  },
+  "terminals": {
+    "root": { "MCP_TERMINAL": "root" },
+    "conductor": { "MCP_TERMINAL": "conductor" },
+    "backend": { "MCP_TERMINAL": "backend" },
+    "frontend": { "MCP_TERMINAL": "frontend" },
+    "designer": { "MCP_TERMINAL": "designer" },
+    "architect": { "MCP_TERMINAL": "architect" },
+    "librarian": { "MCP_TERMINAL": "librarian" },
+    "explorer": { "MCP_TERMINAL": "explorer" },
+    "monitor": { "MCP_TERMINAL": "monitor" },
+    "nexus": { "MCP_TERMINAL": "nexus" }
+  }
+}

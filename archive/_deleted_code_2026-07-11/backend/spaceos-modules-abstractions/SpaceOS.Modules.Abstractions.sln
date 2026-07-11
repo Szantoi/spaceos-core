@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceOS.Modules.Abstractions.Domain", "SpaceOS.Modules.Abstractions.Domain\SpaceOS.Modules.Abstractions.Domain.csproj", "{2317A819-2B6C-4E15-9733-5FB69E401150}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceOS.Modules.Abstractions.Application", "SpaceOS.Modules.Abstractions.Application\SpaceOS.Modules.Abstractions.Application.csproj", "{BCAD178E-ED43-43DD-B9FE-91852FFA4749}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceOS.Modules.Abstractions.Infrastructure", "SpaceOS.Modules.Abstractions.Infrastructure\SpaceOS.Modules.Abstractions.Infrastructure.csproj", "{1546716E-4EAE-4C5A-B2EC-B6BF44D99E2F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceOS.Modules.Abstractions.Api", "SpaceOS.Modules.Abstractions.Api\SpaceOS.Modules.Abstractions.Api.csproj", "{03BD30F9-1469-473B-BFC1-11B50E375053}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceOS.Modules.Abstractions.Tests", "SpaceOS.Modules.Abstractions.Tests\SpaceOS.Modules.Abstractions.Tests.csproj", "{3DAD2536-B982-478E-9852-6EC29F66D598}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2317A819-2B6C-4E15-9733-5FB69E401150}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2317A819-2B6C-4E15-9733-5FB69E401150}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2317A819-2B6C-4E15-9733-5FB69E401150}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2317A819-2B6C-4E15-9733-5FB69E401150}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCAD178E-ED43-43DD-B9FE-91852FFA4749}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCAD178E-ED43-43DD-B9FE-91852FFA4749}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCAD178E-ED43-43DD-B9FE-91852FFA4749}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCAD178E-ED43-43DD-B9FE-91852FFA4749}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1546716E-4EAE-4C5A-B2EC-B6BF44D99E2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1546716E-4EAE-4C5A-B2EC-B6BF44D99E2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1546716E-4EAE-4C5A-B2EC-B6BF44D99E2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1546716E-4EAE-4C5A-B2EC-B6BF44D99E2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03BD30F9-1469-473B-BFC1-11B50E375053}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03BD30F9-1469-473B-BFC1-11B50E375053}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03BD30F9-1469-473B-BFC1-11B50E375053}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03BD30F9-1469-473B-BFC1-11B50E375053}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DAD2536-B982-478E-9852-6EC29F66D598}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DAD2536-B982-478E-9852-6EC29F66D598}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DAD2536-B982-478E-9852-6EC29F66D598}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DAD2536-B982-478E-9852-6EC29F66D598}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

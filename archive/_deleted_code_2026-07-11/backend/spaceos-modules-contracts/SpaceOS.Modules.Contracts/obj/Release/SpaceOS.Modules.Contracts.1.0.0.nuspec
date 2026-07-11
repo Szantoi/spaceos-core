@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>SpaceOS.Modules.Contracts</id>
+    <version>1.0.0</version>
+    <authors>SpaceOS</authors>
+    <description>Shared module contracts for SpaceOS ecosystem: Cutting, Inventory, Procurement</description>
+    <repository type="git" />
+    <dependencies>
+      <group targetFramework="net8.0">
+        <dependency id="Ardalis.Result" version="9.1.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/bin/Release/net8.0/SpaceOS.Modules.Contracts.dll" target="lib/net8.0/SpaceOS.Modules.Contracts.dll" />
+    <file src="/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/bin/Release/net8.0/SpaceOS.Modules.Contracts.xml" target="lib/net8.0/SpaceOS.Modules.Contracts.xml" />
+  </files>
+</package>

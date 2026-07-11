@@ -1,0 +1,17 @@
+{
+  "epicId": "EPIC-DOORSTAR-SOFTLAUNCH",
+  "epicName": "Doorstar Soft Launch",
+  "epicProgress": 100,
+  "nextCheckpointId": null,
+  "nextCheckpointName": null,
+  "completedCheckpoints": [
+    "CP-DOORSTAR-PLANNING",
+    "CP-DOORSTAR-FRONTEND-UI",
+    "CP-DOORSTAR-BACKEND-MODULE",
+    "CP-DOORSTAR-QA"
+  ],
+  "lastTurnCount": 0,
+  "lastActiveTask": null,
+  "savedAt": "2026-07-11T16:55:18.392Z",
+  "sessionId": "session-1783788918392-4iwkv2"
+}

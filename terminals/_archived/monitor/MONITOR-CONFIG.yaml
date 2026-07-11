@@ -1,0 +1,130 @@
+# MONITOR Terminal — Configuration (Agent-Optimized)
+# Version: 1.0
+# Updated: 2026-07-04
+# Purpose: Dynamic parameter management for intelligent encouragement protocol
+
+---
+
+## OPERATIONAL MODE
+mode: "agent-optimized"  # human | agent-optimized | hybrid
+description: "Agent-based system with intelligent phase transitions (not timer-driven)"
+
+---
+
+## CYCLE PARAMETERS (configurable by Root)
+
+health_check:
+  interval_minutes: 30          # How often to check health (30-60 recommended for agents)
+  output_threshold: "critical"  # When to write outbox (critical | warning | always)
+  run_enhanced_analysis: true   # Include Epic Gap Analysis in each cycle
+
+---
+
+## PHASE TRANSITION TRIGGERS (configurable)
+
+phase_transition:
+  enabled: true
+  progress_threshold_percent: 90           # Phase considered "complete" when >X%
+  conductor_idle_timeout_minutes: 120     # Conductor idle >X minutes → ösztönzés
+  check_method: "progress-based"           # progress-based | time-based | hybrid
+  auto_send_encouragement: true            # Auto-send ösztönzés or wait for manual review?
+
+---
+
+## ESCALATION RULES (configurable by Root)
+
+escalation:
+  enabled: true
+  phase_gap_threshold_minutes: 360        # Gap >X minutes between phases → Root escalation
+  conductor_unresponsive_minutes: 60      # No response >X min to ösztönzés → Root escalation
+  escalation_priority: "high"             # Priority level for escalation messages
+
+---
+
+## EPIC MONITORING (configurable)
+
+epic_tracking:
+  active_epic: "EPIC-CUTTING-Q3"          # Which epic to monitor (from EPICS.yaml)
+  track_phases: true                      # Track Phase 1-4 progression
+  track_dependencies: true                # Check critical path dependencies
+  auto_queue_phase3: true                 # Auto-create Phase 3 tasks when Phase 2 >90%?
+
+---
+
+## TOKEN EFFICIENCY (agent-aware)
+
+token_optimization:
+  silent_monitoring: true                 # Don't write outbox unless critical
+  batch_outbox_writes: true              # Combine multiple findings into 1 message
+  avoid_redundant_messages: true         # Skip repeat messages if no change
+  max_daily_outbox: 5                    # Max outbox messages per day (prevent spam)
+
+---
+
+## ÖSZTÖNZÉS MESSAGE CONFIGURATION
+
+encouragement:
+  enabled: true
+  message_type: "task"                   # task | info | question
+  priority: "high"                       # critical | high | medium | low
+  model: "sonnet"                        # haiku | sonnet | opus (for Conductor response)
+  include_next_tasks: true               # Include Phase 3 task recommendations
+  auto_send_on_phase_complete: true      # Send ösztönzés immediately or batch?
+
+---
+
+## MONITORING OUTPUT
+
+output:
+  create_outbox: false                   # Create outbox message (Phase 2 in progress)
+  send_root_alert: false                 # Send Root alert (only on escalation)
+  update_memory: true                    # Always update MEMORY.md
+  log_level: "info"                      # debug | info | warning | error
+
+---
+
+## NEXT PHASE TASKS (Phase 3 auto-queue)
+
+phase3_tasks:
+  task1:
+    id: "MSG-BACKEND-124"
+    title: "Nesting Algorithms Implementation"
+    priority: "critical"
+    blocker_for: ["MSG-BACKEND-126"]
+    estimated_hours: 8
+
+  task2:
+    id: "MSG-BACKEND-125"
+    title: "Quote Request API Endpoints"
+    priority: "high"
+    blocker_for: []
+    estimated_hours: 4
+
+  task3:
+    id: "MSG-BACKEND-126"
+    title: "CNC Queue Integration Stub"
+    priority: "medium"
+    depends_on: ["MSG-BACKEND-124"]
+    estimated_hours: 3
+
+---
+
+## METADATA
+
+created_date: "2026-07-04"
+created_by: "monitor"
+version: "1.1"
+status: "active"
+approved_by: "root"
+approved_date: "2026-07-04"
+notes: |
+  - All parameters configurable by Root via this file
+  - No hard-coded values in protocol
+  - Dynamic reload: Changes take effect on next cycle
+
+  ROOT APPROVAL (2026-07-04):
+  - health_check.interval_minutes: 30 OK (keep as-is)
+  - phase_transition.progress_threshold_percent: 90 OK
+  - escalation.phase_gap_threshold_minutes: 360 OK (6 hours)
+  - encouragement.auto_send_on_phase_complete: true OK
+  - All parameters APPROVED. Monitor may proceed with intelligent encouragement protocol.

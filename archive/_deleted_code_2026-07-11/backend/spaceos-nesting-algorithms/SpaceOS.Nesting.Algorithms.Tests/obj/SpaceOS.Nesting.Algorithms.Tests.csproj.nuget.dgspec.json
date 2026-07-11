@@ -1,0 +1,173 @@
+{
+  "format": 1,
+  "restore": {
+    "/opt/spaceos/backend/spaceos-nesting-algorithms/SpaceOS.Nesting.Algorithms.Tests/SpaceOS.Nesting.Algorithms.Tests.csproj": {}
+  },
+  "projects": {
+    "/opt/spaceos/backend/spaceos-nesting-algorithms/SpaceOS.Nesting.Algorithms.Tests/SpaceOS.Nesting.Algorithms.Tests.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/opt/spaceos/backend/spaceos-nesting-algorithms/SpaceOS.Nesting.Algorithms.Tests/SpaceOS.Nesting.Algorithms.Tests.csproj",
+        "projectName": "SpaceOS.Nesting.Algorithms.Tests",
+        "projectPath": "/opt/spaceos/backend/spaceos-nesting-algorithms/SpaceOS.Nesting.Algorithms.Tests/SpaceOS.Nesting.Algorithms.Tests.csproj",
+        "packagesPath": "/home/gabor/.nuget/packages/",
+        "outputPath": "/opt/spaceos/backend/spaceos-nesting-algorithms/SpaceOS.Nesting.Algorithms.Tests/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/gabor/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "/opt/spaceos/backend/spaceos-nesting-algorithms/SpaceOS.Nesting.Algorithms/SpaceOS.Nesting.Algorithms.csproj": {
+                "projectPath": "/opt/spaceos/backend/spaceos-nesting-algorithms/SpaceOS.Nesting.Algorithms/SpaceOS.Nesting.Algorithms.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.200"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "FluentAssertions": {
+              "target": "Package",
+              "version": "[6.12.2, )"
+            },
+            "Microsoft.NET.Test.Sdk": {
+              "target": "Package",
+              "version": "[17.8.0, )"
+            },
+            "coverlet.collector": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "xunit": {
+              "target": "Package",
+              "version": "[2.9.3, )"
+            },
+            "xunit.runner.visualstudio": {
+              "target": "Package",
+              "version": "[2.5.3, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.26, 8.0.26]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.26, 8.0.26]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/opt/dotnet/sdk/10.0.203/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/opt/spaceos/backend/spaceos-nesting-algorithms/SpaceOS.Nesting.Algorithms/SpaceOS.Nesting.Algorithms.csproj": {
+      "version": "1.1.0",
+      "restore": {
+        "projectUniqueName": "/opt/spaceos/backend/spaceos-nesting-algorithms/SpaceOS.Nesting.Algorithms/SpaceOS.Nesting.Algorithms.csproj",
+        "projectName": "SpaceOS.Nesting.Algorithms",
+        "projectPath": "/opt/spaceos/backend/spaceos-nesting-algorithms/SpaceOS.Nesting.Algorithms/SpaceOS.Nesting.Algorithms.csproj",
+        "packagesPath": "/home/gabor/.nuget/packages/",
+        "outputPath": "/opt/spaceos/backend/spaceos-nesting-algorithms/SpaceOS.Nesting.Algorithms/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/gabor/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "allWarningsAsErrors": true,
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.200"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.26, 8.0.26]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.26, 8.0.26]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/opt/dotnet/sdk/10.0.203/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

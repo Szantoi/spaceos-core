@@ -1,0 +1,128 @@
+---
+id: MSG-ARCHITECT-063-DONE
+from: architect
+to: conductor
+type: done
+status: UNREAD
+ref: MSG-ARCHITECT-063
+epic_id: EPIC-JT-QA
+checkpoint_id: CP-QA-BACKEND
+created: 2026-07-04
+content_hash: dd2c9d614accf0c3e677760cfd2d94b35a458d6934712bd5c7d568f8b73c6bed
+---
+
+# DONE: JoineryTech QA Domain Model — DDD Design Specification
+
+## Summary
+
+QA Domain Model DDD specifikáció elkészült a Contract-First development workflow szerint.
+
+## Deliverables
+
+**File created:** `/opt/spaceos/docs/joinerytech/domain/QA_DOMAIN_MODEL.md`
+
+## Domain Model Components
+
+### 3 Aggregate Roots
+1. **QACheckpoint** — Quality control checkpoint definition (Incoming, InProcess, Final)
+2. **Inspection** — Inspection execution with Pass/Fail/Conditional result
+3. **Ticket** — Customer complaint/warranty/repair workflow (FSM-enforced)
+
+### 3 Value Objects
+1. **InspectionCriteria** — Criteria for each checkpoint (Visual, Dimensional, Functional)
+2. **FailureNote** — Failure details with type, description, photo URL
+3. **ResolutionAction** — Resolution with ActionType (Repair, Replace, Refund, NoAction) and cost
+
+### 7 Enums
+- InspectionResult (Pass, Fail, Conditional)
+- InspectionStatus (Planned, InProgress, Completed)
+- TicketType (Warranty, Repair, Missing)
+- TicketStatus (Reported, Assigned, InProgress, Resolved, Rejected)
+- TicketPriority (Critical, High, Medium, Low)
+- CheckpointType (Incoming, InProcess, Final)
+- CriticalLevel (Critical, Major, Minor)
+
+### 3 Domain Services
+1. **InspectionBlockingService** — Production blocking logic (Critical checkpoint + Fail = block)
+2. **TicketRoutingService** — Auto-assign tickets based on type and priority
+3. **RootCauseAnalysisService** — Pareto analysis for Kontrolling dashboard
+
+### 16 Domain Events
+- 4 Inspection events (Planned, Started, Completed, Failed)
+- 7 Ticket events (Reported, Assigned, Started, Resolved, Rejected, Reopened, PriorityEscalated)
+- 5 Checkpoint events (Created, Updated, Deactivated, Reactivated, CriteriaAdded/Removed)
+
+### 3 Repository Contracts
+- IQACheckpointRepository
+- IInspectionRepository
+- ITicketRepository
+
+### 2 FSM State Machines
+1. **Inspection FSM:** Planned → InProgress → Completed (no backwards)
+2. **Ticket FSM:** Reported → Assigned → InProgress → Resolved/Rejected (Rejected → Reported reopen)
+
+## Critical Integration Patterns
+
+### Production Integration (CRITICAL!)
+```
+GET /api/qa/inspections/blocking?orderId={orderId}
+
+Response:
+{
+  "isBlocked": true,
+  "blockingInspections": [
+    { "inspectionId": "...", "checkpointName": "Festés minőség", ... }
+  ]
+}
+```
+- Critical checkpoint + Fail result = production BLOCKED
+- Production module queries before advancing order status
+- `ProductionBlockedByInspectionEvent` published on critical failure
+
+### Pareto Analysis (Kontrolling Dashboard)
+```
+GET /api/qa/metrics/pareto?startDate={start}&endDate={end}
+
+Response:
+{
+  "totalInspections": 150,
+  "passRate": 92.5,
+  "failureCategories": [
+    { "type": "Scratch", "count": 5, "percentage": 41.7, "cumulativePercentage": 41.7 },
+    ...
+  ]
+}
+```
+
+## Acceptance Criteria Status
+
+- [x] QA_DOMAIN_MODEL.md created in `/opt/spaceos/docs/joinerytech/domain/`
+- [x] 3 aggregates defined (QACheckpoint, Inspection, Ticket)
+- [x] 3 value objects defined (InspectionCriteria, FailureNote, ResolutionAction)
+- [x] 7 enums defined (exceeds requirement of 5)
+- [x] 3 domain services defined (InspectionBlockingService, TicketRoutingService, RootCauseAnalysisService)
+- [x] 16 domain events defined (exceeds requirement of 12+)
+- [x] 3 repository contracts defined
+- [x] 2 FSM state machines defined (Inspection, Ticket)
+- [x] Production integration pattern documented (blocking inspections)
+- [x] Pareto analysis pattern documented (root cause analysis)
+- [x] Table of Contents with navigation links
+- [x] Implementation Guide section (6-phase implementation roadmap)
+
+## Next Steps
+
+1. **Week 0:** OpenAPI specification generation
+2. **Week 1-2:** Core domain implementation (aggregates, value objects, FSM)
+3. **Week 3:** Domain services implementation
+4. **Week 4:** Repository implementations with RLS
+5. **Week 5-6:** CQRS handlers and API endpoints
+
+## Files Changed
+
+- `/opt/spaceos/docs/joinerytech/domain/QA_DOMAIN_MODEL.md` (created, ~1650 lines)
+
+---
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>

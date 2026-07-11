@@ -1,0 +1,35 @@
+id: GOAL-2026-07-06-264
+created: '2026-07-06T12:22:45.264Z'
+created_by: conductor
+epic_id: EPIC-JT-HR
+goal:
+  description: HR Week 1 Domain Layer befejezése (54% → 100%)
+  checkpoint_id: CP-HR-BACKEND
+completion_criteria:
+  - type: done_outbox
+    terminal: backend
+    message_pattern: '*hr*week1*done*'
+on_complete:
+  trigger_terminal: conductor
+  next_goal: Maintenance Week 1 Domain Layer dispatch
+  prompt: |-
+    ✅ GOAL TELJESÜLT: {{goal.description}}
+
+    HR Week 1 Domain Layer kész! Backend DONE outbox feldolgozva.
+
+    Következő lépés: {{on_complete.next_goal}}
+
+    Dispatch Maintenance Week 1 Domain Layer task Backend-nek.
+status: completed
+expires_at: '2026-07-06T20:22:45.265Z'
+triggered_at: '2026-07-06T15:08:44.594Z'
+trigger_message_id: MSG-CONDUCTOR-003
+criteria_results:
+  - criterion:
+      type: done_outbox
+      terminal: backend
+      message_pattern: '*hr*week1*done*'
+    met: true
+    details: 'Found: 2026-07-06_153_msg-144-hr-week1-domain-done.md'
+    checked_at: '2026-07-06T15:08:44.585Z'
+completed_at: '2026-07-10T05:18:12.084Z'

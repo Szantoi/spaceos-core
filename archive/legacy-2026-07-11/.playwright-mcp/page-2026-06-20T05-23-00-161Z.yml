@@ -1,0 +1,142 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Datahaven" [level=1] [ref=e5]
+      - navigation [ref=e6]:
+        - link "Dashboard" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - link "Kanban" [ref=e8] [cursor=pointer]:
+          - /url: /kanban.html
+        - link "Planning" [ref=e9] [cursor=pointer]:
+          - /url: /planning.html
+        - link "Projects" [ref=e10] [cursor=pointer]:
+          - /url: /projects.html
+    - generic [ref=e14]: Pipeline Degraded
+  - main [ref=e15]:
+    - generic [ref=e17]:
+      - generic [ref=e18] [cursor=pointer]:
+        - generic [ref=e19]: 💡
+        - generic [ref=e20]: Ideas
+        - generic [ref=e21]: "6"
+      - generic [ref=e22]: →
+      - generic [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]: ✓
+        - generic [ref=e25]: Selected
+        - generic [ref=e26]: "0"
+      - generic [ref=e27]: →
+      - generic [ref=e28] [cursor=pointer]:
+        - generic [ref=e29]: ⚖️
+        - generic [ref=e30]: Debate
+        - generic [ref=e31]: "1"
+      - generic [ref=e32]: →
+      - generic [ref=e33] [cursor=pointer]:
+        - generic [ref=e34]: 📋
+        - generic [ref=e35]: Queue
+        - generic [ref=e36]: "0"
+    - generic [ref=e37]:
+      - button "Workflow" [active] [ref=e38] [cursor=pointer]
+      - button "Ideas" [ref=e39] [cursor=pointer]
+      - button "Selected" [ref=e40] [cursor=pointer]
+      - button "Debate" [ref=e41] [cursor=pointer]
+      - button "Queue" [ref=e42] [cursor=pointer]
+      - button "Pipeline Logs" [ref=e43] [cursor=pointer]
+    - generic [ref=e117]:
+      - generic [ref=e118]:
+        - heading "Plan Workflow" [level=2] [ref=e119]
+        - button "Refresh" [ref=e120] [cursor=pointer]
+      - generic [ref=e121]:
+        - generic [ref=e122]:
+          - generic [ref=e123]: "6"
+          - generic [ref=e124]: Draft
+        - generic [ref=e125]:
+          - generic [ref=e126]: "0"
+          - generic [ref=e127]: Selected
+        - generic [ref=e128]:
+          - generic [ref=e129]: "1"
+          - generic [ref=e130]: In Debate
+        - generic [ref=e131]:
+          - generic [ref=e132]: "0"
+          - generic [ref=e133]: Approved
+        - generic [ref=e134]:
+          - generic [ref=e135]: "0"
+          - generic [ref=e136]: Implemented
+      - table [ref=e138]:
+        - rowgroup [ref=e139]:
+          - row "Terv Státusz Prioritás Domain Kimenet Frissítve" [ref=e140]:
+            - columnheader "Terv" [ref=e141]
+            - columnheader "Státusz" [ref=e142]
+            - columnheader "Prioritás" [ref=e143]
+            - columnheader "Domain" [ref=e144]
+            - columnheader "Kimenet" [ref=e145]
+            - columnheader "Frissítve" [ref=e146]
+        - rowgroup [ref=e147]:
+          - row "Marvin Planning Pipeline ← Manufacturing Real-Time Constraints 2026-06-18_006_marvin-pipeline-manufacturing-constraints.md Draft high manufacturing - 2026. 06. 18. 05:39" [ref=e148] [cursor=pointer]:
+            - cell "Marvin Planning Pipeline ← Manufacturing Real-Time Constraints 2026-06-18_006_marvin-pipeline-manufacturing-constraints.md" [ref=e149]:
+              - generic [ref=e150]: Marvin Planning Pipeline ← Manufacturing Real-Time Constraints
+              - generic [ref=e151]: 2026-06-18_006_marvin-pipeline-manufacturing-constraints.md
+            - cell "Draft" [ref=e152]:
+              - generic [ref=e153]: Draft
+            - cell "high" [ref=e154]
+            - cell "manufacturing" [ref=e155]
+            - cell "-" [ref=e156]
+            - cell "2026. 06. 18. 05:39" [ref=e157]
+          - row "Joinery CAD Export Formátumok — Gyártásgép integráció 2026-06-18_005_joinery-cad-export-formats.md Draft high manufacturing - 2026. 06. 18. 05:39" [ref=e158] [cursor=pointer]:
+            - cell "Joinery CAD Export Formátumok — Gyártásgép integráció 2026-06-18_005_joinery-cad-export-formats.md" [ref=e159]:
+              - generic [ref=e160]: Joinery CAD Export Formátumok — Gyártásgép integráció
+              - generic [ref=e161]: 2026-06-18_005_joinery-cad-export-formats.md
+            - cell "Draft" [ref=e162]:
+              - generic [ref=e163]: Draft
+            - cell "high" [ref=e164]
+            - cell "manufacturing" [ref=e165]
+            - cell "-" [ref=e166]
+            - cell "2026. 06. 18. 05:39" [ref=e167]
+          - row "SpaceOS Konsenzus Implementációs Terv — Manufacturing Stack 2026-06-16_consensus.md In Debate medium - - 2026. 06. 16. 22:46" [ref=e168] [cursor=pointer]:
+            - cell "SpaceOS Konsenzus Implementációs Terv — Manufacturing Stack 2026-06-16_consensus.md" [ref=e169]:
+              - generic [ref=e170]: SpaceOS Konsenzus Implementációs Terv — Manufacturing Stack
+              - generic [ref=e171]: 2026-06-16_consensus.md
+            - cell "In Debate" [ref=e172]:
+              - generic [ref=e173]: In Debate
+            - cell "medium" [ref=e174]
+            - cell "-" [ref=e175]
+            - cell "-" [ref=e176]
+            - cell "2026. 06. 16. 22:46" [ref=e177]
+          - row "Manufacturing Floor Mobile-First UX — Responsive Layout + Offline Form Capture 2026-06-16_004_floor-mobile-first-ux.md Draft medium manufacturing - 2026. 06. 16. 16:11" [ref=e178] [cursor=pointer]:
+            - cell "Manufacturing Floor Mobile-First UX — Responsive Layout + Offline Form Capture 2026-06-16_004_floor-mobile-first-ux.md" [ref=e179]:
+              - generic [ref=e180]: Manufacturing Floor Mobile-First UX — Responsive Layout + Offline Form Capture
+              - generic [ref=e181]: 2026-06-16_004_floor-mobile-first-ux.md
+            - cell "Draft" [ref=e182]:
+              - generic [ref=e183]: Draft
+            - cell "medium" [ref=e184]
+            - cell "manufacturing" [ref=e185]
+            - cell "-" [ref=e186]
+            - cell "2026. 06. 16. 16:11" [ref=e187]
+          - row "Joinery API Integration — Material Requisition & Daily Cutting Plan 2026-06-16_003_joinery-api-integration.md Draft high manufacturing - 2026. 06. 16. 16:10" [ref=e188] [cursor=pointer]:
+            - cell "Joinery API Integration — Material Requisition & Daily Cutting Plan 2026-06-16_003_joinery-api-integration.md" [ref=e189]:
+              - generic [ref=e190]: Joinery API Integration — Material Requisition & Daily Cutting Plan
+              - generic [ref=e191]: 2026-06-16_003_joinery-api-integration.md
+            - cell "Draft" [ref=e192]:
+              - generic [ref=e193]: Draft
+            - cell "high" [ref=e194]
+            - cell "manufacturing" [ref=e195]
+            - cell "-" [ref=e196]
+            - cell "2026. 06. 16. 16:10" [ref=e197]
+          - row "WorkStation Trust Provisioning Endpoint 2026-06-16_002_workstation-onboarding.md Draft medium manufacturing - 2026. 06. 16. 16:07" [ref=e198] [cursor=pointer]:
+            - cell "WorkStation Trust Provisioning Endpoint 2026-06-16_002_workstation-onboarding.md" [ref=e199]:
+              - generic [ref=e200]: WorkStation Trust Provisioning Endpoint
+              - generic [ref=e201]: 2026-06-16_002_workstation-onboarding.md
+            - cell "Draft" [ref=e202]:
+              - generic [ref=e203]: Draft
+            - cell "medium" [ref=e204]
+            - cell "manufacturing" [ref=e205]
+            - cell "-" [ref=e206]
+            - cell "2026. 06. 16. 16:07" [ref=e207]
+          - row "Offline Audit Trail Resilience 2026-06-16_001_offline-audit-cache.md Draft high manufacturing - 2026. 06. 16. 16:07" [ref=e208] [cursor=pointer]:
+            - cell "Offline Audit Trail Resilience 2026-06-16_001_offline-audit-cache.md" [ref=e209]:
+              - generic [ref=e210]: Offline Audit Trail Resilience
+              - generic [ref=e211]: 2026-06-16_001_offline-audit-cache.md
+            - cell "Draft" [ref=e212]:
+              - generic [ref=e213]: Draft
+            - cell "high" [ref=e214]
+            - cell "manufacturing" [ref=e215]
+            - cell "-" [ref=e216]
+            - cell "2026. 06. 16. 16:07" [ref=e217]

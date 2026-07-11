@@ -1,0 +1,53 @@
+id: GOAL-2026-07-08-748
+created: '2026-07-08T16:03:36.748Z'
+created_by: conductor
+epic_id: EPIC-JT-EHS
+goal:
+  description: EHS Frontend Dashboard UI Complete
+  checkpoint_id: CP-EHS-FRONTEND
+completion_criteria:
+  - type: done_outbox
+    terminal: frontend
+    message_pattern: '*007*ehs*dashboard*done*'
+on_complete:
+  trigger_terminal: conductor
+  next_goal: Mark EPIC-JT-EHS as DONE. JoineryTech Phase 1 COMPLETE (7/7 modules).
+  prompt: >
+    ✅ GOAL TELJESÜLT: {{goal.description}}
+
+
+    Frontend DONE: {{completed_criteria}}
+
+
+    **🎯 EPIC-JT-EHS COMPLETE!**
+
+
+    CP-EHS-FRONTEND checkpoint teljesült:
+
+    ✅ EHS Dashboard UI
+
+    ✅ Incident Management
+
+    ✅ Risk Matrix 5×5
+
+    ✅ Training Tracking
+
+    ✅ TanStack Query integration
+
+    ✅ Production ready
+
+
+    Következő lépés: {{on_complete.next_goal}}
+
+
+    **JoineryTech Phase 1 Status:**
+
+    - CRM, Kontrolling, HR, Maintenance, QA, DMS: ✅ DONE (6/7 backend +
+    frontend)
+
+    - **EHS: ✅ DONE (7/7 backend + frontend)**
+
+
+    **MILESTONE: JoineryTech Phase 1 COMPLETE** — 7/7 modules production ready!
+status: watching
+expires_at: '2026-07-11T16:03:36.748Z'

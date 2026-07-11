@@ -1,0 +1,45 @@
+{
+  "name": "spaceos-orchestrator",
+  "version": "1.0.0",
+  "description": "SpaceOS BFF / Orchestrator — LLM routing, Kernel proxy, NLP interpreter",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run",
+    "generate:api": "nswag run nswag.json"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@types/opossum": "^8.1.9",
+    "@types/pg": "^8.20.0",
+    "axios": "^1.7.9",
+    "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "http-proxy-middleware": "^3.0.3",
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^4.0.1",
+    "morgan": "^1.10.0",
+    "opossum": "^9.0.0",
+    "pg": "^8.21.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^22.10.7",
+    "@types/supertest": "^7.2.0",
+    "nswag": "^14.7.1",
+    "supertest": "^7.2.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.4"
+  }
+}

@@ -1,0 +1,1100 @@
+﻿
+> server@1.0.0 test
+> npx vitest run src/tests/unit
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mC:/Users/szant/Documents/Development/JoineryTech.McpServer[39m
+
+node.exe : [90mstderr[2m | src/tests/unit/RbacFilter.test.ts
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([90mstderr[2m...cFilter.test.ts 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[22m[39m[RbacFilter] Roles root not found: C:\Users\szant\Documents\Developme
+nt\database\roles
+
+ [32mÔťô[39m src/tests/unit/RbacFilter.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 3[2mms[22m[39m
+[90mstdout[2m | src/tests/unit/WriteLayerSchema.test.ts[2m > [22m[2mWriteLayerSchema[2m > [22m[2mTable Creation[2m > [22m[2mshould create all 4 write-layer tables on init
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerSchema.test.ts[2m > [22m[2mWriteLayerSchema[2m > [22m[2mTable Creation[2m > [22m[2mshould create all indexes
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerSchema.test.ts[2m > [22m[2mWriteLayerSchema[2m > [22m[2mTable Creation[2m > [22m[2mshould run idempotently (safely run multiple times)
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerSchema.test.ts[2m > [22m[2mWriteLayerSchema[2m > [22m[2mForeign Key Constraints[2m > [22m[2mshould enforce FK constraint: artifact -> session
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerSchema.test.ts[2m > [22m[2mWriteLayerSchema[2m > [22m[2mForeign Key Constraints[2m > [22m[2mshould allow artifact insert with valid session FK
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerSchema.test.ts[2m > [22m[2mWriteLayerSchema[2m > [22m[2mForeign Key Constraints[2m > [22m[2mshould cascade delete artifacts when session deleted
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerSchema.test.ts[2m > [22m[2mWriteLayerSchema[2m > [22m[2mUnique Constraints[2m > [22m[2mshould enforce UNIQUE constraint on sessions (one active per agent_id)
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerSchema.test.ts[2m > [22m[2mWriteLayerSchema[2m > [22m[2mUnique Constraints[2m > [22m[2mshould enforce UNIQUE constraint on artifacts (session + type + timestamp)
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerSchema.test.ts[2m > [22m[2mWriteLayerSchema[2m > [22m[2mDefault Values[2m > [22m[2mshould default fsm_state to "started" for new session
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerSchema.test.ts[2m > [22m[2mWriteLayerSchema[2m > [22m[2mDefault Values[2m > [22m[2mshould store timestamps in ISO 8601 format
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerSchema.test.ts[2m > [22m[2mWriteLayerSchema[2m > [22m[2mDefault Values[2m > [22m[2mshould default embedded to false for artifacts
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerSchema.test.ts[2m > [22m[2mWriteLayerSchema[2m > [22m[2mSchema Verification[2m > [22m[2mshould provide schema info for tables
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+ [32mÔťô[39m src/tests/unit/WriteLayerSchema.test.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 38[2mms[22m[39m
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mSchema Initialization[2m > [22m[2mshould create all 6 context tables
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mSchema Initialization[2m > [22m[2mshould be idempotent (run twice without error)
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mSchema Initialization[2m > [22m[2mshould create composite indexes on (domain, role_name)
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mSchema Initialization[2m > [22m[2mshould enable foreign key support
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mRoles Table[2m > [22m[2mshould insert role record with required fields
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mRoles Table[2m > [22m[2mshould enforce UNIQUE(domain, role_name)
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mRoles Table[2m > [22m[2mshould allow same role_name in different domains
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mRoles Table[2m > [22m[2mshould set created_at and last_updated timestamps
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mRoles Table[2m > [22m[2mshould set default version to 1.0
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mRole Schemas Table[2m > [22m[2mshould insert role_schema with mcp_tool_permissions
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mRole Schemas Table[2m > [22m[2mshould enforce FK (domain, role_name) -> roles
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mRole Schemas Table[2m > [22m[2mshould allow nullable persona fields
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mWorkflows Table[2m > [22m[2mshould support multiple workflows per role (discovery, delivery, etc)
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mWorkflows Table[2m > [22m[2mshould enforce UNIQUE(domain, role_name, workflow_type)
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mStandards Table[2m > [22m[2mshould insert global standards independent of roles
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mStandards Table[2m > [22m[2mshould enforce UNIQUE on std_id
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mCascade Deletes[2m > [22m[2mshould have FK constraint with ON DELETE CASCADE configured
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mSchema Info Methods[2m > [22m[2mshould retrieve schema information
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/ContextSchema.test.ts[2m > [22m[2mEPIC-09: ContextSchema[2m > [22m[2mSchema Info Methods[2m > [22m[2mshould retrieve table statistics
+[22m[39m[ContextSchemaInitializer] Initializing EPIC-09 context schema...
+[ContextSchemaInitializer] Verifying 6 tables exist...
+[ContextSchemaInitializer] Ôťů All 6 tables verified
+[ContextSchemaInitializer] Ôťů Context schema initialized successfully
+
+ [31mÔŁ»[39m src/tests/unit/ContextSchema.test.ts [2m([22m[2m19 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[90m 59[2mms[22m[39m
+[31m   [31m├Ś[31m EPIC-09: ContextSchema[2m > [22mSchema Initialization[2m > [22mshould enable foreign key support[90m 11[2mms[22m[31m[39m
+[31m     Ôćĺ expected false to be true // Object.is equality[39m
+ [32mÔťô[39m src/tests/unit/DocumentServer.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 69[2mms[22m[39m
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mSchema Initialization[2m > [22m[2mshould initialize database with PRAGMA settings
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mSchema Initialization[2m > [22m[2mshould be idempotent (call init twice without error)
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mSchema Initialization[2m > [22m[2mshould create all 10 tables (EPIC-08 + EPIC-09)
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetRole() ÔÇö Query roles table[2m > [22m[2mshould return role by domain and role_name
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetRole() ÔÇö Query roles table[2m > [22m[2mshould return RoleRow type with all fields
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetRole() ÔÇö Query roles table[2m > [22m[2mshould return null for non-existent role
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetRole() ÔÇö Query roles table[2m > [22m[2mshould distinguish roles by domain (same role_name, different domains)
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetRolesByDomain() ÔÇö Query roles by domain[2m > [22m[2mshould return all roles for a domain
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetRolesByDomain() ÔÇö Query roles by domain[2m > [22m[2mshould return empty array if domain not found
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetRolesByDomain() ÔÇö Query roles by domain[2m > [22m[2mshould order results by role_name
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetRoleSchema() ÔÇö Query role_schemas table[2m > [22m[2mshould return role schema by domain and role_name
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetRoleSchema() ÔÇö Query role_schemas table[2m > [22m[2mshould parse mcp_tool_permissions as JSON string
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetRoleSchema() ÔÇö Query role_schemas table[2m > [22m[2mshould return null for non-existent schema
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetRunbook() ÔÇö Query runbooks table[2m > [22m[2mshould return runbook by domain and role_name
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetRunbook() ÔÇö Query runbooks table[2m > [22m[2mshould return RunbookRow type
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetRunbook() ÔÇö Query runbooks table[2m > [22m[2mshould return null if runbook not found
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetWorkflow() ÔÇö Query workflows table[2m > [22m[2mshould return workflow by domain, role_name, and workflow_type
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetWorkflow() ÔÇö Query workflows table[2m > [22m[2mshould return WorkflowRow type
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetWorkflow() ÔÇö Query workflows table[2m > [22m[2mshould return null if workflow not found
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetWorkflow() ÔÇö Query workflows table[2m > [22m[2mshould distinguish workflows by type
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetWorkflowsByRole() ÔÇö Query workflows by role[2m > [22m[2mshould return all workflows for a role
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetWorkflowsByRole() ÔÇö Query workflows by role[2m > [22m[2mshould order results by workflow_type
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetTemplate() ÔÇö Query templates table[2m > [22m[2mshould return template by domain, role_name, and template_name
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetTemplate() ÔÇö Query templates table[2m > [22m[2mshould return TemplateRow type
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetTemplate() ÔÇö Query templates table[2m > [22m[2mshould return null if template not found
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetTemplate() ÔÇö Query templates table[2m > [22m[2mshould distinguish templates by name
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetTemplatesByRole() ÔÇö Query templates by role[2m > [22m[2mshould return all templates for a role
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetTemplatesByRole() ÔÇö Query templates by role[2m > [22m[2mshould order results by template_name
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetStandard() ÔÇö Query standards table[2m > [22m[2mshould return standard by std_id
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetStandard() ÔÇö Query standards table[2m > [22m[2mshould return StandardRow type
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetStandard() ÔÇö Query standards table[2m > [22m[2mshould return null if standard not found
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetAllStandards() ÔÇö Paginated query[2m > [22m[2mshould return all standards with default parameters
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetAllStandards() ÔÇö Paginated query[2m > [22m[2mshould support limit parameter
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetAllStandards() ÔÇö Paginated query[2m > [22m[2mshould support offset parameter (pagination)
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mgetAllStandards() ÔÇö Paginated query[2m > [22m[2mshould order results by std_id
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mType Safety & Misc[2m > [22m[2mshould enforce strict typing (no any)
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mType Safety & Misc[2m > [22m[2mshould close database connection cleanly
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/AgentDb.test.ts[2m > [22m[2mEPIC-09: AgentDb Service Class[2m > [22m[2mType Safety & Misc[2m > [22m[2mshould return raw database instance via getRawDatabase()
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+ [31mÔŁ»[39m src/tests/unit/AgentDb.test.ts [2m([22m[2m38 tests[22m[2m | [22m[31m29 failed[39m[2m)[22m[90m 140[2mms[22m[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetRole() ÔÇö Query roles table[2m > [22mshould return RoleRow type with all fields[90m 9[2mms[22m[31m[39m
+[31m     Ôćĺ expected undefined to be defined[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetRolesByDomain() ÔÇö Query roles by domain[2m > [22mshould return all roles for a domain[90m 5[2mms[22m[31m[39m
+[31m     Ôćĺ no such column: updated_at[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetRolesByDomain() ÔÇö Query roles by domain[2m > [22mshould return empty array if domain not found[90m 4[2mms[22m[31m[39m
+[31m     Ôćĺ no such column: updated_at[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetRolesByDomain() ÔÇö Query roles by domain[2m > [22mshould order results by role_name[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ no such column: updated_at[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetRoleSchema() ÔÇö Query role_schemas table[2m > [22mshould return role schema by domain and role_name[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetRoleSchema() ÔÇö Query role_schemas table[2m > [22mshould parse mcp_tool_permissions as JSON string[90m 4[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetRoleSchema() ÔÇö Query role_schemas table[2m > [22mshould return null for non-existent schema[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetRunbook() ÔÇö Query runbooks table[2m > [22mshould return runbook by domain and role_name[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetRunbook() ÔÇö Query runbooks table[2m > [22mshould return RunbookRow type[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetRunbook() ÔÇö Query runbooks table[2m > [22mshould return null if runbook not found[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetWorkflow() ÔÇö Query workflows table[2m > [22mshould return workflow by domain, role_name, and workflow_type[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetWorkflow() ÔÇö Query workflows table[2m > [22mshould return WorkflowRow type[90m 2[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetWorkflow() ÔÇö Query workflows table[2m > [22mshould return null if workflow not found[90m 2[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetWorkflow() ÔÇö Query workflows table[2m > [22mshould distinguish workflows by type[90m 2[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetWorkflowsByRole() ÔÇö Query workflows by role[2m > [22mshould return all workflows for a role[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetWorkflowsByRole() ÔÇö Query workflows by role[2m > [22mshould order results by workflow_type[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetTemplate() ÔÇö Query templates table[2m > [22mshould return template by domain, role_name, and template_name[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetTemplate() ÔÇö Query templates table[2m > [22mshould return TemplateRow type[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetTemplate() ÔÇö Query templates table[2m > [22mshould return null if template not found[90m 4[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetTemplate() ÔÇö Query templates table[2m > [22mshould distinguish templates by name[90m 4[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetTemplatesByRole() ÔÇö Query templates by role[2m > [22mshould return all templates for a role[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetTemplatesByRole() ÔÇö Query templates by role[2m > [22mshould order results by template_name[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ FOREIGN KEY constraint failed[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetStandard() ÔÇö Query standards table[2m > [22mshould return standard by std_id[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ datatype mismatch[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetStandard() ÔÇö Query standards table[2m > [22mshould return StandardRow type[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ datatype mismatch[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetStandard() ÔÇö Query standards table[2m > [22mshould return null if standard not found[90m 4[2mms[22m[31m[39m
+[31m     Ôćĺ datatype mismatch[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetAllStandards() ÔÇö Paginated query[2m > [22mshould return all standards with default parameters[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ datatype mismatch[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetAllStandards() ÔÇö Paginated query[2m > [22mshould support limit parameter[90m 5[2mms[22m[31m[39m
+[31m     Ôćĺ datatype mismatch[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetAllStandards() ÔÇö Paginated query[2m > [22mshould support offset parameter (pagination)[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ datatype mismatch[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDb Service Class[2m > [22mgetAllStandards() ÔÇö Paginated query[2m > [22mshould order results by std_id[90m 3[2mms[22m[31m[39m
+[31m     Ôćĺ datatype mismatch[39m
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2msubmitArtifact()[2m > [22m[2mshould successfully submit an artifact with valid input
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2msubmitArtifact()[2m > [22m[2mshould return SCHEMA_VALIDATION_ERROR for invalid session_id format
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2msubmitArtifact()[2m > [22m[2mshould return SCHEMA_VALIDATION_ERROR for empty artifact_content
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2msubmitArtifact()[2m > [22m[2mshould return SCHEMA_VALIDATION_ERROR for invalid artifact_type
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2msubmitArtifact()[2m > [22m[2mshould return PERMISSION_DENIED for unauthorized role
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2msubmitArtifact()[2m > [22m[2mshould return SESSION_NOT_FOUND for non-existent session
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2msubmitArtifact()[2m > [22m[2mshould update session.last_updated_at when submitting artifact
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2msubmitArtifact()[2m > [22m[2mshould allow tech_lead role to submit artifacts
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2msubmitArtifact()[2m > [22m[2mshould log metrics when lock contention occurs and WRITE_LAYER_METRICS is true
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2msubmitArtifact()[2m > [22m[2mshould log metrics for updateWorkflowState when contention occurs
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstderr[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2msubmitA
+rtifact()[2m > [22m[2mshould log metrics for updateWorkflowState when conten
+tion occurs
+[22m[39m[WriteLayerTools.updateWorkflowState] Lock contention. Retry 1/5 in 7
+1ms (jittered)
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2msubmitArtifact()[2m > [22m[2mcalculateJitteredBackoff()[2m > [22m[2mproduces values within expected bounds and varied values
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2msubmitArtifact()[2m > [22m[2mcalculateJitteredBackoff()[2m > [22m[2mcaps at maximum value when attempt is large
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2mupdateWorkflowState()[2m > [22m[2mshould successfully transition from started Ôćĺ in_progress
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2mupdateWorkflowState()[2m > [22m[2mshould return FSM_INVALID_TRANSITION for invalid state transition
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2mupdateWorkflowState()[2m > [22m[2mshould return SCHEMA_VALIDATION_ERROR for invalid session_id
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2mupdateWorkflowState()[2m > [22m[2mshould return SESSION_NOT_FOUND for non-existent session
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2mupdateWorkflowState()[2m > [22m[2mshould return PERMISSION_DENIED for unauthorized role
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2mupdateWorkflowState()[2m > [22m[2mshould allow transitions within in_progress state (retry)
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2mupdateWorkflowState()[2m > [22m[2mshould include evidence_artifact_id in workflow_events when provided
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2mupdateWorkflowState()[2m > [22m[2mshould transition submitted Ôćĺ processed Ôćĺ closed in sequence
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2mupdateWorkflowState()[2m > [22m[2mshould allow tech_lead to update workflow state
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2mWriteLayerTools - Edge Cases[2m > [22m[2mshould handle artifact_content with UTF-8 characters
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2mWriteLayerTools - Edge Cases[2m > [22m[2mshould handle large artifact content (up to 100KB)
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+[90mstdout[2m | src/tests/unit/WriteLayerTools.test.ts[2m > [22m[2mWriteLayerTools - Edge Cases[2m > [22m[2mshould reject artifact_content exceeding 100KB
+[22m[39m[WriteLayerInitializer] PRAGMA configured for WAL mode + consistency
+[WriteLayerInitializer] Migration SQL executed
+[WriteLayerInitializer] Ôťô All required tables exist
+[WriteLayerInitializer] Ôťů Write-layer schema initialized successfully
+
+ [31mÔŁ»[39m src/tests/unit/WriteLayerTools.test.ts [2m([22m[2m24 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[90m 228[2mms[22m[39m
+[31m   [31m├Ś[31m submitArtifact()[2m > [22mshould log metrics when lock contention occurs and WRITE_LAYER_METRICS is true[90m 80[2mms[22m[31m[39m
+[31m     Ôćĺ expected "info" to be called with arguments: [ StringContaining{ÔÇŽ} ][90m
+
+Received: 
+
+[31m[90m
+
+Number of calls: [1m0[22m
+[31m[39m
+[31m   [31m├Ś[31m submitArtifact()[2m > [22mshould log metrics for updateWorkflowState when contention occurs[90m 75[2mms[22m[31m[39m
+[31m     Ôćĺ expected "info" to be called with arguments: [ StringContaining{ÔÇŽ} ][90m
+
+Received: 
+
+[31m[90m
+
+Number of calls: [1m0[22m
+[31m[39m
+[90mstdout[2m | src/tests/unit/seed-agent-db.test.ts[2m > [22m[2mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22m[2mSeeder Configuration[2m > [22m[2mshould initialize database with schema
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/seed-agent-db.test.ts[2m > [22m[2mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22m[2mSeeder Logic: Manual Role Insertion[2m > [22m[2mshould insert a role into roles table
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/seed-agent-db.test.ts[2m > [22m[2mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22m[2mSeeder Logic: Manual Role Insertion[2m > [22m[2mshould insert a role schema (YAML Ôćĺ JSON)
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/seed-agent-db.test.ts[2m > [22m[2mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22m[2mSeeder Logic: Manual Role Insertion[2m > [22m[2mshould insert runbook
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/seed-agent-db.test.ts[2m > [22m[2mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22m[2mSeeder Logic: Manual Role Insertion[2m > [22m[2mshould insert workflow
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/seed-agent-db.test.ts[2m > [22m[2mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22m[2mSeeder Logic: Manual Role Insertion[2m > [22m[2mshould insert template
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/seed-agent-db.test.ts[2m > [22m[2mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22m[2mSeeder Logic: Manual Role Insertion[2m > [22m[2mshould insert standard
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/seed-agent-db.test.ts[2m > [22m[2mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22m[2mIdempotency: INSERT OR REPLACE[2m > [22m[2mshould replace role on second insert (no duplicates)
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/seed-agent-db.test.ts[2m > [22m[2mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22m[2mIdempotency: INSERT OR REPLACE[2m > [22m[2mshould handle replace for all table types
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/seed-agent-db.test.ts[2m > [22m[2mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22m[2mError Handling[2m > [22m[2mshould gracefully handle missing directories
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/seed-agent-db.test.ts[2m > [22m[2mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22m[2mError Handling[2m > [22m[2mshould handle malformed YAML gracefully
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+[90mstdout[2m | src/tests/unit/seed-agent-db.test.ts[2m > [22m[2mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22m[2mSeeder Statistics[2m > [22m[2mshould count rows correctly after seeding multiple roles
+[22m[39m[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas (PRAGMA: FK=ON, WAL, SYNCHRONOUS=FULL)
+
+ [31mÔŁ»[39m src/tests/unit/seed-agent-db.test.ts [2m([22m[2m12 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[33m 327[2mms[22m[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22mSeeder Logic: Manual Role Insertion[2m > [22mshould insert a role schema (YAML Ôćĺ JSON)[90m 32[2mms[22m[31m[39m
+[31m     Ôćĺ no such column: updated_at[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22mSeeder Logic: Manual Role Insertion[2m > [22mshould insert runbook[90m 24[2mms[22m[31m[39m
+[31m     Ôćĺ no such column: updated_at[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22mSeeder Logic: Manual Role Insertion[2m > [22mshould insert workflow[90m 25[2mms[22m[31m[39m
+[31m     Ôćĺ no such column: updated_at[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22mSeeder Logic: Manual Role Insertion[2m > [22mshould insert template[90m 21[2mms[22m[31m[39m
+[31m     Ôćĺ no such column: updated_at[39m
+[31m   [31m├Ś[31m EPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22mSeeder Logic: Manual Role Insertion[2m > [22mshould insert standard[90m 27[2mms[22m[31m[39m
+[31m     Ôćĺ no such column: updated_at[39m
+
+[31mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1m[7m Failed Tests 37 [27m[22mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetRole() ÔÇö Query roles table[2m > 
+[22mshould return RoleRow type with all fields
+[31m[1mAssertionError[22m: expected undefined to be defined[39m
+[36m [2mÔŁ»[22m src/tests/unit/AgentDb.test.ts:[2m117:31[22m[39m
+    [90m115| [39m      [34mexpect[39m(role[33m.[39mrole_name)[33m.[39m
+[34mtoBe[39m([32m'backend_developer'[39m)[33m;[39m
+    [90m116| [39m      [34mexpect[39m(role[33m.[39mcreated_at)[33m.[39m
+[34mtoBeDefined[39m()[33m;[39m
+    [90m117| [39m      [34mexpect[39m(role[33m.[39mupdated_at)[33m.[39m
+[34mtoBeDefined[39m()[33m;[39m
+    [90m   | [39m                              [31m^[39m
+    [90m118| [39m    })[33m;[39m
+    [90m119| [39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[
+1/37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetRolesByDomain() ÔÇö Query roles by d
+omain[2m > [22mshould return all roles for a domain
+[31m[1mSqliteError[22m: no such column: updated_at[39m
+[90m [2mÔŁ»[22m Database.prepare node_modules/better-sqlite3/lib/methods/wra
+ppers.js:[2m5:21[22m[39m
+[36m [2mÔŁ»[22m AgentDb.getRolesByDomain src/mcp/AgentDb.ts:[2m239:26[22m
+[39m
+    [90m237| [39m   */[39m
+    [90m238| [39m  [35mpublic[39m [34mgetRolesByDomain[39m(domain[33m:[
+39m string)[33m:[39m [33mRoleRow[39m[] {
+    [90m239| [39m    [35mconst[39m stmt [33m=[39m [35mthis[39m[33m.[3
+9mdb[33m.[39m[34mprepare[39m([32m`
+    [90m   | [39m                         [31m^[39m
+    [90m240| [39m      SELECT id, domain, role_name, content, created_at, upd
+ated_at
+    [90m241| [39m      FROM roles
+[90m [2mÔŁ»[22m src/tests/unit/AgentDb.test.ts:[2m147:29[22m[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[
+2/37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetRolesByDomain() ÔÇö Query roles by d
+omain[2m > [22mshould return empty array if domain not found
+[31m[1mSqliteError[22m: no such column: updated_at[39m
+[90m [2mÔŁ»[22m Database.prepare node_modules/better-sqlite3/lib/methods/wra
+ppers.js:[2m5:21[22m[39m
+[36m [2mÔŁ»[22m AgentDb.getRolesByDomain src/mcp/AgentDb.ts:[2m239:26[22m
+[39m
+    [90m237| [39m   */[39m
+    [90m238| [39m  [35mpublic[39m [34mgetRolesByDomain[39m(domain[33m:[
+39m string)[33m:[39m [33mRoleRow[39m[] {
+    [90m239| [39m    [35mconst[39m stmt [33m=[39m [35mthis[39m[33m.[3
+9mdb[33m.[39m[34mprepare[39m([32m`
+    [90m   | [39m                         [31m^[39m
+    [90m240| [39m      SELECT id, domain, role_name, content, created_at, upd
+ated_at
+    [90m241| [39m      FROM roles
+[90m [2mÔŁ»[22m src/tests/unit/AgentDb.test.ts:[2m155:29[22m[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[
+3/37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetRolesByDomain() ÔÇö Query roles by d
+omain[2m > [22mshould order results by role_name
+[31m[1mSqliteError[22m: no such column: updated_at[39m
+[90m [2mÔŁ»[22m Database.prepare node_modules/better-sqlite3/lib/methods/wra
+ppers.js:[2m5:21[22m[39m
+[36m [2mÔŁ»[22m AgentDb.getRolesByDomain src/mcp/AgentDb.ts:[2m239:26[22m
+[39m
+    [90m237| [39m   */[39m
+    [90m238| [39m  [35mpublic[39m [34mgetRolesByDomain[39m(domain[33m:[
+39m string)[33m:[39m [33mRoleRow[39m[] {
+    [90m239| [39m    [35mconst[39m stmt [33m=[39m [35mthis[39m[33m.[3
+9mdb[33m.[39m[34mprepare[39m([32m`
+    [90m   | [39m                         [31m^[39m
+    [90m240| [39m      SELECT id, domain, role_name, content, created_at, upd
+ated_at
+    [90m241| [39m      FROM roles
+[90m [2mÔŁ»[22m src/tests/unit/AgentDb.test.ts:[2m160:29[22m[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[
+4/37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetRoleSchema() ÔÇö Query role_schemas 
+table[2m > [22mshould return role schema by domain and role_name
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetRoleSchema() ÔÇö Query role_schemas 
+table[2m > [22mshould parse mcp_tool_permissions as JSON string
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetRoleSchema() ÔÇö Query role_schemas 
+table[2m > [22mshould return null for non-existent schema
+[31m[1mSqliteError[22m: FOREIGN KEY constraint failed[39m
+[36m [2mÔŁ»[22m src/tests/unit/AgentDb.test.ts:[2m181:20[22m[39m
+    [90m179| [39m        update_workflow_state[33m:[39m { allowed[33m:[39
+m [35mtrue[39m }[33m,[39m
+    [90m180| [39m      })[33m;[39m
+    [90m181| [39m      insertSchema[33m.[39m[34mrun[39m([32m'engineering
+'[39m[33m,[39m [32m'backend_developer'[39m[33m,[39m toolsJson)[33m;[39
+m
+    [90m   | [39m                   [31m^[39m
+    [90m182| [39m    })[33m;[39m
+    [90m183| [39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[
+5/37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetRunbook() ÔÇö Query runbooks table[
+2m > [22mshould return runbook by domain and role_name
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetRunbook() ÔÇö Query runbooks table[
+2m > [22mshould return RunbookRow type
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetRunbook() ÔÇö Query runbooks table[
+2m > [22mshould return null if runbook not found
+[31m[1mSqliteError[22m: FOREIGN KEY constraint failed[39m
+[36m [2mÔŁ»[22m src/tests/unit/AgentDb.test.ts:[2m216:21[22m[39m
+    [90m214| [39m        [32m'INSERT INTO runbooks (domain, role_name, conte
+nt) VALUES (?, [39mÔÇŽ
+    [90m215| [39m      )[33m;[39m
+    [90m216| [39m      insertRunbook[33m.[39m[34mrun[39m([32m'engineerin
+g'[39m[33m,[39m [32m'backend_developer'[39m[33m,[39m [32m'# Backend[39
+mÔÇŽ
+    [90m   | [39m                    [31m^[39m
+    [90m217| [39m    })[33m;[39m
+    [90m218| [39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[
+6/37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetWorkflow() ÔÇö Query workflows table
+[2m > [22mshould return workflow by domain, role_name, and workflow_type
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetWorkflow() ÔÇö Query workflows table
+[2m > [22mshould return WorkflowRow type
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetWorkflow() ÔÇö Query workflows table
+[2m > [22mshould return null if workflow not found
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetWorkflow() ÔÇö Query workflows table
+[2m > [22mshould distinguish workflows by type
+[31m[1mSqliteError[22m: FOREIGN KEY constraint failed[39m
+[36m [2mÔŁ»[22m src/tests/unit/AgentDb.test.ts:[2m251:22[22m[39m
+    [90m249| [39m        [32m'INSERT INTO workflows (domain, role_name, work
+flow_type, cont[39mÔÇŽ
+    [90m250| [39m      )[33m;[39m
+    [90m251| [39m      insertWorkflow[33m.[39m[34mrun[39m([32m'engineeri
+ng'[39m[33m,[39m [32m'backend_developer'[39m[33m,[39m [32m'feature_[39
+mÔÇŽ
+    [90m   | [39m                     [31m^[39m
+    [90m252| [39m      insertWorkflow[33m.[39m[34mrun[39m([32m'engineeri
+ng'[39m[33m,[39m [32m'backend_developer'[39m[33m,[39m [32m'code_rev[39
+mÔÇŽ
+    [90m253| [39m    })[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[
+7/37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetWorkflowsByRole() ÔÇö Query workflow
+s by role[2m > [22mshould return all workflows for a role
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetWorkflowsByRole() ÔÇö Query workflow
+s by role[2m > [22mshould order results by workflow_type
+[31m[1mSqliteError[22m: FOREIGN KEY constraint failed[39m
+[36m [2mÔŁ»[22m src/tests/unit/AgentDb.test.ts:[2m289:22[22m[39m
+    [90m287| [39m        [32m'INSERT INTO workflows (domain, role_name, work
+flow_type, cont[39mÔÇŽ
+    [90m288| [39m      )[33m;[39m
+    [90m289| [39m      insertWorkflow[33m.[39m[34mrun[39m([32m'engineeri
+ng'[39m[33m,[39m [32m'backend_developer'[39m[33m,[39m [32m'feature_[39
+mÔÇŽ
+    [90m   | [39m                     [31m^[39m
+    [90m290| [39m      insertWorkflow[33m.[39m[34mrun[39m([32m'engineeri
+ng'[39m[33m,[39m [32m'backend_developer'[39m[33m,[39m [32m'code_rev[39
+mÔÇŽ
+    [90m291| [39m      insertWorkflow[33m.[39m[34mrun[39m([32m'engineeri
+ng'[39m[33m,[39m [32m'tech_lead'[39m[33m,[39m [32m'approval'[39m[33m,
+[39m [32m'Cont[39mÔÇŽ
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[
+8/37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetTemplate() ÔÇö Query templates table
+[2m > [22mshould return template by domain, role_name, and template_name
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetTemplate() ÔÇö Query templates table
+[2m > [22mshould return TemplateRow type
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetTemplate() ÔÇö Query templates table
+[2m > [22mshould return null if template not found
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetTemplate() ÔÇö Query templates table
+[2m > [22mshould distinguish templates by name
+[31m[1mSqliteError[22m: FOREIGN KEY constraint failed[39m
+[36m [2mÔŁ»[22m src/tests/unit/AgentDb.test.ts:[2m319:22[22m[39m
+    [90m317| [39m        [32m'INSERT INTO templates (domain, role_name, temp
+late_name, cont[39mÔÇŽ
+    [90m318| [39m      )[33m;[39m
+    [90m319| [39m      insertTemplate[33m.[39m[34mrun[39m([32m'engineeri
+ng'[39m[33m,[39m [32m'backend_developer'[39m[33m,[39m [32m'implemen[39
+mÔÇŽ
+    [90m   | [39m                     [31m^[39m
+    [90m320| [39m      insertTemplate[33m.[39m[34mrun[39m([32m'engineeri
+ng'[39m[33m,[39m [32m'backend_developer'[39m[33m,[39m [32m'test_rep[39
+mÔÇŽ
+    [90m321| [39m    })[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[
+9/37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetTemplatesByRole() ÔÇö Query template
+s by role[2m > [22mshould return all templates for a role
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetTemplatesByRole() ÔÇö Query template
+s by role[2m > [22mshould order results by template_name
+[31m[1mSqliteError[22m: FOREIGN KEY constraint failed[39m
+[36m [2mÔŁ»[22m src/tests/unit/AgentDb.test.ts:[2m357:22[22m[39m
+    [90m355| [39m        [32m'INSERT INTO templates (domain, role_name, temp
+late_name, cont[39mÔÇŽ
+    [90m356| [39m      )[33m;[39m
+    [90m357| [39m      insertTemplate[33m.[39m[34mrun[39m([32m'engineeri
+ng'[39m[33m,[39m [32m'backend_developer'[39m[33m,[39m [32m'implemen[39
+mÔÇŽ
+    [90m   | [39m                     [31m^[39m
+    [90m358| [39m      insertTemplate[33m.[39m[34mrun[39m([32m'engineeri
+ng'[39m[33m,[39m [32m'backend_developer'[39m[33m,[39m [32m'test_rep[39
+mÔÇŽ
+    [90m359| [39m      insertTemplate[33m.[39m[34mrun[39m([32m'engineeri
+ng'[39m[33m,[39m [32m'tech_lead'[39m[33m,[39m [32m'approval'[39m[33m,
+[39m [32m'Cont[39mÔÇŽ
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[10/
+37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetStandard() ÔÇö Query standards table
+[2m > [22mshould return standard by std_id
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetStandard() ÔÇö Query standards table
+[2m > [22mshould return StandardRow type
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetStandard() ÔÇö Query standards table
+[2m > [22mshould return null if standard not found
+[31m[1mSqliteError[22m: datatype mismatch[39m
+[36m [2mÔŁ»[22m src/tests/unit/AgentDb.test.ts:[2m387:22[22m[39m
+    [90m385| [39m        [32m'INSERT INTO standards (id, std_id, content) VA
+LUES (?, ?, ?)'[39m
+    [90m386| [39m      )[33m;[39m
+    [90m387| [39m      insertStandard[33m.[39m[34mrun[39m([32m'ADR-001'
+[39m[33m,[39m [32m'ADR-001'[39m[33m,[39m [32m'# ADR-001: Architectur[39
+mÔÇŽ
+    [90m   | [39m                     [31m^[39m
+    [90m388| [39m      insertStandard[33m.[39m[34mrun[39m([32m'STD-NAMIN
+G'[39m[33m,[39m [32m'STD-NAMING'[39m[33m,[39m [32m'# Naming Convent[39
+mÔÇŽ
+    [90m389| [39m    })[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[11/
+37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetAllStandards() ÔÇö Paginated query[
+2m > [22mshould return all standards with default parameters
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetAllStandards() ÔÇö Paginated query[
+2m > [22mshould support limit parameter
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetAllStandards() ÔÇö Paginated query[
+2m > [22mshould support offset parameter (pagination)
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/AgentDb.test.ts[2m > [22mEP
+IC-09: AgentDb Service Class[2m > [22mgetAllStandards() ÔÇö Paginated query[
+2m > [22mshould order results by std_id
+[31m[1mSqliteError[22m: datatype mismatch[39m
+[36m [2mÔŁ»[22m src/tests/unit/AgentDb.test.ts:[2m418:22[22m[39m
+    [90m416| [39m        [32m'INSERT INTO standards (id, std_id, content) VA
+LUES (?, ?, ?)'[39m
+    [90m417| [39m      )[33m;[39m
+    [90m418| [39m      insertStandard[33m.[39m[34mrun[39m([32m'ADR-001'
+[39m[33m,[39m [32m'ADR-001'[39m[33m,[39m [32m'Content 1'[39m)[33m;[39
+m
+    [90m   | [39m                     [31m^[39m
+    [90m419| [39m      insertStandard[33m.[39m[34mrun[39m([32m'ADR-002'
+[39m[33m,[39m [32m'ADR-002'[39m[33m,[39m [32m'Content 2'[39m)[33m;[39
+m
+    [90m420| [39m      insertStandard[33m.[39m[34mrun[39m([32m'ADR-003'
+[39m[33m,[39m [32m'ADR-003'[39m[33m,[39m [32m'Content 3'[39m)[33m;[39
+m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[12/
+37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/ContextSchema.test.ts[2m > 
+[22mEPIC-09: ContextSchema[2m > [22mSchema Initialization[2m > [22mshould e
+nable foreign key support
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[
+39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2mÔŁ»[22m src/tests/unit/ContextSchema.test.ts:[2m99:31[22m[39m
+    [90m 97| [39m            [35mawait[39m initializer[33m.[39m[34miniti
+alize[39m()[33m;[39m
+    [90m 98| [39m            [35mconst[39m fkEnabled [33m=[39m initialize
+r[33m.[39m[34mcheckForeignKeyConstraints[39m()[33m;[39m
+    [90m 99| [39m            [34mexpect[39m(fkEnabled)[33m.[39m[34mtoBe
+[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                              [31m^[39m
+    [90m100| [39m        })[33m;[39m
+    [90m101| [39m    })[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[13/
+37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/seed-agent-db.test.ts[2m > 
+[22mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22mSeeder Logic: Man
+ual Role Insertion[2m > [22mshould insert a role schema (YAML Ôćĺ JSON)
+[31m[1mSqliteError[22m: no such column: updated_at[39m
+[90m [2mÔŁ»[22m Database.prepare node_modules/better-sqlite3/lib/methods/wra
+ppers.js:[2m5:21[22m[39m
+[36m [2mÔŁ»[22m AgentDb.getRoleSchema src/mcp/AgentDb.ts:[2m261:26[22m[39
+m
+    [90m259| [39m   */[39m
+    [90m260| [39m  [35mpublic[39m [34mgetRoleSchema[39m(domain[33m:[39m
+ string[33m,[39m role[33m:[39m string)[33m:[39m [33mRoleSchemaRow[39m 
+[33m|[39m ÔÇŽ
+    [90m261| [39m    [35mconst[39m stmt [33m=[39m [35mthis[39m[33m.[3
+9mdb[33m.[39m[34mprepare[39m([32m`
+    [90m   | [39m                         [31m^[39m
+    [90m262| [39m      SELECT id, domain, role_name, mcp_tool_permissions, cr
+eated_at, ÔÇŽ
+    [90m263| [39m      FROM role_schemas
+[90m [2mÔŁ»[22m src/tests/unit/seed-agent-db.test.ts:[2m151:34[22m[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[14/
+37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/seed-agent-db.test.ts[2m > 
+[22mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22mSeeder Logic: Man
+ual Role Insertion[2m > [22mshould insert runbook
+[31m[1mSqliteError[22m: no such column: updated_at[39m
+[90m [2mÔŁ»[22m Database.prepare node_modules/better-sqlite3/lib/methods/wra
+ppers.js:[2m5:21[22m[39m
+[36m [2mÔŁ»[22m AgentDb.getRunbook src/mcp/AgentDb.ts:[2m283:26[22m[39m
+    [90m281| [39m   */[39m
+    [90m282| [39m  [35mpublic[39m [34mgetRunbook[39m(domain[33m:[39m st
+ring[33m,[39m role[33m:[39m string)[33m:[39m [33mRunbookRow[39m [33m|
+[39m [35mnull[39m {
+    [90m283| [39m    [35mconst[39m stmt [33m=[39m [35mthis[39m[33m.[3
+9mdb[33m.[39m[34mprepare[39m([32m`
+    [90m   | [39m                         [31m^[39m
+    [90m284| [39m      SELECT id, domain, role_name, content, created_at, upd
+ated_at
+    [90m285| [39m      FROM runbooks
+[90m [2mÔŁ»[22m src/tests/unit/seed-agent-db.test.ts:[2m172:31[22m[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[15/
+37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/seed-agent-db.test.ts[2m > 
+[22mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22mSeeder Logic: Man
+ual Role Insertion[2m > [22mshould insert workflow
+[31m[1mSqliteError[22m: no such column: updated_at[39m
+[90m [2mÔŁ»[22m Database.prepare node_modules/better-sqlite3/lib/methods/wra
+ppers.js:[2m5:21[22m[39m
+[36m [2mÔŁ»[22m AgentDb.getWorkflow src/mcp/AgentDb.ts:[2m306:26[22m[39m
+    [90m304| [39m   */[39m
+    [90m305| [39m  [35mpublic[39m [34mgetWorkflow[39m(domain[33m:[39m s
+tring[33m,[39m role[33m:[39m string[33m,[39m workflowType[33m:[39m stri
+nÔÇŽ
+    [90m306| [39m    [35mconst[39m stmt [33m=[39m [35mthis[39m[33m.[3
+9mdb[33m.[39m[34mprepare[39m([32m`
+    [90m   | [39m                         [31m^[39m
+    [90m307| [39m      SELECT id, domain, role_name, workflow_type, content, 
+created_atÔÇŽ
+    [90m308| [39m      FROM workflows
+[90m [2mÔŁ»[22m src/tests/unit/seed-agent-db.test.ts:[2m193:32[22m[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[16/
+37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/seed-agent-db.test.ts[2m > 
+[22mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22mSeeder Logic: Man
+ual Role Insertion[2m > [22mshould insert template
+[31m[1mSqliteError[22m: no such column: updated_at[39m
+[90m [2mÔŁ»[22m Database.prepare node_modules/better-sqlite3/lib/methods/wra
+ppers.js:[2m5:21[22m[39m
+[36m [2mÔŁ»[22m AgentDb.getTemplate src/mcp/AgentDb.ts:[2m347:26[22m[39m
+    [90m345| [39m   */[39m
+    [90m346| [39m  [35mpublic[39m [34mgetTemplate[39m(domain[33m:[39m s
+tring[33m,[39m role[33m:[39m string[33m,[39m templateName[33m:[39m stri
+nÔÇŽ
+    [90m347| [39m    [35mconst[39m stmt [33m=[39m [35mthis[39m[33m.[3
+9mdb[33m.[39m[34mprepare[39m([32m`
+    [90m   | [39m                         [31m^[39m
+    [90m348| [39m      SELECT id, domain, role_name, template_name, content, 
+created_atÔÇŽ
+    [90m349| [39m      FROM templates
+[90m [2mÔŁ»[22m src/tests/unit/seed-agent-db.test.ts:[2m214:32[22m[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[17/
+37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/seed-agent-db.test.ts[2m > 
+[22mEPIC-09: AgentDbSeeder (Simplified Mock Tests)[2m > [22mSeeder Logic: Man
+ual Role Insertion[2m > [22mshould insert standard
+[31m[1mSqliteError[22m: no such column: updated_at[39m
+[90m [2mÔŁ»[22m Database.prepare node_modules/better-sqlite3/lib/methods/wra
+ppers.js:[2m5:21[22m[39m
+[36m [2mÔŁ»[22m AgentDb.getStandard src/mcp/AgentDb.ts:[2m386:26[22m[39m
+    [90m384| [39m   */[39m
+    [90m385| [39m  [35mpublic[39m [34mgetStandard[39m(stdId[33m:[39m st
+ring)[33m:[39m [33mStandardRow[39m [33m|[39m [35mnull[39m {
+    [90m386| [39m    [35mconst[39m stmt [33m=[39m [35mthis[39m[33m.[3
+9mdb[33m.[39m[34mprepare[39m([32m`
+    [90m   | [39m                         [31m^[39m
+    [90m387| [39m      SELECT id, std_id, content, created_at, updated_at
+    [90m388| [39m      FROM standards
+[90m [2mÔŁ»[22m src/tests/unit/seed-agent-db.test.ts:[2m230:32[22m[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[18/
+37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/WriteLayerTools.test.ts[2m >
+ [22msubmitArtifact()[2m > [22mshould log metrics when lock contention occur
+s and WRITE_LAYER_METRICS is true
+[31m[1mAssertionError[22m: expected "info" to be called with arguments: [ St
+ringContaining{ÔÇŽ} ][90m
+
+Received: 
+
+[31m[90m
+
+Number of calls: [1m0[22m
+[31m[39m
+[36m [2mÔŁ»[22m src/tests/unit/WriteLayerTools.test.ts:[2m229:21[22m[39m
+    [90m227| [39m        [34mexpect[39m(result)[33m.[39m[34mtoHaveProper
+ty[39m([32m'success'[39m[33m,[39m [35mtrue[39m)[33m;[39m
+    [90m228| [39m
+    [90m229| [39m        [34mexpect[39m(spy)[33m.[39m[34mtoHaveBeenCalle
+dWith[39m(
+    [90m   | [39m                    [31m^[39m
+    [90m230| [39m            expect[33m.[39m[34mstringContaining[39m([32
+m'lock_contention_count=1'[39m)
+    [90m231| [39m        )[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[19/
+37]ÔÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/WriteLayerTools.test.ts[2m >
+ [22msubmitArtifact()[2m > [22mshould log metrics for updateWorkflowState wh
+en contention occurs
+[31m[1mAssertionError[22m: expected "info" to be called with arguments: [ St
+ringContaining{ÔÇŽ} ][90m
+
+Received: 
+
+[31m[90m
+
+Number of calls: [1m0[22m
+[31m[39m
+[36m [2mÔŁ»[22m src/tests/unit/WriteLayerTools.test.ts:[2m272:21[22m[39m
+    [90m270| [39m        [34mexpect[39m(result)[33m.[39m[34mtoHaveProper
+ty[39m([32m'transition_allowed'[39m[33m,[39m [35mtrue[39m)[33m;[39m
+    [90m271| [39m
+    [90m272| [39m        [34mexpect[39m(spy)[33m.[39m[34mtoHaveBeenCalle
+dWith[39m(
+    [90m   | [39m                    [31m^[39m
+    [90m273| [39m            expect[33m.[39m[34mstringContaining[39m([32
+m'lock_contention_count=1'[39m)
+    [90m274| [39m        )[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[20/
+37]ÔÄ»[22m[39m
+
+[2m Test Files [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[31m37 failed[39m[22m[2m | [22m[1m[32m78 passed[39m[22m[90m (115)[39m
+[2m   Start at [22m 12:18:47
+[2m   Duration [22m 1.01s[2m (transform 415ms, setup 0ms, collect 964ms, tests 864ms, environment 2ms, prepare 1.46s)[22m
+

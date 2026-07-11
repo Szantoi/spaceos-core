@@ -1,0 +1,51 @@
+# SpaceOS Task Audit — Token Configuration
+# WARNING: Store HASHED tokens only! Never store raw tokens.
+#
+# To generate a new token:
+#   1. Generate: openssl rand -hex 32
+#   2. Hash: echo -n "your-token" | sha256sum | cut -d' ' -f1
+#   3. Add hash with prefix: sha256:<hash>
+#
+# Token rotation:
+#   1. Generate new token
+#   2. Add new hash to this file
+#   3. Old hash remains valid until explicit removal
+#   4. Git commit logs rotation event
+
+version: "1.0"
+
+tokens:
+  # Root terminal — full access
+  - holder: root
+    hash: sha256:9ae8fc78ddfcf939769c0a4115bb02c2357d2d59a53e6d030c790ca07b21712a
+    # ^ Hash of 'dev-token-root-2026'
+    scopes:
+      - 'task:create:*'    # Can create tasks for any terminal
+      - 'session:*'        # Full session control
+      - 'review:*'         # Review override
+    created: '2026-06-23'
+    expires: null          # Never expires
+
+  # Conductor terminal — can create worker tasks
+  - holder: conductor
+    hash: sha256:870d37a579a6289306ee839d497e3867222f859cb015ed5b2e17547d60891eac
+    # ^ Hash of 'dev-token-conductor-2026'
+    scopes:
+      - 'task:create:backend'
+      - 'task:create:frontend'
+      - 'task:create:designer'
+      - 'task:create:architect'
+      - 'task:create:librarian'
+      - 'task:create:explorer'
+    created: '2026-06-23'
+    expires: null
+
+  # Dashboard API — planning focus write access
+  - holder: dashboard
+    hash: sha256:dd0acd5d4914694a521af7ca82294a6a162584bf5ca7c2678063a20ac5a498fd
+    # ^ Hash of 'dev-token-spaceos-dashboard-2026'
+    scopes:
+      - 'task:read:*'      # Read task audit log
+      - 'planning:*'       # Planning focus area write access
+    created: '2026-06-23'
+    expires: null

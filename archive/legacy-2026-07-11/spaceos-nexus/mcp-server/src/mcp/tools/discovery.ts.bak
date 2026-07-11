@@ -1,0 +1,566 @@
+import { z } from 'zod';
+import { McpContext } from '../middleware/contextMiddleware';
+import { Plugin, Tool } from '../../plugins/PluginDecorators';
+import { BasePlugin } from '../../plugins/BasePlugin';
+import { SystemContext } from '../../plugins/PluginTypes';
+import { AgentDb } from '../AgentDb';
+import { ErrorResponses } from '../ErrorResponses';
+import { IToolModule } from './IToolModule';
+import { searchExperience } from '../../episodic/FtsSearch';
+import { DiscoveryPhaseTracker } from '../../metadata/DiscoveryPhaseTracker';
+
+/**
+ * Discovery Plugin (TASK-14-05)
+ *
+ * Consolidates tools for exploring roles, workflows, templates, and knowledge.
+ * Refactored from createDiscoveryToolModule(db) factory to a proper Plugin class.
+ * AgentDb is resolved via SystemContext (Dependency Injection).
+ */
+@Plugin({
+    name: "discovery",
+    version: "1.0.0",
+    dependencies: ["bootstrap"]
+})
+export class DiscoveryPlugin extends BasePlugin {
+    private readonly phaseCompletion = new Map<string, Set<string>>();
+
+    private get agentDb(): AgentDb {
+        return this.context.agentDb;
+    }
+
+    // lazy EpisodeStore for writing discovery episodes
+    private episodeStore?: import('../../episodic/EpisodeStore').EpisodeStore;
+    private async getEpisodeStore(): Promise<import('../../episodic/EpisodeStore').EpisodeStore> {
+        if (!this.episodeStore) {
+            const { EpisodeStore } = await import('../../episodic/EpisodeStore.js');
+            const db = typeof (this.context.agentDb as any).getRawDatabase === 'function'
+                ? this.context.agentDb.getRawDatabase()
+                : undefined;
+            this.episodeStore = new EpisodeStore(db as any);
+            await this.episodeStore.initialize();
+        }
+        return this.episodeStore;
+    }
+
+    // lazy phase tracker for validation gating
+    private phaseTracker?: DiscoveryPhaseTracker;
+    private async getPhaseTracker(): Promise<DiscoveryPhaseTracker> {
+        if (!this.phaseTracker) {
+            if (typeof (this.context.agentDb as any).getRawDatabase !== 'function') {
+                throw new Error('DiscoveryPhaseTracker requires a database-backed AgentDb');
+            }
+            // share the same underlying db as workflow tracker (metadata.db)
+            const { DiscoveryPhaseTracker } = await import('../../metadata/DiscoveryPhaseTracker.js');
+            this.phaseTracker = new DiscoveryPhaseTracker();
+        }
+        return this.phaseTracker;
+    }
+
+    @Tool({
+        name: "discovery_roles",
+        description: "List or retrieve details for roles within a domain",
+        schema: z.object({
+            domain: z.string().optional(),
+            roleName: z.string().optional(),
+        })
+    })
+    async discoveryRoles(args: { domain?: string; roleName?: string }, context: McpContext) {
+        const domain = args.domain || context.domain;
+        if (args.roleName) {
+            const role = this.agentDb.getRoleSchema(domain, args.roleName);
+            return role
+                ? { success: true, data: role }
+                : ErrorResponses.notFound(`Role ${args.roleName} not found in domain ${domain}`);
+        }
+        const roles = this.agentDb.getRolesByDomain(domain);
+        return { success: true, data: roles };
+    }
+
+    @Tool({
+        name: "discovery_workflows",
+        description: "List or retrieve workflows associated with a role",
+        schema: z.object({
+            domain: z.string(),
+            roleName: z.string(),
+            workflowType: z.string().optional(),
+        })
+    })
+    async discoveryWorkflows(args: { domain: string; roleName: string; workflowType?: string }, _context: McpContext) {
+        const workflows = this.agentDb.getWorkflowsByRole(args.domain, args.roleName);
+        if (args.workflowType) {
+            const filtered = workflows.filter(w => w.workflow_type === args.workflowType);
+            return { success: true, data: filtered };
+        }
+        return { success: true, data: workflows };
+    }
+
+    @Tool({
+        name: "discovery_templates",
+        description: "List or retrieve templates associated with a role",
+        schema: z.object({
+            domain: z.string(),
+            roleName: z.string(),
+            templateName: z.string().optional(),
+        })
+    })
+    async discoveryTemplates(args: { domain: string; roleName: string; templateName?: string }, _context: McpContext) {
+        const templates = this.agentDb.getTemplatesByRole(args.domain, args.roleName);
+        if (args.templateName) {
+            const filtered = templates.filter(t => t.template_name === args.templateName);
+            return { success: true, data: filtered };
+        }
+        return { success: true, data: templates };
+    }
+
+    @Tool({
+        name: "discovery_search",
+        description: "Semantic search over the knowledge base",
+        schema: z.object({
+            query: z.string(),
+            domain: z.string().optional(),
+            limit: z.number().optional().default(5),
+        })
+    })
+    async discoverySearch(args: { query: string; domain?: string; limit?: number }, _context: McpContext) {
+        // Placeholder for RAG / ChromaDB search logic
+        // In a real implementation, this would call a RagService
+        return {
+            success: true,
+            data: [],
+            message: `Semantic search results for "${args.query}" (ChromaDB integration pending)`
+        };
+    }
+
+    // ---------------------------------------------------------------------
+    // Phase-specific validation tools (TASK-13-05)
+    // ---------------------------------------------------------------------
+
+    @Tool({
+        name: "check_constraints",
+        description: "Validate an idea summary against a set of constraints",
+        schema: z.object({
+            idea_summary: z.string(),
+            constraint_set: z.enum(["technical", "business", "timeline"])
+        })
+    })
+    async checkConstraints(args: { idea_summary: string; constraint_set: string }, _context: McpContext) {
+        if (_context.track !== 'discovery') {
+            return { success: false, error: { code: 403, message: 'check_constraints only available on discovery track' } };
+        }
+        // simplistic implementation; extend with DB lookup later
+        const violations: string[] = [];
+        if (args.idea_summary.length > 200) {
+            violations.push('summary too long');
+        }
+        const go_no_go = violations.length === 0;
+        return {
+            success: true,
+            data: {
+                violations,
+                go_no_go,
+                rationale: go_no_go ? 'Meets constraints' : 'See violations listed'
+            }
+        };
+    }
+
+    @Tool({
+        name: "get_phase_guidance",
+        description: "Return guidance, exit criteria and tools for a discovery phase",
+        schema: z.object({
+            current_phase: z.enum(["ideation", "validation", "iteration"])
+        })
+    })
+    async getPhaseGuidance(args: { current_phase: string }, _context: McpContext) {
+        if (_context.track !== 'discovery') {
+            return { success: false, error: { code: 403, message: 'get_phase_guidance only available on discovery track' } };
+        }
+        const mapping: Record<string, any> = {
+            ideation: {
+                exit_criteria: [
+                    'Gather at least 10 raw ideas',
+                    'Perform initial screening'
+                ],
+                next_phase: 'validation',
+                tools_available: ['reference_prior_discovery', 'check_constraints']
+            },
+            validation: {
+                exit_criteria: [
+                    'Validate ideas against constraints',
+                    'Select top 3 for iteration'
+                ],
+                next_phase: 'iteration',
+                tools_available: ['check_constraints', 'submit_discovery_outcome']
+            },
+            iteration: {
+                exit_criteria: [
+                    'Refine ideas based on feedback',
+                    'Prepare for delivery handoff'
+                ],
+                next_phase: 'delivery_handoff',
+                tools_available: ['reference_prior_discovery', 'submit_discovery_outcome']
+            }
+        };
+        const guidance = mapping[args.current_phase];
+        if (!guidance) {
+            return { success: false, error: { code: 400, message: `Unknown phase: ${args.current_phase}` } };
+        }
+        return { success: true, data: guidance };
+    }
+
+    @Tool({
+        name: "reference_prior_discovery",
+        description: "Semantic lookup of past discovery episodes (with keyword fallback)",
+        schema: z.object({
+            search_text: z.string(),
+            phase: z.enum(["ideation", "validation", "iteration"]).optional(),
+            limit: z.number().optional().default(5)
+        })
+    })
+    async referencePriorDiscovery(args: { search_text: string; phase?: string; limit?: number }, context: McpContext) {
+        // try semantic search first (placeholder for ChromaDB)
+        let results: any[] = [];
+        let usedFallback = false;
+        try {
+            // simulate semantic call; external service may throw
+            const semantic = await this.trySemanticSearch(args.search_text);
+            results = semantic;
+        } catch (err: unknown) {
+            usedFallback = true;
+            const message = err instanceof Error ? err.message : 'unknown error';
+            console.warn('[reference_prior_discovery] semantic search failed, falling back to keyword FTS', message);
+            try {
+                const store = await this.getEpisodeStore();
+                const fallback = searchExperience((store as any)['db'], args.search_text, undefined);
+                results = await Promise.resolve(fallback as any[]);
+            } catch {
+                results = [];
+            }
+        }
+
+        // filter by track and optional phase
+        let filtered = results.filter(ep => ep.track === 'discovery');
+        if (args.phase) filtered = filtered.filter(ep => ep.phase === args.phase);
+        if (args.limit) filtered = filtered.slice(0, args.limit);
+        const response = {
+            success: true,
+            data: {
+                episodes: filtered,
+                total_found: filtered.length,
+                fallback_used: usedFallback
+            }
+        };
+        return response;
+    }
+
+    // stub semantic search placeholder
+    private async trySemanticSearch(searchText: string): Promise<any[]> {
+        // In production this would call a vector store / ChromaDB. For now,
+        // just throw to trigger fallback in tests or return empty array.
+        // We'll allow tests to mock this method.
+        throw new Error('Semantic search not implemented');
+    }
+
+    @Tool({
+        name: "track_blocker",
+        description: "Log a blocking issue preventing discovery progress",
+        schema: z.object({
+            blocker_text: z.string(),
+            severity: z.enum(["HIGH", "MEDIUM", "LOW"]),
+            blocking_phase: z.enum(["ideation", "validation", "iteration"])
+        })
+    })
+    async trackBlocker(args: { blocker_text: string; severity: string; blocking_phase: string }, context: McpContext) {
+        if (context.track !== 'discovery') {
+            return { success: false, error: { code: 403, message: 'track_blocker only available on discovery track' } };
+        }
+        this.context.agentDb.trackBlocker(context.session_id, args.blocking_phase, args.severity, args.blocker_text);
+        return { success: true };
+    }
+
+    @Tool({
+        name: "query_blockers",
+        description: "Retrieve blockers for a discovery session",
+        schema: z.object({
+            session_id: z.string().uuid().optional(),
+            phase: z.enum(["ideation", "validation", "iteration"]).optional()
+        })
+    })
+    async queryBlockers(args: { session_id?: string; phase?: string }, context: McpContext) {
+        const sid = args.session_id || context.session_id;
+        const data = this.context.agentDb.getBlockers(sid, args.phase);
+        return { success: true, data };
+    }
+
+    @Tool({
+        name: "submit_discovery_outcome",
+        description: "Store a discovery outcome episode (validated/rejected idea or learning)",
+        schema: z.object({
+            outcome_type: z.enum(["VALIDATED_IDEA", "REJECTED_IDEA", "LEARNING", "HANDOFF"]),
+            summary: z.string().max(500),
+            blockers: z.array(z.string()),
+            phase: z.enum(["ideation", "validation", "iteration"]),
+            artifacts: z.array(z.string()).optional()
+        })
+    })
+    async submitDiscoveryOutcome(args: {
+        outcome_type: string;
+        summary: string;
+        blockers: string[];
+        phase: string;
+        artifacts?: string[];
+    }, context: McpContext) {
+        // Only discovery track allowed
+        if (context.track !== 'discovery') {
+            return { success: false, error: { code: 403, message: 'submit_discovery_outcome only available on discovery track' } };
+        }
+
+        // Summary length validated by zod
+        if (args.summary.length > 500) {
+            return { success: false, error: { code: 400, message: 'summary must be at most 500 characters' } };
+        }
+
+        const canSubmit = await this.canSubmitPhase(context.session_id, args.phase as any);
+        if (!canSubmit) {
+            return { success: false, error: { code: 400, message: `Cannot submit outcome for phase ${args.phase} before completing previous phase` } };
+        }
+
+        const store = await this.getEpisodeStore();
+        const params = {
+            sessionId: context.session_id,
+            domain: context.domain,
+            track: 'discovery',
+            phase: args.phase,
+            outcomeSummary: args.summary,
+            toolCalls: [],
+            artifacts: args.artifacts,
+            metadata: {
+                outcome_type: args.outcome_type,
+                blockers: args.blockers
+            }
+        } as any;
+
+        const result = await store.storeExperience(params);
+
+        // mark completion of this phase
+        await this.markPhaseComplete(context.session_id, args.phase as any);
+
+        return {
+            success: true,
+            data: {
+                episode_id: result.episodeId,
+                stored_at: result.createdAt.toISOString(),
+                track: 'discovery'
+            }
+        };
+    }
+
+    private async canSubmitPhase(sessionId: string, phase: 'ideation' | 'validation' | 'iteration'): Promise<boolean> {
+        try {
+            const phaseTracker = await this.getPhaseTracker();
+            phaseTracker.ensureSession(sessionId);
+            return phaseTracker.canSubmitForPhase(sessionId, phase);
+        } catch {
+            if (phase === 'ideation') return true;
+            if (phase === 'validation') return true;
+            if (phase === 'iteration') {
+                return this.phaseCompletion.get(sessionId)?.has('validation') ?? false;
+            }
+            return false;
+        }
+    }
+
+    private async markPhaseComplete(sessionId: string, phase: 'ideation' | 'validation' | 'iteration'): Promise<void> {
+        try {
+            const phaseTracker = await this.getPhaseTracker();
+            phaseTracker.markPhaseComplete(sessionId, phase);
+        } catch {
+            const completed = this.phaseCompletion.get(sessionId) ?? new Set<string>();
+            completed.add(phase);
+            this.phaseCompletion.set(sessionId, completed);
+        }
+    }
+}
+
+export default DiscoveryPlugin;
+
+/**
+ * @deprecated Use DiscoveryPlugin class instead.
+ * Kept for backward-compatibility with existing consumers.
+ */
+export function createDiscoveryToolModule(agentDb: AgentDb): IToolModule {
+    return {
+        name: "discovery",
+        version: "1.0.0",
+        tools: [
+            {
+                name: "discovery_roles",
+                description: "List or retrieve details for roles within a domain",
+                inputSchema: z.object({
+                    domain: z.string().optional(),
+                    roleName: z.string().optional(),
+                }),
+            },
+            {
+                name: "discovery_workflows",
+                description: "List or retrieve workflows associated with a role",
+                inputSchema: z.object({
+                    domain: z.string(),
+                    roleName: z.string(),
+                    workflowType: z.string().optional(),
+                }),
+            },
+            {
+                name: "discovery_templates",
+                description: "List or retrieve templates associated with a role",
+                inputSchema: z.object({
+                    domain: z.string(),
+                    roleName: z.string(),
+                    templateName: z.string().optional(),
+                }),
+            },
+            {
+                name: "discovery_search",
+                description: "Semantic search over the knowledge base",
+                inputSchema: z.object({
+                    query: z.string(),
+                    domain: z.string().optional(),
+                    limit: z.number().optional().default(5),
+                }),
+            },
+            {
+                name: "check_constraints",
+                description: "Validate an idea summary against a set of constraints",
+                inputSchema: z.object({
+                    idea_summary: z.string(),
+                    constraint_set: z.enum(["technical", "business", "timeline"])
+                }),
+            },
+            {
+                name: "submit_artifact",
+                description: "Submit a discovery workflow artifact (idea list, validation report, refined design, etc.)",
+                inputSchema: z.object({
+                    artifact_type: z.string(),
+                    content: z.string()
+                }),
+            },
+            {
+                name: "reference_prior_discovery",
+                description: "Semantic lookup of past discovery episodes",
+                inputSchema: z.object({
+                    search_text: z.string(),
+                    phase: z.enum(["ideation", "validation", "iteration"]).optional(),
+                    limit: z.number().optional().default(5)
+                }),
+            },
+            {
+                name: "submit_discovery_outcome",
+                description: "Store a discovery outcome episode (validated/rejected idea or learning)",
+                inputSchema: z.object({
+                    outcome_type: z.enum(["VALIDATED_IDEA", "REJECTED_IDEA", "LEARNING", "HANDOFF"]),
+                    summary: z.string().max(500),
+                    blockers: z.array(z.string()),
+                    phase: z.enum(["ideation", "validation", "iteration"]),
+                    artifacts: z.array(z.string()).optional()
+                }),
+            }
+        ],
+        handlers: {
+            "discovery_roles": async (args, context: McpContext) => {
+                const domain = args.domain || context.domain;
+                if (args.roleName) {
+                    const role = agentDb.getRoleSchema(domain, args.roleName);
+                    return role ? { success: true, data: role } : ErrorResponses.notFound(`Role ${args.roleName} not found in domain ${domain}`);
+                }
+                const roles = agentDb.getRolesByDomain(domain);
+                return { success: true, data: roles };
+            },
+            "discovery_workflows": async (args) => {
+                const workflows = agentDb.getWorkflowsByRole(args.domain, args.roleName);
+                if (args.workflowType) {
+                    const filtered = workflows.filter((w: { workflow_type: string }) => w.workflow_type === args.workflowType);
+                    return { success: true, data: filtered };
+                }
+                return { success: true, data: workflows };
+            },
+            "discovery_templates": async (args) => {
+                const templates = agentDb.getTemplatesByRole(args.domain, args.roleName);
+                if (args.templateName) {
+                    const filtered = templates.filter((t: { template_name: string }) => t.template_name === args.templateName);
+                    return { success: true, data: filtered };
+                }
+                return { success: true, data: templates };
+            },
+            "discovery_search": async (args) => {
+                return {
+                    success: true,
+                    data: [],
+                    message: "Semantic search results would appear here (ChromaDB integration pending)"
+                };
+            },
+            "check_constraints": async (args, context: McpContext) => {
+                if (context.track !== 'discovery') {
+                    return { success: false, error: { code: 403, message: 'check_constraints only available on discovery track' } };
+                }
+                const violations: string[] = [];
+                if (args.idea_summary.length > 200) {
+                    violations.push('summary too long');
+                }
+                const go_no_go = violations.length === 0;
+                return {
+                    success: true,
+                    data: { violations, go_no_go, rationale: go_no_go ? 'Meets constraints' : 'See violations listed' }
+                };
+            },
+            "submit_artifact": async (args, context: McpContext) => {
+                if (context.track !== 'discovery') {
+                    return { success: false, error: { code: 403, message: 'submit_artifact only available on discovery track' } };
+                }
+                return {
+                    success: true,
+                    data: { artifact_type: args.artifact_type, submitted: true, session_id: context.session_id }
+                };
+            },
+            "reference_prior_discovery": async (args) => {
+                return {
+                    success: true,
+                    data: {
+                        episodes: [],
+                        total_found: 0,
+                        fallback_used: true
+                    }
+                };
+            },
+            "submit_discovery_outcome": async (args, context: McpContext) => {
+                if (context.track !== 'discovery') {
+                    return { success: false, error: { code: 403, message: 'submit_discovery_outcome only available on discovery track' } };
+                }
+                const db = agentDb.getRawDatabase();
+                const { EpisodeStore } = await import('../../episodic/EpisodeStore.js');
+                const store = new EpisodeStore(db);
+                await store.initialize();
+                const params: any = {
+                    sessionId: context.session_id,
+                    domain: context.domain,
+                    track: 'discovery',
+                    phase: args.phase,
+                    outcomeSummary: args.summary,
+                    toolCalls: [],
+                    artifacts: args.artifacts,
+                    metadata: {
+                        outcome_type: args.outcome_type,
+                        blockers: args.blockers
+                    }
+                };
+                const result = await store.storeExperience(params);
+                return {
+                    success: true,
+                    data: {
+                        episode_id: result.episodeId,
+                        stored_at: result.createdAt.toISOString(),
+                        track: 'discovery'
+                    }
+                };
+            }
+        }
+    };
+}

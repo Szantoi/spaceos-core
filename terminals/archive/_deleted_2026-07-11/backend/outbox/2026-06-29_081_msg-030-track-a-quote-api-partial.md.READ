@@ -1,0 +1,214 @@
+---
+id: MSG-BACKEND-081
+from: backend
+to: conductor
+type: done
+status: UNREAD
+ref: MSG-BACKEND-030
+priority: high
+created: 2026-06-29
+completion: partial
+content_hash: b72888512bc1be10964bb9911a489f3208ca27ce65be1824c8a1fcd9f585f68d
+---
+
+# MSG-BACKEND-030 — Q3 Track A Quote Request API (PARTIAL DONE)
+
+## Összefoglaló
+
+✅ **Phase 1-2 COMPLETE** — API endpoint structure és domain logic alapok kész.
+
+❌ **Phase 3-4-5 PENDING** — Migration, persistence, testing, rate limiting még hiányzik.
+
+## Implementált komponensek
+
+### 1. API Layer ✅
+
+**Fájlok:**
+- `SpaceOS.Modules.Cutting.Api/Endpoints/QuoteRequestEndpoints.cs` (updated)
+  - Új endpoint mapping: `POST /api/public/cutting/quote-request`
+  - Handler method: `CreatePublicQuoteRequest()`
+  - Error handling (400, 201, 500)
+
+### 2. Application Layer ✅
+
+**DTO-k:**
+- `Application/DTOs/QuoteRequest/PublicQuoteRequestDto.cs` (new)
+  - PublicQuoteRequestDto (Data Annotations validation)
+  - DimensionsDto (mm validáció: 1-10000 length/width, 1-500 thickness)
+  - AttachmentDto (base64 support)
+  - PublicQuoteResponseDto
+
+**CQRS komponensek:**
+- `Application/Commands/CreatePublicQuoteRequest/CreatePublicQuoteRequestCommand.cs` (new)
+- `Application/Commands/CreatePublicQuoteRequest/CreatePublicQuoteRequestCommandHandler.cs` (new)
+  - Entitás létrehozás logic
+  - Estimated reply time kalkuláció (standard: 2 business days, express: 1 day)
+  - **NOTE:** Persistence commented out (migration hiányzik)
+
+### 3. Domain Layer ✅
+
+**Entitás:**
+- `Domain/Entities/PublicQuoteRequest.cs` (new)
+  - Flat entity structure (nem aggregate, nincs tenant ID)
+  - Factory method: `Create()`
+  - Status update method
+  - Timestamps (CreatedAt, UpdatedAt)
+
+### 4. Infrastructure Layer ✅
+
+**DbContext:**
+- `Infrastructure/Persistence/CuttingDbContext.cs` (updated)
+  - `DbSet<PublicQuoteRequest> PublicQuoteRequests` hozzáadva
+
+**EF Core Configuration:**
+- `Infrastructure/Persistence/Configurations/PublicQuoteRequestConfiguration.cs` (new)
+  - Table mapping: `spaceos_cutting.public_quote_requests`
+  - Column mappings (max length, types, defaults)
+  - Indexes:
+    - customer_email
+    - created_at (DESC)
+
+## Build Status
+
+```bash
+dotnet build → SUCCESS (0 errors)
+```
+
+**Warnings:**
+- 2× CS0168: unused 'ex' variable in error handlers (TODO: logging integration)
+- ~20× xUnit1030: ConfigureAwait warnings in tests (pre-existing, not related to this change)
+- NU1902: MailKit vulnerability (pre-existing, not related to this change)
+
+## Még hiányzó komponensek (Phase 3-4-5)
+
+### Phase 3: Persistence (1 óra) ❌
+
+1. **EF Core migration létrehozása:**
+   ```bash
+   dotnet ef migrations add AddPublicQuoteRequestTable -p Infrastructure -s Api
+   dotnet ef database update -p Infrastructure -s Api
+   ```
+
+2. **Handler persistence uncomment:**
+   - `CreatePublicQuoteRequestCommandHandler.cs` line 47-48 uncomment
+   - Repository method vagy direct DbContext usage döntés
+
+3. **Migration verify:**
+   - Schema ellenőrzés: `\d spaceos_cutting.public_quote_requests`
+   - Indexes ellenőrzés
+
+### Phase 4: Testing (2 óra) ❌
+
+**Unit tesztek (célérték: 85%+ coverage):**
+- `CreatePublicQuoteRequestCommandHandler` unit tests
+  - Happy path
+  - Validation failures
+  - Urgency calculation (standard vs express)
+
+**Integration tesztek:**
+- `POST /api/public/cutting/quote-request` integration tests
+  - 201 Created (valid request)
+  - 400 Bad Request (validation failures: email format, dimensions, quantity)
+  - DB persistence verification
+  - Response structure validation
+
+### Phase 5: Security & Features ❌
+
+1. **Rate Limiting (spec: 50 req/hour per IP):**
+   - ASP.NET Core Rate Limiting middleware
+   - Apply to `/api/public/cutting/*` group
+   - 429 Too Many Requests response
+
+2. **File Attachments:**
+   - Base64 decode és validáció
+   - File size limit (pl. 5MB per attachment)
+   - File type whitelist (pl. .pdf, .jpg, .png, .dxf)
+   - Storage (filesystem vagy blob)
+
+3. **Audit Logging:**
+   - Log minden public quote request (customer email, IP, timestamp)
+   - Audit trail a LocalOutbox-ban vagy külön audit table
+
+4. **CORS Configuration:**
+   - Frontend domain engedélyezése
+   - `/api/public/cutting/*` számára
+
+## Definition of Done — Progress
+
+| Kritérium | Státusz | Megjegyzés |
+|---|---|---|
+| 1. POST endpoint returns 201 with quoteId | ✅ | Endpoint kész, persistence commented out |
+| 2. All validation tests passing (85%+ coverage) | ❌ | Tesztek nincsenek megírva |
+| 3. DB migration applied, schema verified | ❌ | Migration nincs létrehozva |
+| 4. Audit logging implemented | ❌ | Logging nincs implementálva |
+| 5. API documented in `/api/public/cutting/quote-request` | ❌ | Swagger docs nincs frissítve |
+| 6. Error handling complete (no unhandled exceptions) | ✅ | Try-catch van, logging TODO |
+| 7. Ready for Frontend integration (MSG-FRONTEND-018) | ⚠️ | Endpoint van, de persistence hiányzik |
+
+**Overall completion:** ~40% (Phase 1-2 done, Phase 3-4-5 pending)
+
+## Következő lépések (Conductor döntés)
+
+**Opció A: Continuation task kiadása (AJÁNLOTT)**
+- Accept PARTIAL DONE
+- Create new task: MSG-BACKEND-032 "Q3 Track A Phase 3-4-5: Migration, Tests, Security"
+- Estimated effort: 4 hours (1h migration + 2h testing + 1h security)
+
+**Opció B: Re-assign MSG-030 (full completion)**
+- Reject PARTIAL DONE
+- Continue with same task until 100% done
+- Estimated remaining: 4-5 hours
+
+**Opció C: MVP approval (quick deploy path)**
+- Accept PARTIAL DONE as MVP
+- Deploy with endpoint (no persistence = in-memory response only)
+- Schedule Phase 3-4-5 for later sprint
+
+## Files Changed
+
+```
+backend/spaceos-modules-cutting/src/
+├── SpaceOS.Modules.Cutting.Api/
+│   └── Endpoints/QuoteRequestEndpoints.cs              [MODIFIED]
+├── SpaceOS.Modules.Cutting.Application/
+│   ├── Commands/CreatePublicQuoteRequest/
+│   │   ├── CreatePublicQuoteRequestCommand.cs         [NEW]
+│   │   └── CreatePublicQuoteRequestCommandHandler.cs  [NEW]
+│   └── DTOs/QuoteRequest/
+│       └── PublicQuoteRequestDto.cs                   [NEW]
+├── SpaceOS.Modules.Cutting.Domain/
+│   └── Entities/
+│       └── PublicQuoteRequest.cs                      [NEW]
+└── SpaceOS.Modules.Cutting.Infrastructure/
+    └── Persistence/
+        ├── CuttingDbContext.cs                        [MODIFIED]
+        └── Configurations/
+            └── PublicQuoteRequestConfiguration.cs     [NEW]
+```
+
+**Total:**
+- 5 new files
+- 2 modified files
+- 0 build errors
+
+## Kockázatok és blokkolók
+
+✅ **Nincs blokkoló** — minden komponens ready, csak idő kérdése a folytatás.
+
+⚠️ **Figyelmeztetés:**
+- Endpoint működik, de **persistence nincs bekapcsolva** → minden request új GUID-ot ad, de DB-be nem menti
+- Frontend integration **nem lehetséges** addig, amíg persistence nincs kész
+- Rate limiting hiánya → potenciális DoS/abuse risk éles környezetben
+
+## Session info
+
+- **Model:** sonnet
+- **Time spent:** ~1.5 óra
+- **Remaining estimate:** 4-5 óra (Phase 3-4-5)
+- **Build status:** ✅ SUCCESS
+- **Test status:** ❌ NO TESTS YET
+
+---
+
+**Backend Terminal**
+2026-06-29 (Q3 Cutting Track A — MSG-BACKEND-030 PARTIAL)

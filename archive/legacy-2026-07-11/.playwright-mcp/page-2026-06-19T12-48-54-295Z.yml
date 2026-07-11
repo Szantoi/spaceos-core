@@ -1,0 +1,49 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Datahaven" [level=1] [ref=e5]
+      - text: Message Queue Dashboard
+    - generic [ref=e9]: Connecting...
+  - generic [ref=e11]:
+    - heading "Authentication Required" [level=2] [ref=e12]
+    - textbox "Enter token..." [ref=e13]
+    - button "Login" [ref=e14] [cursor=pointer]
+    - paragraph
+  - main [ref=e15]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]: "-"
+        - generic [ref=e19]: Total Messages
+      - generic [ref=e20]:
+        - generic [ref=e21]: "-"
+        - generic [ref=e22]: Pending
+      - generic [ref=e23]:
+        - generic [ref=e24]: "-"
+        - generic [ref=e25]: Acknowledged
+      - generic [ref=e26]:
+        - generic [ref=e27]: "-"
+        - generic [ref=e28]: Daemons
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - heading "Daemons" [level=2] [ref=e32]
+          - button "Refresh" [ref=e33] [cursor=pointer]
+        - generic [ref=e35]: Loading daemons...
+      - generic [ref=e36]:
+        - generic [ref=e37]:
+          - heading "Recent Messages" [level=2] [ref=e38]
+          - generic [ref=e39]:
+            - combobox [ref=e40]:
+              - option "All Status" [selected]
+              - option "Pending"
+              - option "Acknowledged"
+            - button "Refresh" [ref=e41] [cursor=pointer]
+        - generic [ref=e43]: Loading messages...
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - heading "Knowledge Search" [level=2] [ref=e46]
+        - generic [ref=e49]: Checking...
+      - generic [ref=e50]:
+        - textbox "Search knowledge base..." [ref=e51]
+        - button "Search" [ref=e52] [cursor=pointer]
+      - paragraph [ref=e54]: Enter a query to search the knowledge base.

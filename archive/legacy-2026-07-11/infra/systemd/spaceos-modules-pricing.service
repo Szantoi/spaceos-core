@@ -1,0 +1,44 @@
+[Unit]
+Description=SpaceOS Pricing Module
+Documentation=https://github.com/joinerysoft/spaceos
+After=network.target postgresql.service
+
+[Service]
+Type=notify
+User=spaceos
+Group=spaceos
+WorkingDirectory=/opt/spaceos/backend/spaceos-modules-pricing/src/SpaceOS.Modules.Pricing.Api
+
+# Environment variables
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5011
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+Environment=DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+# Executable path (update after build)
+ExecStart=/usr/bin/dotnet /opt/spaceos/backend/spaceos-modules-pricing/src/SpaceOS.Modules.Pricing.Api/bin/Release/net8.0/SpaceOS.Modules.Pricing.Api.dll
+
+# Restart policy
+Restart=always
+RestartSec=10
+KillMode=process
+TimeoutStopSec=30
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/spaceos/logs/pricing
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=512
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=spaceos-pricing
+
+[Install]
+WantedBy=multi-user.target

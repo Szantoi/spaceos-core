@@ -1,0 +1,604 @@
+version: '1.2'
+updated: '2026-07-04'
+epics:
+  - id: EPIC-KERNEL-STABLE
+    name: Kernel Stability & Security (L1)
+    project: spaceos/kernel
+    depends_on: []
+    status: done
+    target_date: '2026-04-30'
+    tasks_yaml: spaceos/kernel/TASKS.yaml
+    description: |
+      L1 Kernel alapok: auth, audit, FSM, escrow, RLS.
+      ADR-001 (JWT RS256), ADR-003 (immutability), ADR-004 (RBAC).
+  - id: EPIC-JOINERY-V2
+    name: Joinery Module v2
+    project: spaceos/joinery
+    depends_on:
+      - EPIC-KERNEL-STABLE
+    parallel_with:
+      - EPIC-CUTTING-Q3
+    status: done
+    target_date: '2026-05-15'
+    tasks_yaml: spaceos/joinery/TASKS.yaml
+    description: |
+      Asztalos modul: Gyártólap PDF, batch anyaglista, order conversion.
+  - id: EPIC-CUTTING-Q3
+    name: JoineryTech Phase 1-4 Full Stack (6 Modules)
+    project: joinerytech-prod
+    depends_on:
+      - EPIC-KERNEL-STABLE
+    parallel_with:
+      - EPIC-JOINERY-V2
+      - EPIC-INVENTORY-V1
+    status: done
+    target_date: '2026-09-30'
+    completed_date: '2026-07-08'
+    final_progress: 95
+    estimated_nwt: 1560
+    actual_nwt: 1240
+    tasks_yaml: joinerytech-prod/TASKS.yaml
+    description: |
+      JoineryTech Phase 1-4 Full Stack implementation (6 modules × 4 weeks):
+      DMS, HR, Maintenance, QA, CRM, Kontrolling.
+      Week 1: Domain Layer (DDD aggregates, FSMs)
+      Week 2: Application Layer (CQRS/MediatR, FluentValidation)
+      Week 3: Infrastructure Layer (DbContext, RLS, repositories)
+      Week 4: API Layer (Minimal API, JWT auth, Testcontainers tests)
+      75+ API endpoints ready for frontend integration.
+      ADR-054 (CRM), ADR-055 (Kontrolling) compliance verified.
+  - id: EPIC-INVENTORY-V1
+    name: Inventory Module v1
+    project: spaceos/inventory
+    depends_on:
+      - EPIC-KERNEL-STABLE
+    parallel_with:
+      - EPIC-CUTTING-Q3
+    status: done
+    target_date: '2026-05-30'
+    tasks_yaml: spaceos/inventory/TASKS.yaml
+    description: |
+      Készlet modul: stock management, reservation, offcut tracking.
+  - id: EPIC-IDENTITY-V1
+    name: Identity Module v1
+    project: spaceos/identity
+    depends_on:
+      - EPIC-KERNEL-STABLE
+    status: done
+    target_date: '2026-06-15'
+    tasks_yaml: spaceos/identity/TASKS.yaml
+    description: |
+      Identity modul: Keycloak integration, user management, roles.
+  - id: EPIC-ORCH-V2
+    name: Orchestrator BFF v2
+    project: spaceos/orchestrator
+    depends_on:
+      - EPIC-KERNEL-STABLE
+      - EPIC-JOINERY-V2
+    status: done
+    target_date: '2026-06-01'
+    tasks_yaml: spaceos/orchestrator/TASKS.yaml
+    description: |
+      Backend-for-Frontend: LLM tool calling, API gateway, session management.
+  - id: EPIC-PORTAL-V2
+    name: Customer Portal v2
+    project: spaceos/portal
+    depends_on:
+      - EPIC-IDENTITY-V1
+      - EPIC-ORCH-V2
+    parallel_with:
+      - EPIC-CUTTING-Q3
+    status: done
+    target_date: '2026-07-31'
+    tasks_yaml: spaceos/portal/TASKS.yaml
+    description: |
+      React portal: 27 world design, real API integration, mobile support.
+  - id: EPIC-NEXUS-V1
+    name: Nexus Agent Infrastructure v1
+    project: datahaven
+    depends_on: []
+    parallel_with:
+      - EPIC-PORTAL-V2
+    status: done
+    completed_date: '2026-07-01'
+    target_date: '2026-07-15'
+    tasks_yaml: datahaven/TASKS.yaml
+    description: |
+      Agent infrastructure: Knowledge Service, MCP, Dashboard, Project Automation.
+  - id: EPIC-GRAPH-WORKFLOW
+    name: Graph-Based Workflow (ADR-041)
+    project: datahaven
+    depends_on:
+      - EPIC-NEXUS-V1
+    status: done
+    target_date: '2026-07-30'
+    estimated_nwt: 360
+    tasks_yaml: datahaven/graph-workflow/TASKS.yaml
+    description: |
+      Graph-based workflow visualization and management.
+      ADR-041 implementation phases 1-4.
+      Flow editor át lesz emelve JoineryTech-be.
+    checkpoints:
+      - id: CP-FLOW-EDITOR
+        name: Interactive Flow Editor Complete
+        trigger_to:
+          - root
+          - conductor
+        condition: Flow editor drag-drop működik
+        status: done
+      - id: CP-MERMAID-RENDER
+        name: Mermaid Diagram Rendering
+        trigger_to: conductor
+        condition: Epic/task gráf renderelés
+        status: done
+      - id: CP-JOINERYTECH-MIGRATION
+        name: JoineryTech Migration Complete
+        trigger_to:
+          - root
+          - conductor
+        condition: Flow editor átültetve JoineryTech-be
+        status: done
+    completed_date: '2026-07-07'
+  - id: EPIC-DATAHAVEN-UI
+    name: Datahaven Dashboard UI Redesign
+    project: datahaven
+    depends_on:
+      - EPIC-NEXUS-V1
+    parallel_with:
+      - EPIC-GRAPH-WORKFLOW
+    status: done
+    completed_date: '2026-07-01'
+    target_date: '2026-08-15'
+    tasks_yaml: datahaven/ui/TASKS.yaml
+    description: |
+      Dashboard UI redesign: Bento Grid, KPI Cards, Real-time Metrics, Mobile-first.
+      ADR-053 checkpoint-based coordination workflow.
+    checkpoints:
+      - id: CP-BENTO
+        name: Bento Grid Layout Complete
+        trigger_to: conductor
+        condition: MSG-FRONTEND-064 status=DONE
+        status: done
+      - id: CP-KPI
+        name: KPI Card System Complete
+        trigger_to:
+          - root
+          - conductor
+        condition: MSG-FRONTEND-083 status=DONE
+        status: done
+      - id: CP-COST
+        name: Cost Budget Widget Complete
+        trigger_to: conductor
+        condition: MSG-FRONTEND-084 status=DONE
+        status: done
+      - id: CP-REALTIME
+        name: Real-time Metrics Complete
+        trigger_to: conductor
+        condition: MSG-FRONTEND-067 status=DONE
+        status: done
+      - id: CP-MOBILE
+        name: Mobile Responsive Complete
+        trigger_to:
+          - root
+          - conductor
+        condition: MSG-FRONTEND-086 status=DONE
+        status: done
+  - id: EPIC-DOORSTAR-SOFTLAUNCH
+    name: Doorstar Soft Launch
+    project: spaceos
+    depends_on:
+      - EPIC-PORTAL-V2
+      - EPIC-CUTTING-Q3
+    parallel_with:
+      - EPIC-JT-EHS
+    status: active
+    activated_date: '2026-07-08'
+    phase: implementation
+    target_date: '2026-09-30'
+    estimated_nwt: 1200
+    tasks_yaml: spaceos/doorstar/TASKS.yaml
+    description: |
+      Első éles ügyfél: Doorstar Kft. soft launch.
+      Phase 1 (2026-07-08): Planning DONE (MSG-BACKEND-194)
+      Phase 2 (2026-07-10): Implementation COMPLETE ✅
+
+      Timeline Final (2026-07-10):
+      - ✅ Planning: MSG-BACKEND-194 DONE (2026-07-08)
+      - ✅ Frontend UI: MSG-FRONTEND-107 DONE (2026-07-10, 15 files)
+      - ✅ Backend Module: MSG-BACKEND-196 DONE (2026-07-10, 24 files)
+      - ✅ QA Tests: MSG-BACKEND-450 DONE (2026-07-10, 10/10 tests PASS)
+
+      🚀 Ready for deployment (86% overall progress, all checkpoints complete)
+    checkpoints:
+      - id: CP-DOORSTAR-PLANNING
+        name: Production Implementation Plan
+        trigger_to:
+          - conductor
+        condition: OpenAPI contract + task breakdown ready
+        status: done
+        started_date: '2026-07-08'
+        completed_date: '2026-07-08'
+        assigned_to: backend
+        progress_notes: >-
+          ✅ MSG-BACKEND-194 DONE (2026-07-08, 26KB) — Full implementation plan, OpenAPI contract draft, 6 STAGE workflow
+          spec, Frontend coordination.
+      - id: CP-DOORSTAR-FRONTEND-UI
+        name: Production UI (Mobile Kiosk)
+        trigger_to:
+          - conductor
+        condition: ProductionQueuePage + WorkflowStepStepper + SSE integration
+        status: done
+        started_date: '2026-07-10'
+        completed_date: '2026-07-10'
+        assigned_to: frontend
+        progress_notes: >-
+          ✅ MSG-FRONTEND-107 DONE (2026-07-10) — 15 files (3 pages, 3 components, 4 hooks). Touch-optimized UI,
+          real-time SSE updates, TanStack Query. Build successful (0 errors). Ready for backend integration.
+      - id: CP-DOORSTAR-BACKEND-MODULE
+        name: Production Module (DDD Full Stack)
+        trigger_to:
+          - conductor
+        condition: Domain + Application + Infrastructure + API layers complete
+        status: done
+        started_date: '2026-07-10'
+        completed_date: '2026-07-10'
+        assigned_to: backend
+        progress_notes: >-
+          ✅ MSG-BACKEND-196 DONE (2026-07-10) — Production module MVI complete (24 files, ~1250 LOC).
+          Domain/Application/Infrastructure/API layers implemented. Build: 0 errors, 0 warnings. Unblocked
+          MSG-BACKEND-195 (QA tests). Frontend MSG-FRONTEND-107 ready for integration.
+      - id: CP-DOORSTAR-QA
+        name: Integration Tests & Deployment
+        trigger_to:
+          - conductor
+        condition: E2E tests GREEN + dev deployment verified
+        status: done
+        started_date: '2026-07-10'
+        completed_date: '2026-07-10'
+        assigned_to: backend
+        progress_notes: >-
+          ✅ MSG-BACKEND-450 DONE (2026-07-10) — Production module tests PASS (10/10). EF Core config bug fixed
+          (ProductionJobConfiguration.cs duplicate shadow property removed). Deployment pipeline validated. Doorstar
+          soft launch ready.
+  - id: EPIC-JT-CRM
+    name: JoineryTech CRM Modul
+    project: joinerytech-prod
+    depends_on:
+      - EPIC-KERNEL-STABLE
+      - EPIC-IDENTITY-V1
+    parallel_with:
+      - EPIC-JT-CTRL
+    status: done
+    activated_date: '2026-07-03'
+    completed_date: '2026-07-10'
+    target_date: '2026-08-31'
+    estimated_nwt: 480
+    tasks_yaml: joinerytech-prod/TASKS.yaml
+    description: |
+      CRM / Lead-pipeline világ: Lead FSM, Opportunity FSM, konverziós kézfogás,
+      forecast, tevékenység-napló. Prototípusból migráció React 19 + TanStack Query-re.
+    checkpoints:
+      - id: CP-CRM-BACKEND
+        name: CRM Backend API Ready
+        trigger_to:
+          - conductor
+          - architect
+        condition: Lead/Opportunity endpoints + FSM validáció
+        status: done
+        started_date: '2026-07-03'
+        completed_date: '2026-07-04'
+        assigned_to: backend
+        progress_notes: >-
+          ✅ DONE - MSG-BACKEND-103 Week 2 Application Layer complete. Lead/Opportunity CQRS handlers, FSM transitions,
+          full API coverage.
+      - id: CP-CRM-FRONTEND
+        name: CRM UI Complete
+        trigger_to:
+          - conductor
+          - designer
+        condition: Pipeline kanban + forecast + activity log
+        status: done
+        started_date: '2026-07-03'
+        assigned_to: frontend
+        progress_notes: UI components complete (LeadGrid, OpportunityPipeline, filters). Awaiting Backend API for real integration.
+      - id: CP-CRM-INTEGRATION
+        name: CRM → Sales Integration
+        trigger_to:
+          - conductor
+          - root
+        condition: Quote creation from Opportunity
+        status: done
+  - id: EPIC-JT-CTRL
+    name: JoineryTech Kontrolling Modul
+    project: joinerytech-prod
+    depends_on:
+      - EPIC-KERNEL-STABLE
+    parallel_with:
+      - EPIC-JT-CRM
+      - EPIC-JT-HR
+    status: done
+    activated_date: '2026-07-04'
+    target_date: '2026-09-15'
+    estimated_nwt: 360
+    tasks_yaml: joinerytech-prod/TASKS.yaml
+    description: |
+      Kontrolling világ: Fedezet-kalkuláció, EAC (Estimate at Completion),
+      projekt-költségkövetés, rezsi-elosztás. Prototípusból migráció.
+    checkpoints:
+      - id: CP-CTRL-BACKEND
+        name: Kontrolling Backend API
+        trigger_to:
+          - conductor
+          - architect
+        condition: Cost calculation + EAC endpoints
+        status: done
+        started_date: '2026-07-04'
+        completed_date: '2026-07-04'
+        assigned_to: backend
+        progress_notes: ✅ DONE - Week 1 Domain Layer complete (MSG-BACKEND-141). 57 unit tests ✅, EAC calculation, 3 overhead methods.
+      - id: CP-CTRL-FRONTEND
+        name: Kontrolling Dashboard
+        trigger_to:
+          - conductor
+          - designer
+        condition: Project margin + budget tracking UI
+        status: done
+    completed_date: '2026-07-07'
+  - id: EPIC-JT-HR
+    name: JoineryTech HR & Kapacitás Modul
+    project: joinerytech-prod
+    depends_on:
+      - EPIC-KERNEL-STABLE
+      - EPIC-IDENTITY-V1
+    parallel_with:
+      - EPIC-JT-CTRL
+      - EPIC-JT-MAINT
+    status: done
+    activated_date: '2026-07-04'
+    target_date: '2026-09-30'
+    estimated_nwt: 420
+    tasks_yaml: joinerytech-prod/TASKS.yaml
+    description: |
+      HR világ: Dolgozói törzs, kapacitás-számítás, távollét-kérelem FSM,
+      munkaóra-napló, készség-mátrix. Prototípusból migráció.
+    checkpoints:
+      - id: CP-HR-BACKEND
+        name: HR Backend API
+        trigger_to:
+          - conductor
+          - architect
+        condition: Employee CRUD + absence FSM + capacity calc
+        status: done
+        started_date: '2026-07-04'
+        completed_date: '2026-07-07'
+        assigned_to: backend
+        progress_notes: >-
+          Week 0 OpenAPI spec DONE (MSG-ARCHITECT-061, 25 endpoints). Week 1 domain layer dispatched. Week 4 API Layer ✅
+          DONE (MSG-BACKEND-169, CQRS/MediatR, 12 endpoints, complex DTOs with nested owned entities, FSM transitions, 0
+          errors/warnings).
+      - id: CP-HR-FRONTEND
+        name: HR Dashboard + Calendar
+        trigger_to:
+          - conductor
+          - designer
+        condition: Capacity calendar + skill matrix UI
+        status: done
+    completed_date: '2026-07-07'
+  - id: EPIC-JT-MAINT
+    name: JoineryTech Karbantartás Modul
+    project: joinerytech-prod
+    depends_on:
+      - EPIC-KERNEL-STABLE
+      - EPIC-INVENTORY-V1
+    parallel_with:
+      - EPIC-JT-HR
+      - EPIC-JT-QA
+    status: done
+    activated_date: '2026-07-04'
+    completed_date: '2026-07-10'
+    target_date: '2026-10-15'
+    estimated_nwt: 480
+    tasks_yaml: joinerytech-prod/TASKS.yaml
+    description: |
+      Karbantartás / Eszközgazdálkodás világ: Eszköz-törzs, munkalap FSM,
+      megelőző tervek (időköz + üzemóra), állásidő-napló. Prototípusból migráció.
+    checkpoints:
+      - id: CP-MAINT-BACKEND
+        name: Maintenance Backend API
+        trigger_to:
+          - conductor
+          - architect
+        condition: Asset + WorkOrder + MaintenancePlan endpoints
+        status: done
+        started_date: '2026-07-04'
+        completed_date: '2026-07-07'
+        assigned_to: backend
+        progress_notes: >-
+          Week 0 OpenAPI spec DONE (MSG-ARCHITECT-062, 31 endpoints). Week 1 domain layer dispatched. Week 4 API Layer ✅
+          DONE (MSG-BACKEND-170, CQRS/MediatR, 12 endpoints, nested Value Object DTOs (Money), owned collection add item
+          endpoints, multi-step FSM transitions, 0 errors/warnings).
+      - id: CP-MAINT-FRONTEND
+        name: Maintenance Dashboard
+        trigger_to:
+          - conductor
+          - designer
+        condition: Asset registry + work order FSM + schedule view
+        status: done
+      - id: CP-MAINT-PROD-INTEGRATION
+        name: Maintenance → Production Integration
+        trigger_to:
+          - conductor
+          - root
+        condition: Asset downtime affects production schedule
+        status: done
+  - id: EPIC-JT-QA
+    name: JoineryTech Minőségbiztosítás Modul
+    project: joinerytech-prod
+    depends_on:
+      - EPIC-KERNEL-STABLE
+      - EPIC-JOINERY-V2
+    parallel_with:
+      - EPIC-JT-MAINT
+      - EPIC-JT-EHS
+    status: done
+    activated_date: '2026-07-04'
+    target_date: '2026-10-31'
+    estimated_nwt: 360
+    tasks_yaml: joinerytech-prod/TASKS.yaml
+    description: |
+      Minőségbiztosítás világ: QA checkpoint-ok, ellenőrzési jegyzőkönyvek,
+      reklamáció-kezelés (garancia/hiánypótlás/karbantartás FSM). Prototípusból migráció.
+    checkpoints:
+      - id: CP-QA-BACKEND
+        name: QA Backend API
+        trigger_to:
+          - conductor
+          - architect
+        condition: QA checkpoint + inspection + ticket endpoints
+        status: done
+        started_date: '2026-07-04'
+        completed_date: '2026-07-07'
+        assigned_to: architect
+        progress_notes: >-
+          Domain model ✅ DONE (MSG-ARCHITECT-063, 1832 lines). Week 0 OpenAPI spec in progress (MSG-ARCHITECT-065). Week
+          4 API Layer ✅ DONE (MSG-BACKEND-171, CQRS/MediatR, 14 endpoints, production integration pattern
+          (GetBlockingInspections), FSM result enum handling (Pass/Fail), 0 errors/warnings). 3 aggregates
+          (QACheckpoint, Inspection, Ticket), 2 FSMs, Production blocking pattern, Pareto analysis.
+      - id: CP-QA-FRONTEND
+        name: QA Dashboard
+        trigger_to:
+          - conductor
+          - designer
+        condition: Inspection forms + ticket FSM UI
+        status: done
+    completed_date: '2026-07-07'
+  - id: EPIC-JT-EHS
+    name: JoineryTech Munkavédelem (EHS) Modul
+    project: joinerytech-prod
+    depends_on:
+      - EPIC-KERNEL-STABLE
+      - EPIC-JT-HR
+    parallel_with:
+      - EPIC-JT-QA
+      - EPIC-JT-DMS
+      - EPIC-DOORSTAR-SOFTLAUNCH
+    status: done
+    activated_date: '2026-07-08'
+    completed_date: '2026-07-08'
+    target_date: '2026-11-15'
+    estimated_nwt: 420
+    tasks_yaml: joinerytech-prod/TASKS.yaml
+    description: |
+      EHS világ (Mvt. + ISO 45001): Baleset/kvázibaleset FSM, 5×5 kockázatértékelés,
+      oktatás/kompetencia lejárat-figyelés. Prototípusból migráció.
+    checkpoints:
+      - id: CP-EHS-BACKEND
+        name: EHS Backend API
+        trigger_to:
+          - conductor
+          - architect
+        condition: Incident FSM + risk matrix + training endpoints
+        status: done
+        started_date: '2026-07-08'
+        completed_date: '2026-07-08'
+        assigned_to: backend
+        progress_notes: >-
+          Week 0 OpenAPI spec ✅ DONE (MSG-ARCHITECT-073). Week 1 Domain Layer ✅ DONE (MSG-BACKEND-188). Week 2
+          Application Layer ✅ DONE (MSG-BACKEND-189, ~70 files, ~2630 LOC, CQRS/MediatR). Week 3 Infrastructure Layer ✅
+          DONE (MSG-BACKEND-190, 17 files, ~2255 LOC, EF Core DbContext, RLS). Week 4 API Layer ✅ DONE (MSG-BACKEND-191,
+          15 endpoints, 37 integration tests GREEN, production ready).
+      - id: CP-EHS-FRONTEND
+        name: EHS Dashboard
+        trigger_to:
+          - conductor
+          - designer
+        condition: Risk assessment + incident reporting UI
+        status: done
+      - id: CP-EHS-HR-INTEGRATION
+        name: EHS → HR Integration
+        trigger_to:
+          - conductor
+          - root
+        condition: Training competencies linked to employees
+        status: done
+        completed_date: '2026-07-11'
+  - id: EPIC-JT-DMS
+    name: JoineryTech Dokumentumtár Modul
+    project: joinerytech-prod
+    depends_on:
+      - EPIC-KERNEL-STABLE
+    parallel_with:
+      - EPIC-JT-EHS
+      - EPIC-JT-AI
+    status: done
+    activated_date: '2026-07-04'
+    target_date: '2026-11-30'
+    estimated_nwt: 300
+    tasks_yaml: joinerytech-prod/TASKS.yaml
+    description: |
+      Dokumentumtár világ: Fájlkezelés, verziókövetés, entitás-linkek,
+      keresés, jogosultságok. Prototípusból migráció.
+    checkpoints:
+      - id: CP-DMS-BACKEND
+        name: DMS Backend API
+        trigger_to:
+          - conductor
+          - architect
+        condition: File upload/download + versioning + search
+        status: done
+        started_date: '2026-07-04'
+        completed_date: '2026-07-07'
+        assigned_to: architect
+        progress_notes: >-
+          Domain model ✅ DONE (MSG-ARCHITECT-064, 1820 lines). Week 0 OpenAPI spec ✅ DONE (MSG-ARCHITECT-066, 1866
+          lines, 36 endpoints, Redocly lint PASS). Week 1 Domain Layer ✅ DONE (MSG-BACKEND-150, 40 files, 84 tests
+          GREEN). Week 4 API Layer ✅ DONE (MSG-BACKEND-168, CQRS/MediatR, Minimal API, 10 endpoints, 4 validators, 0
+          errors/warnings). 2 aggregates (Document, Folder), 5 domain services, immutable versioning, entity linking,
+          blob storage.
+      - id: CP-DMS-FRONTEND
+        name: DMS UI
+        trigger_to:
+          - conductor
+          - designer
+        condition: File browser + preview + entity linking
+        status: done
+    completed_date: '2026-07-07'
+  - id: EPIC-JT-AI
+    name: JoineryTech AI Munkaterület
+    project: joinerytech-prod
+    depends_on:
+      - EPIC-KERNEL-STABLE
+      - EPIC-ORCH-V2
+      - EPIC-JT-CRM
+      - EPIC-JT-CTRL
+    parallel_with:
+      - EPIC-JT-DMS
+    status: pending
+    target_date: '2026-12-15'
+    estimated_nwt: 600
+    tasks_yaml: joinerytech-prod/TASKS.yaml
+    description: |
+      AI munkaterület világ: Agent kanban, skill-ek, memória (scope),
+      playground, brandContext integráció. Prototípusból migráció + Orchestrator BFF.
+    checkpoints:
+      - id: CP-AI-BACKEND
+        name: AI Backend (Orchestrator)
+        trigger_to:
+          - conductor
+          - architect
+        condition: Agent + skill + memory endpoints + LLM tool calling
+        status: pending
+      - id: CP-AI-FRONTEND
+        name: AI Workspace UI
+        trigger_to:
+          - conductor
+          - designer
+        condition: Agent kanban + playground + memory browser
+        status: pending
+      - id: CP-AI-INTEGRATION
+        name: AI → Business Modules Integration
+        trigger_to:
+          - conductor
+          - root
+        condition: brandContext + entity context in prompts
+        status: pending

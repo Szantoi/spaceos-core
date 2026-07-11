@@ -1,0 +1,39 @@
+id: epic-id
+title: Epic Title
+type: epic
+parent: project-id
+status: pending  # pending | active | paused | completed | archived
+priority: medium # critical | high | medium | low
+created: YYYY-MM-DD
+target: YYYY-MM-DD
+
+goal: |
+  What this epic aims to achieve.
+
+owner: conductor
+terminals:
+  - terminal1
+  - terminal2
+
+milestones:
+  - id: m1-name
+    title: Milestone Title
+    terminal: terminal-name
+    status: pending  # pending | active | done | blocked
+    target: YYYY-MM-DD
+    tasks: []        # MSG-TERMINAL-NNN references
+    deliverable: path/to/deliverable.md
+
+  - id: m2-name
+    title: Next Milestone
+    terminal: another-terminal
+    status: pending
+    blocked_by: m1-name
+    target: YYYY-MM-DD
+
+documents:
+  - path: docs/path/to/doc.md
+    type: spec  # spec | design | adr | guide
+    title: Document Title
+
+tags: []

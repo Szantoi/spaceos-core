@@ -1,0 +1,33 @@
+type: COORDINATION
+description: "Conductor/Root döntés feldolgozás, üzenet routing"
+strictness: low
+require_both: false  # Elég ha 1 reviewer APPROVE
+
+criteria:
+  blocking:
+    - id: decision_understood
+      name: "Root/Conductor döntés helyesen értelmezve"
+      check: "manual"
+      weight: 10
+
+    - id: next_steps_documented
+      name: "MEMORY.md frissítve következő lépésekkel"
+      check: "manual"
+      weight: 8
+
+  non_blocking:
+    - id: inbox_messages_sent
+      name: "Inbox üzenetek elküldve termináloknak"
+      check: "manual"
+      weight: 5
+
+approval_threshold:
+  blocking_score: 14  # 78% blocking kell
+  total_score: 18     # 78% total
+
+escalation_policy:
+  max_attempts: 1  # Coordination gyorsan kell
+  escalate_to: root
+  notify: telegram
+
+version: 1.0.0

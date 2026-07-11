@@ -1,0 +1,63 @@
+id: offer
+title: Ajánlat Kezelés
+type: epic
+parent: sales
+status: active
+priority: high
+created: 2026-05-15
+target: 2026-06-30
+
+goal: |
+  Ajánlatok létrehozása, szerkesztése, PDF export,
+  ügyfél jóváhagyás workflow implementálása.
+
+owner: conductor
+terminals:
+  - architect
+  - kernel
+  - orch
+  - fe
+
+milestones:
+  - id: m1-spec
+    title: API Specification
+    terminal: architect
+    status: done
+    completed: 2026-05-20
+    deliverable: docs/specs/offer-api-spec.md
+
+  - id: m2-backend
+    title: Backend Implementation
+    terminal: kernel
+    status: active
+    target: 2026-06-15
+    tasks:
+      - MSG-KERNEL-045
+      - MSG-KERNEL-046
+
+  - id: m3-bff
+    title: BFF Layer
+    terminal: orch
+    status: pending
+    blocked_by: m2-backend
+    target: 2026-06-22
+
+  - id: m4-frontend
+    title: Frontend UI
+    terminal: fe
+    status: pending
+    blocked_by: m3-bff
+    target: 2026-06-30
+
+documents:
+  - path: docs/specs/offer-api-spec.md
+    type: spec
+    title: Offer API Specification
+
+  - path: docs/design/offer-wireframes.pdf
+    type: design
+    title: Offer UI Wireframes
+
+tags:
+  - doorstar
+  - launch-critical

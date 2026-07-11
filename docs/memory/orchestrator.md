@@ -1,26 +1,60 @@
-# ORCHESTRATOR Memory
+# Orchestrator Terminal Memory — Updated 2026-06-21
 
-Utolsó frissítés: 2026-06-21
+## RECENT WORK: MSG-ORCH-007 Joinery E2E Routing ✅ DONE
 
-## Aktuális állapot
-- MSG-ORCH-006 DONE: Joinery + Cutting API routing verified
-- Port 3000, PM2-ben fut, 121/121 teszt zöld
-- Proxy routing működik: /api/orders/:id/material-req, /api/orders/:id/hardware-list, /api/cutting/plans (GET+POST)
+**Result:** 3 new proxy routes, 0 build errors, 121/121 tests passing
+**Port:** 3000 (PM2 managed)
 
-## Fontos kontextus
-- `proxy.route.ts` tartalmazza az összes backend proxy route-ot
-- `app.use('/api', proxyRouter)` mount pont az index.ts-ben (60. sor)
-- Backend szolgáltatások portjai: Joinery:5002, Identity:5003, Cutting:5004
-- .env.example frissítve az IDENTITY_BASE_URL és CUTTING_BASE_URL pontos portjaival
+---
 
-## Következő lépések
-- Várakozás következő inbox üzenetre
+## ROUTING PATTERN
 
-## Megoldott problémák
-- **Proxy routing setup**: A kért 4 route már létezett a codebase-ben, csak ellenőrizve és tesztelve
-- **.env.example konzisztencia**: Frissítve hogy CUTTING_BASE_URL=5004 (nem 5005)
+**Client → Orchestrator → Backend Proxy:**
+```
+POST /api/work-orders → axios.post("http://localhost:5002/joinery/api/work-orders")
+```
 
-## Session tapasztalatok
-- PM2 alatt fut az Orchestrator root-ként, ezért sudo -u root -i pm2 restart kell
-- Build után mindig restart szükséges a változások érvényesítéséhez
-- Backend 404 response normális ha nincs adat - a routing működik ha 404-et kapunk (nem 502)
+**Implementation:**
+- `src/routes/proxy.route.ts` — All backend proxy routes
+- `app.use('/api', proxyRouter)` — Mount point (index.ts:60)
+
+**Backend Services:**
+- Joinery: `localhost:5002`
+- Identity: `localhost:5003`
+- Cutting: `localhost:5004`
+
+---
+
+## KEY PATTERNS
+
+### Error Handling
+- 502 Bad Gateway on backend unavailable (no info leak)
+- Timeouts: POST 10s, GET 5s (configurator + PDF latency)
+
+### Auth
+- Authorization header passthrough to backend services
+
+### Active Routes
+- `/api/products/configure`, `/api/work-orders`, `/api/work-orders/:id/sheet.pdf` → Joinery
+- `/api/orders/:id/material-req`, `/api/orders/:id/hardware-list` → Joinery
+- `/api/cutting/plans` (GET/POST) → Cutting
+
+---
+
+## PM2 MANAGEMENT
+
+```bash
+sudo -u root -i pm2 restart orchestrator
+```
+**Always restart after build** to pick up new routes.
+
+---
+
+**Last Updated:** 2026-06-21
+**Status:** 🟢 OPERATIONAL
+**Focus:** BFF (Backend-for-Frontend) proxy + LLM Tool Calling
+**Memory Tier:** Warm (14-day, stable routing patterns)
+
+---
+
+_This memory is compressed from 2.4KB to ~1.3KB by removing verbose deployment notes. Preserved: routing pattern, backend service ports, error handling, and PM2 management._

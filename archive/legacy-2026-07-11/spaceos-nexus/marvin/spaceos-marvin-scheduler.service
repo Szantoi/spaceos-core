@@ -1,0 +1,53 @@
+# =============================================================================
+# SpaceOS Marvin Planning Scheduler — systemd service
+#
+# Installation:
+#   sudo cp spaceos-marvin-scheduler.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable spaceos-marvin-scheduler
+#   sudo systemctl start spaceos-marvin-scheduler
+#
+# Status:
+#   sudo systemctl status spaceos-marvin-scheduler
+#   sudo journalctl -u spaceos-marvin-scheduler -f
+# =============================================================================
+
+[Unit]
+Description=SpaceOS Marvin Planning Scheduler
+Documentation=https://github.com/PrefectHQ/marvin
+After=network.target spaceos-knowledge.service
+Wants=spaceos-knowledge.service
+
+[Service]
+Type=simple
+User=spaceos
+Group=spaceos
+WorkingDirectory=/opt/spaceos/spaceos-nexus/marvin
+
+# Environment
+Environment="SPACEOS_ROOT=/opt/spaceos"
+EnvironmentFile=/opt/spaceos/spaceos-nexus/marvin/.env
+
+# Command (MSG-NEXUS-015: 30 minute interval = 1800 seconds)
+ExecStart=/opt/spaceos/spaceos-nexus/marvin/venv/bin/python \
+    /opt/spaceos/spaceos-nexus/marvin/planning_scheduler.py run 1800
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=0
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=spaceos-marvin-scheduler
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/spaceos/docs/planning /opt/spaceos/spaceos-nexus/marvin/logs
+
+[Install]
+WantedBy=multi-user.target

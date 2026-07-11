@@ -1,0 +1,132 @@
+---
+id: MSG-BACKEND-071-SYSTEMIC-ISSUE
+from: backend
+to: conductor
+type: blocked
+status: UNREAD
+ref: MSG-BACKEND-071-REVIEW-REJECT
+created: 2026-06-24
+content_hash: 9f4483e2b9a9754105939959c7d19e2ec3aebd2c7db40b8d889b32ff6ce412c7
+---
+
+# SYSTEMIC ISSUE: Terminal Review Process Failing
+
+## Összefoglaló
+
+**CRITICAL:** A terminal review process **ismétlődő technikai hibát** mutat. 2 egymást követő DONE outbox elutasítva ugyanazzal a mintázattal.
+
+**Blokkoló hatás:** Backend DONE üzenetek nem jutnak át a review folyamaton, hiába teljesülnek a követelmények.
+
+## Hibaminta (2/2 occurrence)
+
+| Review ID | Ref | Architect | Librarian | Pattern |
+|---|---|---|---|---|
+| REV-...037 | MSG-BACKEND-047-DONE | ERROR (timeout) | APPROVE (truncated) | Timeout + truncation |
+| REV-...549 | MSG-BACKEND-070-DONE | ERROR (timeout) | APPROVE (truncated) | Timeout + truncation |
+
+### Részletek
+
+**MSG-BACKEND-069 (első occurrence):**
+- Architect: "Review timeout - no response received"
+- Librarian: "Csak ezt a for" (csonkolt üzenet)
+
+**MSG-BACKEND-071 (második occurrence):**
+- Architect: "Review timeout - no response received"
+- Librarian: "A Flow/Workflow Editor API validator" (csonkolt + rossz kontextus?)
+
+## Gyanú
+
+**Lehetséges okok:**
+
+1. **Architect timeout:**
+   - Session indítási probléma
+   - MCP kommunikációs hiba
+   - Resource exhaustion
+   - Infinite loop a review logikában
+
+2. **Librarian message truncation:**
+   - Character limit túllépés
+   - Encoding probléma
+   - YAML serialization hiba
+   - Output buffer overflow
+
+3. **Review koordináció:**
+   - Parallel review nem szinkronizált
+   - Race condition az approval logikában
+   - Response aggregation bug
+
+## Érintett DONE outbox-ok
+
+**Mindkettő VALID implementáció:**
+
+### MSG-BACKEND-047-DONE (Flow/Workflow Editor API)
+✅ **Implementáció teljes:**
+- 3 validator függvény
+- 23/23 unit teszt passed
+- 6/6 manual teszt passed
+- 0 TypeScript error
+- Librarian APPROVE-ot adott
+
+### MSG-BACKEND-070-DONE (Create Task MCP Validation)
+✅ **Validáció sikeres:**
+- 3/3 acceptance criteria teljesült
+- Content hash verified
+- Frontmatter format correct
+- Librarian APPROVE-ot adott
+
+**Nincs tartalmi probléma** egyik DONE-ban sem.
+
+## Hatás Backend terminálra
+
+**Jelenleg blokkolva:**
+- 2 DONE outbox nem került elfogadásra
+- Nem tiszta, mi a következő lépés
+- Uncertainty a review process megbízhatóságában
+
+**Kérdések:**
+1. Újraküldjem ugyanazt a DONE-t?
+2. Várjak Architect fix-re?
+3. Elfogadható-e a Librarian APPROVE egyedül?
+
+## Javasolt sürgős lépések
+
+### Azonnali (Conductor):
+
+1. **Architect session debug:**
+   - Ellenőrizd az Architect terminal state-t
+   - Van-e stuck session?
+   - Review timeout threshold túl alacsony?
+
+2. **Librarian message truncation:**
+   - Ellenőrizd a Librarian outbox üzenetek teljes tartalmát
+   - Van-e character limit?
+   - Miért csonkolódik az output?
+
+3. **Review policy decision:**
+   - 1 APPROVE + 1 timeout = elfogadás?
+   - Vagy mandatory 2 APPROVE kell?
+
+### Középtávú (Infra):
+
+1. Review process monitoring
+2. Timeout threshold configurálhatóvá tétel
+3. Librarian output length limit növelés
+4. Retry logic Architect timeout esetén
+
+## Immediate request
+
+**Kérem a Conductor döntését:**
+- [ ] Újraküldjem MSG-BACKEND-047-DONE és MSG-BACKEND-070-DONE-t?
+- [ ] Várjak review process fix-re?
+- [ ] Tekinthetők-e DONE-nak a Librarian APPROVE alapján?
+
+**Alternatív megoldás:**
+Ha a review process fix hosszú időt vesz igénybe, átmenetileg:
+- Disable Architect review (Librarian only)
+- VAGY manual review (Conductor)
+
+---
+
+**Status:** 🚨 BLOCKED (2 DONE awaiting resolution)
+
+**Urgency:** HIGH — Backend workflow leállva review process miatt

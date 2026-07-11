@@ -1,0 +1,47 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Datahaven" [level=1] [ref=e5]
+      - navigation [ref=e6]:
+        - link "Dashboard" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - link "Kanban" [ref=e8] [cursor=pointer]:
+          - /url: /kanban.html
+        - link "Planning" [ref=e9] [cursor=pointer]:
+          - /url: /planning.html
+        - link "Projects" [ref=e10] [cursor=pointer]:
+          - /url: /projects.html
+    - generic [ref=e14]: Loading...
+  - main [ref=e15]:
+    - generic [ref=e17]:
+      - generic [ref=e18] [cursor=pointer]:
+        - generic [ref=e19]: 💡
+        - generic [ref=e20]: Ideas
+        - generic [ref=e21]: "6"
+      - generic [ref=e22]: →
+      - generic [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]: ✓
+        - generic [ref=e25]: Selected
+        - generic [ref=e26]: "0"
+      - generic [ref=e27]: →
+      - generic [ref=e28] [cursor=pointer]:
+        - generic [ref=e29]: ⚖️
+        - generic [ref=e30]: Debate
+        - generic [ref=e31]: "1"
+      - generic [ref=e32]: →
+      - generic [ref=e33] [cursor=pointer]:
+        - generic [ref=e34]: 📋
+        - generic [ref=e35]: Queue
+        - generic [ref=e36]: "0"
+    - generic [ref=e37]:
+      - button "Workflow" [ref=e38] [cursor=pointer]
+      - button "Ideas" [ref=e39] [cursor=pointer]
+      - button "Selected" [ref=e40] [cursor=pointer]
+      - button "Debate" [ref=e41] [cursor=pointer]
+      - button "Queue" [ref=e42] [cursor=pointer]
+      - button "Pipeline Logs" [ref=e43] [cursor=pointer]
+    - generic [ref=e45]:
+      - generic [ref=e46]:
+        - heading "Ideas (plan-scan)" [level=2] [ref=e47]
+        - button "Refresh" [ref=e48] [cursor=pointer]
+      - generic [ref=e50]: Loading ideas...

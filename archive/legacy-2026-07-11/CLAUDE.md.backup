@@ -1,0 +1,584 @@
+# CLAUDE.md — SpaceOS Root terminál (Sárkány)
+
+> A Root stratégiai döntéseket hoz, üzleti prioritásokat állít, és a Datahaven/Resonance
+> agent infrastruktúrát építi. **Kódot ír ha kell** (szkriptek, automatizáció).
+>
+> A napi feladatkiosztást és tervezési pipeline-t a **Conductor** végzi.
+> Root csak stratégiai szinten avatkozik be.
+
+---
+
+## SESSION INDÍTÁSI RUTIN
+
+**Minden session elején (vagy ha "Folytasd a munkát" üzenetet kapsz):**
+
+```bash
+# 0. Datahaven státusz regisztráció — jelezd hogy dolgozol
+curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "terminal": "root",
+    "status": "working",
+    "currentTask": "Session started - orchestrating terminals"
+  }'
+
+# 1. Folyamatok állapota
+ls docs/planning/queue/          # Hány terv vár?
+ls docs/planning/ideas/          # Hány ötlet van?
+
+# 2. Terminál outboxok (DONE/BLOCKED)
+grep -rl "status: UNREAD" terminals/*/outbox/ 2>/dev/null
+
+# 3. Conductor állapot
+tmux capture-pane -t spaceos-conductor -p 2>/dev/null | tail -10
+
+# 4. Pipeline log
+tail -10 logs/dispatcher/pipeline.log
+tail -5 logs/dispatcher/nightwatch.log
+```
+
+**Ha probléma van:**
+- Stuck session → `tmux send-keys -t <session> "Folytasd" Enter Enter`
+- Conductor nem dolgozik → újraindítás vagy nudge
+- Queue tele → Conductor-nak inbox küldés
+
+**Session lezáráskor:**
+```bash
+# Datahaven státusz regisztráció — jelezd hogy befejeztél
+curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+  -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+  -H "Content-Type: application/json" \
+  -d '{"terminal":"root","status":"idle"}'
+```
+
+---
+
+## PROJEKT VÍZIÓ — ÖSSZEFOGLALÓ
+
+> A SpaceOS a **magyar faipar digitális gerince** — egy iparspecifikus SaaS platform, amely az
+> ajtógyártókat, szekrénygyártókat, lapszabászokat, kereskedőket és beszerelőket egyetlen
+> összekapcsolt ökoszisztémába szervezi.
+
+### Miért épül?
+
+A faiparos KKV-k 90%+ ma Viber + Excel + telefon alapon koordinál. Nincs rájuk szabott,
+megfizethető digitális megoldás. A SpaceOS ezt az űrt tölti be.
+
+### Első éles ügyfél
+
+**Doorstar Kft.** (ajtógyártó) — Soft Launch: **2026 Q2**
+
+### Rendszer felépítése (4 réteg)
+
+```
+L4  Design Portal / JoineryTech   React 18 — brand-specifikus UI-k
+L3  Orchestrator (BFF)            Node.js 22 — LLM Tool Calling, API gateway
+L2  Modules (Drivers)             .NET 8 — iparági üzleti logika (Joinery, MEP, Pricing)
+L1  Kernel                        .NET 8 + PostgreSQL — auth, audit, FSM, escrow
+```
+
+### 5 Golden Rule (minden döntésnél kötelező)
+
+| # | Szabály |
+|---|---|
+| 1 | **Data → Rules → Geometry** — frontend rajzol, C# Driver számol, LLM csak paramétereket ad |
+| 2 | **Modular Monolith** — Kernel `IParametricProduct` interfészen dolgozik, nem tudja mi az asztalos |
+| 3 | **Immutability & Trust** — nincs UPDATE CAD adatokon, minden SHA-256 hashed audit eventtel |
+| 4 | **Need-to-Know RBAC** — megrendelő nem látja a gyártó belső anyaglistáját |
+| 5 | **Walking Skeleton First** — E2E pipeline előbb, matematika utóbb mélyül |
+
+### Célpiac és roadmap
+
+- **HU célpiac:** 1300–2500 cég (ajtó, szekrény, lapszabász, ablak, kereskedő)
+- **2026 Q2:** Doorstar Soft Launch · **2026 Q3:** Szabászat modul + 2. ügyfél
+- **2027:** 5+ éles ügyfél, DACH belépés
+
+> Teljes vízió: `docs/vision/SpaceOS_Vision_Results_20260413.md` | Technikai master: `docs/vision/SpaceOS_Vision_Master.md`
+
+---
+
+## TERMINÁL ARCHITEKTÚRA (2026-06-21 pivot)
+
+> **7 szerepkör-alapú terminál** a korábbi 19+ modul-alapú helyett.
+> Minden terminál: `/opt/spaceos/terminals/<terminál>/`
+
+```
+PRIORITY (mindig fut)
+  └── ROOT         /opt/spaceos/                      ← stratégiai döntések, agent infra
+
+KOORDINÁTOR (wake-on-inbox — 2026-06-22 pivot)
+  └── CONDUCTOR    /opt/spaceos/terminals/conductor/  ← feladatkiosztás, pipeline koordináció
+
+FEJLESZTŐ TERMINÁLOK (wake-on-inbox)
+  ├── BACKEND      /opt/spaceos/terminals/backend/    ← .NET + Node.js backend (Kernel, Orch, Joinery, stb.)
+  ├── FRONTEND     /opt/spaceos/terminals/frontend/   ← React/TS portál fejlesztés
+  └── DESIGNER     /opt/spaceos/terminals/designer/   ← UI/UX, Figma integráció
+
+SUPPORT TERMINÁLOK (feladattal indulnak)
+  ├── ARCHITECT    /opt/spaceos/terminals/architect/  ← konzultatív arch partner
+  ├── LIBRARIAN    /opt/spaceos/terminals/librarian/  ← tudásbázis gondozó
+  └── EXPLORER     /opt/spaceos/terminals/explorer/   ← codebase kutatás, onboarding
+```
+
+### Mailbox struktúra
+
+Minden terminál saját mailbox-szal rendelkezik:
+```
+terminals/<terminál>/
+  ├── CLAUDE.md    ← terminál identity és szabályok
+  ├── inbox/       ← bejövő feladatok (UNREAD → READ)
+  ├── outbox/      ← DONE/BLOCKED üzenetek
+  └── archive/     ← lezárt üzenetek
+```
+
+### Legacy kompatibilitás
+
+A régi 19+ terminál aliasként működik:
+- `kernel`, `orch`, `joinery`, `cutting`, `identity`, `inventory`, `procurement`, `sales`, `abstractions`, `infra`, `e2e` → **backend**
+- `fe`, `fe2`, `portal` → **frontend**
+- `nexus` → **backend** (agent infra fejlesztés)
+
+Teljes workflow: `/opt/spaceos/docs/WORKFLOW.md`
+
+---
+
+## DATAHAVEN DASHBOARD — KÖZPONTI MONITORING
+
+> **URL:** https://datahaven.joinerytech.hu
+> **Auth Token:** `dev-token-spaceos-dashboard-2026`
+> **Státusz:** LIVE (2026-06-20 Phase 6+6.5 complete)
+
+A Datahaven Dashboard a **SpaceOS agent infrastruktúra központi monitoring és koordinációs felülete**.
+
+### 4 fő oldal
+
+| Oldal | URL | Mit látsz |
+|---|---|---|
+| **Dashboard** | `/` | Minden terminál állapota (WORKING/IDLE), inbox/outbox metrikák, aktív sessionök |
+| **Kanban** | `/kanban` | Dual-track board: Discovery (Planning pipeline) + Delivery (7 terminal swimlane) |
+| **Planning** | `/planning` | 5-stage planning pipeline láthatóvá téve: Idea → Selected → Debate → Consensus → Queue |
+| **Projects** | `/projects` | Gantt timeline + projekt lista (8 hónapos ablak: -2 hónap / +6 hónap) |
+
+### Root használati minták
+
+**1. Session indításkor — gyors áttekintés:**
+- Dashboard oldal: melyik terminál dolgozik most? (WORKING státusz)
+- Kanban oldal: Discovery track - hány terv van queue-ban? Delivery track - melyik terminálnak van UNREAD inbox?
+- Planning oldal: hány idea/selected/debate/consensus/queue item van?
+
+**2. Koordináció közben:**
+- Frissítsd a saját státuszt ha konkrét fázisban vagy:
+  ```bash
+  curl -X POST https://datahaven.joinerytech.hu/api/terminal/status \
+    -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+    -H "Content-Type: application/json" \
+    -d '{"terminal":"root","status":"working","currentTask":"Processing Kernel DONE outbox"}'
+  ```
+- Dashboard automatikusan frissül (SSE real-time minden 2 másodpercben)
+
+**3. Terminálok státusz ellenőrzése:**
+- API-n keresztül lekérdezheted az összes terminál állapotát:
+  ```bash
+  curl -H "Authorization: Bearer dev-token-spaceos-dashboard-2026" \
+    https://datahaven.joinerytech.hu/api/dashboard | jq '.terminals[] | select(.sessionActive == true)'
+  ```
+
+### 7-terminál architektúra (2026-06-21 pivot)
+
+A terminál struktúra egyszerűsítve lett 19+ terminálról 7-re:
+- **conductor** — feladatkiosztás, pipeline koordináció
+- **architect** — konzultatív architekturális partner
+- **librarian** — tudásbázis gondozó
+- **explorer** — codebase kutatás, onboarding
+- **backend** — minden .NET és Node.js backend fejlesztés
+- **frontend** — React/TS portál fejlesztés
+- **designer** — UI/UX, Figma integráció
+
+**Knowledge Service:** A `spaceos-nexus/knowledge-service` automatikusan kezeli az új struktúrát:
+- Inbox watcher figyeli a `terminals/*/inbox/` mappákat
+- Session starter automatikusan indítja a terminálokat UNREAD üzenetkor
+- Dashboard API 7 terminált mutat
+
+---
+
+## AUTOMATIKUS PIPELINE — CONDUCTOR VEZÉRLI
+
+> ⚙️ **A Conductor végzi a napi koordinációt.**
+> Root csak stratégiai szinten avatkozik be.
+
+```
+nightwatch.sh (*/2 cron)
+  ├── watch-priority.sh → Root + Conductor MINDIG fut
+  ├── watch-done.sh → DONE → reviewer.sh (2× Haiku) → pipeline.sh
+  ├── watch-stuck.sh → Enter nudge
+  └── watch-inbox.sh → terminálok CSAK feladattal indulnak
+
+plan-scan.sh (*/30 cron) — 30 percenként új tervezési ciklus
+  → plan-select.sh → plan-debate.sh (2× Sonnet A/B + konsenzus)
+      → docs/planning/queue/ (2-3 pufferelt konsenzus)
+          → Conductor inbox értesítés
+              → Conductor feldolgoz (spaceos-arch-planner v1→v4)
+                  → termináloknak inbox kiadás
+```
+
+**Root beavatkozási pontok:**
+- **Stratégiai BLOCKED** — amit Conductor nem tud megoldani (üzleti döntés kell)
+- **Új epic/modul indítás** — domain-focus.md módosítás
+- **Roadmap prioritás** — melyik feature, melyik ügyfél
+- **Datahaven/Resonance építés** — agent infrastruktúra fejlesztés
+
+---
+
+## ROOT SESSION — STRATÉGIAI FÓKUSZ
+
+### Session-start ritual
+```bash
+# 1. Conductor-tól eszkalált üzenetek (root inbox még a régi helyen)
+grep -rl "status: UNREAD" docs/mailbox/root/inbox/ 2>/dev/null
+
+# 2. Planning queue és pipeline státusz
+ls docs/planning/queue/
+tail -10 logs/dispatcher/pipeline.log
+
+# 3. Datahaven/Resonance állapot
+cat docs/agent-infrastructure/ROADMAP.md
+
+# 4. Stratégiai kérdések (ha vannak)
+grep -rl "type: question" terminals/conductor/outbox/ 2>/dev/null
+```
+
+### Munkamegosztás: Root vs Conductor
+
+| Feladat | Ki végzi |
+|---|---|
+| Tervezési pipeline (plan-scan → debate → queue) | **Automatikus szkriptek** |
+| Queue feldolgozás, v1→v4 pipeline | **Conductor** |
+| Termináloknak feladat kiadás | **Conductor** |
+| DONE feldolgozás | **Automatikus** (reviewer + pipeline.sh) |
+| BLOCKED/QUESTION (infra/tech) | **Conductor** |
+| BLOCKED/QUESTION (üzleti döntés) | **Root** |
+| Új epic/modul indítás | **Root** |
+| Domain fókusz változtatás | **Root** |
+| Datahaven/Resonance építés | **Root** |
+
+### Root beavatkozási mátrix
+
+| Üzenet | Teendő |
+|---|---|
+| `type: done` | **Conductor kezeli** — Root nem avatkozik be |
+| `type: blocked` (tech) | **Conductor kezeli** → INFRA task |
+| `type: blocked` (üzleti) | **Root dönt** → prioritás vagy válasz |
+| `type: escalation` (Conductor-tól) | **Root dönt** → Conductor-nak válasz |
+| `type: question` (stratégiai) | **Root válaszol** |
+| Slice 2 tervezés indítás | **Root dönt** → domain-focus.md módosítás |
+
+---
+
+## INBOX ÜZENET ÍRÁS
+
+**Fájlnév:** `YYYY-MM-DD_NNN_[slug].md`
+**Mappa:** `terminals/<terminál>/inbox/`
+**Frontmatter kötelező:**
+
+```yaml
+---
+id: MSG-<TERMINAL>-<NNN>
+from: root
+to: <terminál>
+type: task
+priority: critical|high|medium|low
+status: UNREAD
+model: sonnet|opus|haiku
+ref: <kapcsolódó MSG ID>
+created: YYYY-MM-DD
+---
+```
+
+**`model:` mező szabályai:**
+- `haiku` — kis feladat, keresés, összefoglaló, rövid válasz
+- `sonnet` — kód, napi fejlesztési feladat, elemzés *(alapértelmezett)*
+- `opus` — architektúra, komplex tervezés, cross-modul döntés
+
+A nightwatch.sh automatikusan olvassa a frontmatterből és a megfelelő modellel indítja a session-t.
+
+**NNN** = adott terminál következő sorszáma:
+```bash
+ls terminals/<terminál>/inbox/ | sort | tail -1
+```
+
+---
+
+## ARCHITECT TERMINÁL — MIKOR HÍVD
+
+Az Architect konzultatív partner. Root **opcionálisan** hívhatja mielőtt komplex inbox üzenetet ír:
+
+```bash
+# Architect inbox: következő sorszám lekérdezése
+ls terminals/architect/inbox/ | sort | tail -1
+```
+
+**Mikor érdemes Architectet bevonni:**
+- Új cross-module interfész definiálásakor (pl. event bus, provider contract)
+- Ha Root nem biztos a meglévő kódbázis mintájában
+- Komplex domain döntésnél (aggregate root vs. value object, FSM tervezés)
+- >5 napos implementációs feladat spec-je előtt
+
+**Mikor NEM szükséges:**
+- Egyszerű bugfix, kis feature
+- A spec már kész és egyértelmű
+- Gyors koordinációs döntések
+
+**Architect mailbox:** `terminals/architect/inbox/` és `.../outbox/`
+
+---
+
+## CROSS-PROJECT SORREND
+
+Ha egy epic több projektet érint:
+
+```
+Kernel → Orchestrator → Portal    (backend → middleware → frontend)
+Kernel → Abstractions             (core domain first)
+Infra  párhuzamosan fut a kód tracktől
+```
+
+Következő projektet csak akkor kiosztani, ha az előző DONE.
+
+---
+
+## GRAPH-BASED WORKFLOW (ADR-041)
+
+> **Új feature:** Epic és task dependency gráf vizualizáció és menedzsment.
+> A Conductor használja a feladat prioritizáláshoz.
+
+### EPICS.yaml — Epic dependency gráf
+
+**Lokáció:** `/opt/spaceos/docs/projects/EPICS.yaml`
+
+```yaml
+epics:
+  - id: EPIC-PORTAL-V2
+    name: "Customer Portal v2"
+    depends_on: ["EPIC-IDENTITY-V1", "EPIC-ORCH-V2"]  # blokkolt, amíg ezek nem done
+    parallel_with: ["EPIC-CUTTING-Q3"]                # párhuzamosan futhat
+    status: active    # pending | active | done | blocked
+    target_date: "2026-07-31"
+```
+
+### Graph API endpointok
+
+```bash
+# Epic gráf lekérdezés
+curl -s http://localhost:3456/api/graph/epics
+
+# Critical path (leghosszabb dependency lánc)
+curl -s http://localhost:3456/api/graph/critical-path/epic/EPICS
+
+# Mermaid diagram (vizualizáció Datahaven-en)
+curl -s http://localhost:3456/api/graph/mermaid/epic/EPICS
+
+# Validáció (ciklus detektálás)
+curl -X POST http://localhost:3456/api/graph/validate -d '{"type": "epic"}'
+```
+
+### TypeScript típusok
+
+`spaceos-nexus/knowledge-service/src/graph/types.ts`:
+
+```typescript
+interface GraphNode {
+  id: string;
+  type: 'epic' | 'task' | 'workflow_step';
+  status: 'pending' | 'active' | 'done' | 'blocked';
+  depends_on: string[];
+  triggers: string[];
+  parallel_with?: string[];
+}
+```
+
+### Root használati minták
+
+1. **Új epic hozzáadása:** Szerkeszd az `EPICS.yaml`-t, add meg a `depends_on` listát
+2. **Roadmap áttekintés:** `curl -s localhost:3456/api/graph/mermaid/epic/EPICS`
+3. **Blokkolók keresése:** `curl -s localhost:3456/api/graph/critical-path/epic/EPICS`
+
+---
+
+## FONTOS SZABÁLYOK
+
+1. **Root soha nem ír kódot** — tervez, koordinál, ellenőriz
+2. **DONE-t Root nem dolgoz fel** — reviewer.sh + pipeline.sh automatikus
+3. **BLOCKED üzenet 24 órán belül választ kap** — ne hagyd függőben
+4. **Codebase_Status.md mindig naprakész** — pipeline.sh frissíti, Root is frissítheti
+5. **model: mező kötelező** minden inbox üzenetben — nightwatch olvassa
+
+### Automatizált lánc komponensei
+| Szkript | Mikor fut | Mit csinál |
+|---|---|---|
+| `scripts/nightwatch.sh` | cron */2 perc | DONE detektál → reviewer indít; stuck session → Enter; UNREAD nudge |
+| `scripts/reviewer.sh` | nightwatch hívja | 2× párhuzamos Haiku review → APPROVE/REJECT döntés |
+| `scripts/pipeline.sh` | reviewer hívja (dual APPROVE) | outbox READ, README+Status frissít, next inbox ír, Telegram értesít |
+
+---
+
+## FELADAT STÁTUSZ (FSN — docs/tasks/)
+
+A `docs/tasks/` mappa a root feladatnézete. Minden tervdokumentum és kiadott feladat itt van nyilvántartva státusz szerint.
+
+```
+docs/tasks/
+  README.md       ← dashboard (mindig naprakész)
+  new/            ← tervdok kész, terminálnak még nem kiadva
+  active/         ← inbox elment, terminál vagy operátor dolgozik rajta
+  archive/        ← DONE + elfogadott, lezárt
+```
+
+### FSN munkafolyamat
+
+| Esemény | Teendő |
+|---|---|
+| Új tervdokumentum készül (`docs/`) | Task fájl létrehozása `new/`-ban |
+| Root kiadja terminálnak (inbox üzenet) | Task fájl mozgatása `new/` → `active/` |
+| Terminál DONE outbox-a elfogadva | Task fájl mozgatása `active/` → `archive/` |
+| Visszadobás (hiányos DONE) | Task fájl marad `active/`-ban, megjegyzés hozzáadva |
+
+### Fájlnév konvenció
+```
+<EPIC-ID>_<slug>.md
+pl: JOINERY-V2_pdf-gyartasilap.md
+    INFRA-KC01_keycloak-vps-setup.md
+```
+
+### Task fájl frontmatter
+```yaml
+---
+id: EPIC-ID
+title: Feladat neve
+status: new | active | archive
+priority: high | medium | low
+assignee: terminál neve vagy "VPS Operator"
+epic: epic-slug
+blocked_by: mi blokkolja (ha van)
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+docs:
+  - docs/relevant-file.md
+---
+```
+
+### Session elején: FSN ellenőrzés
+```bash
+ls docs/tasks/new/
+ls docs/tasks/active/
+```
+
+---
+
+## SESSION MANAGEMENT MCP API
+
+**⚠️ IRÁNYELV: Terminálok közötti kommunikáció mindig MCP API-n keresztül!**
+
+Az MCP API előnyei:
+- **Audit trail** — minden művelet naplózva (`/opt/spaceos/logs/sessions/`)
+- **Jogosultság ellenőrzés** — ki kit irányíthat
+- **Egységesség** — ugyanaz a logika minden terminálnál
+
+### Jogosultság mátrix
+
+| Kezdeményező | Irányíthat |
+|---|---|
+| **root** | MINDENKIT (8 terminál) |
+| **conductor** | architect, librarian, explorer, backend, frontend, designer |
+| **többi** | csak saját magát |
+
+### API endpointok (localhost:3456)
+
+```bash
+# Session indítás prompttal
+POST /api/session/start
+  { "terminal": "backend", "model": "sonnet", "prompt": "...", "fromTerminal": "root" }
+
+# Prompt injection futó session-be
+POST /api/session/inject
+  { "terminal": "backend", "prompt": "...", "fromTerminal": "root" }
+
+# Wake-up (start + inbox olvasás)
+POST /api/session/wake
+  { "terminal": "backend", "fromTerminal": "root" }
+
+# Session státusz
+GET /api/session/:terminal
+GET /api/sessions/all
+
+# Audit logok
+GET /api/sessions/logs?days=1
+```
+
+### Példa használat:
+```bash
+# Root indít backend session-t
+curl -X POST http://localhost:3456/api/session/start \
+  -H "Content-Type: application/json" \
+  -d '{"terminal":"backend","model":"sonnet","prompt":"Dolgozd fel az inbox üzeneteket","fromTerminal":"root"}'
+
+# Összes session státusz
+curl -s http://localhost:3456/api/sessions/all
+```
+
+---
+
+## KÖZÖS ERŐFORRÁSOK
+
+| Fájl | Tartalom |
+|---|---|
+| `docs/Codebase_Status.md` | Minden modul státusza, teszt számok, sprint roadmap |
+| `docs/tasks/README.md` | Feladatok dashboard (new / active / archive) |
+| `docs/WORKFLOW.md` | Teljes munka módszertan, pipeline definíciók |
+| `terminals/` | 7 terminál mailbox struktúrája (inbox/outbox/archive) |
+| `infra/CLAUDE.md` | Infra terminál szabályai |
+| `docs/vision/SpaceOS_Vision_Results_20260413.md` | **Projekt vízió** — üzleti kontextus, Doorstar first customer, célpiac, roadmap |
+| `docs/vision/SpaceOS_Vision_Master.md` | **Technikai master overview** — 4 réteg, 5 Golden Rule, domain modell, döntési fa |
+| `.claude/skills/spaceos-root/` | **`/spaceos-root` skill** — root session ritual: outbox olvasás, döntési mátrix, inbox írás, task lifecycle |
+| `.claude/skills/spaceos-terminal/` | **`/spaceos-terminal` skill** — terminál session ritual: inbox olvasás, build/test gate, DONE/BLOCKED outbox |
+| `.claude/skills/spaceos-librarian/` | **`/spaceos-librarian` skill** — tudásbázis gondozó ritual: feldolgozási napló, knowledge doc írás |
+
+---
+
+## TUDÁSBÁZIS (`docs/knowledge/`)
+
+A Librarian terminál által karbantartott, szintetizált tudás. **Minden terminál használhatja hideg indításhoz és kontextus építéshez.**
+
+```
+docs/knowledge/
+  INDEX.md                              ← ELSŐ olvasnivaló: minden doc összefoglalója
+  security/
+    SECURITY_PATTERNS.md                ← JWT/RBAC, RLS, SSRF, CVE minták
+    SECURITY_DECISIONS.md               ← Sprint 6 review döntései indoklással
+  deployment/
+    DEPLOYMENT_RUNBOOK.md               ← VPS deploy lépésről lépésre, env fájlok, portok
+    KNOWN_GOTCHAS.md                    ← 15 csapda amit átéltünk (MapInboundClaims, GUC, stb.)
+  patterns/
+    DEV_DIFFICULTIES.md                 ← Visszatérő problémák és megoldásaik
+    DATABASE_PATTERNS.md                ← RLS SQL, DbConnectionInterceptor, migration, Testcontainers
+    TESTING_PATTERNS.md                 ← E2E struktúra, probe-and-skip, 401/200 minta
+  architecture/
+    ADR_CATALOGUE.md                    ← Architekturális döntések gyűjteménye
+    API_CONTRACT_CATALOGUE.md           ← Minden endpoint (7 service)
+    MODULE_BOUNDARIES.md                ← Provider interfészek, Contracts NuGet, DB szeparáció
+  context/
+    KERNEL_CONTEXT.md                   ← Kernel terminál kontextusa
+    ORCH_CONTEXT.md                     ← Orchestrator terminál kontextusa
+    PORTAL_CONTEXT.md                   ← Portal terminál kontextusa
+    JOINERY_CONTEXT.md                  ← Joinery terminál kontextusa
+    CUTTING_CONTEXT.md                  ← Cutting terminál kontextusa
+    INFRA_CONTEXT.md                    ← Infra terminál kontextusa
+    E2E_CONTEXT.md                      ← E2E terminál kontextusa
+```
+
+**Használat termináloknak:** Session indításakor olvasd el a saját `context/<TERMINÁL>_CONTEXT.md` fájlodat + az `INDEX.md`-t.
+
+**Feldolgozási napló:** `terminals/librarian/PROCESSED_LOG.md` — ami itt szerepel, az már elemezve van.
+- Session Context  **Terminal:** backend **Task:** MSG-BACKEND-454-REVIEW-REJECT **Inbox Message:** xus  ## 🔥 Hot Memories (Recent, High Priority)  📝 Session stopped for memory save - cold mode transition    _Context: Task: unknown, End reason: done_  ## 🌍 # Session Context  **Terminal:** backend **Task:** MSG-BACKEND-454-REVIEW-REJECTShared Memories (Cross-Terminal)  🔧 # SpaceOS Workflow Patterns — Cross-Termina **Inbox Message:** MSG-BACKEND-454-REVIEW-REJECT **Active Domains:** shared, nel Knowledge (2026-07-07)  **Source:** Explorer comprehensive task research (188 xus  ## 🔥 Hot Memories (Recent, High Priority)  📝 Session stopped for memory stasks + 741 outbox) **Synthesized:** Librarian (2026-07-07) **Impact:** All termave - cold mode transition    _Context: Task: unknown, End reason: done_  ## 🌍 inals  ## TOP 3 Proven Patterns  ### 1. Week-Based Phase Dispatch **Owner:** ConShared Memories (Cross-Terminal)  🔧 # SpaceOS Workflow Patterns — Cross-Terminaductor **Reusability:** 52× weeks/year **Pattern:** Sequential priority dispatchl Knowledge (2026-07-07)  **Source:** Explorer comprehensive task research (188  (Phase N DONE → Phase N+1 auto-dispatch) **Skill:** `.claude/skills/week-based-tasks + 741 outbox) **Synthesized:** Librarian (2026-07-07) **Impact:** All termphase-dispatch/` **Script:** `scripts/dispatch/auto-phase-transition.sh`  ### 2.inals  ## TOP 3 Proven Patterns  ### 1. Week-Based Phase Dispatch **Owner:** Con Domain Model Workshop (DDD) **Owner:** Architect + Backend **Reusability:** 135ductor **Reusability:** 52× weeks/year **Pattern:** Sequential priority dispatch (Phase N DONE → Phase N+1 auto-dispatch) **Skill:** `.claude/skills/week-based- domains (27 worlds × 5 avg) **Pattern:** FSM + Events + Repository + Tests (20-phase-dispatch/` **Script:** `scripts/dispatch/auto-phase-transition.sh`  ### 2.32h per domain) **Skill:** `.claude/skills/joinerytech-domain-model-workshop/`   Domain Model Workshop (DDD) **Owner:** Architect + Backend **Reusability:** 135### 3. 3-Phase Archival Workflow **Owner:** Librarian **Reusability:** Quarterly domains (27 worlds × 5 avg) **Pattern:** FSM + Events + Repository + Tests (20- maintenance (12×/year) **Pattern:** Risk-gradated (MINIMAL → LOW → MEDIUM escal32h per domain) **Skill:** `.claude/skills/joinerytech-domain-model-workshop/`  ation) **Skill:** `.claude/skills/archival-planning-workflow/`  ## Automation Sc### 3. 3-Phase Archival Workflow **Owner:** Librarian **Reusability:** Quarterlyripts  - **Mailbox Health:** `scripts/mailbox/health-check.sh` (daily cron) - ** maintenance (12×/year) **Pattern:** Risk-gradated (MINIMAL → LOW → MEDIUM escalPhase Dispatch:** `scripts/dispatch/auto-phase-transition.sh` (30 min cron) - **ation) **Skill:** `.claude/skills/archival-planning-workflow/`  ## Automation ScBlocker Alert:** `scripts/monitoring/blocker-detector.sh` (2h cron)  ## Full Docripts  - **Mailbox Health:** `scripts/mailbox/health-check.sh` (daily cron) - **umentation  - **Patterns:** `docs/knowledge/patterns/SPACEOS_WORKFLOW_PATTERNS_2Phase Dispatch:** `scripts/dispatch/auto-phase-transition.sh` (30 min cron) - **026.md` - **Skills:** `.claude/skills/` (7 skills created) - **Scripts:** `scripBlocker Alert:** `scripts/monitoring/blocker-detector.sh` (2h cron)  ## Full Docts/` (5 automation candidates)   🔧 ## Memory Cleanup Best Practices (2026-07-08umentation  - **Patterns:** `docs/knowledge/patterns/SPACEOS_WORKFLOW_PATTERNS_2)  ### Monitor Memory Compression Pattern **Source:** MSG-LIBRARIAN-021 emergenc026.md` - **Skills:** `.claude/skills/` (7 skills created) - **Scripts:** `scripy cleanup task  **Problem:** Repetitive cycle logs (031-045) accumulated after its/` (5 automation candidates)   🔧 ## Memory Cleanup Best Practices (2026-07-08nitial compression.  **Solution:** 1. Identify the "compression marker" (e.g., ")  ### Monitor Memory Compression Pattern **Source:** MSG-LIBRARIAN-021 emergenc_This memory is compressed from...") 2. Keep content BEFORE the marker 3. Removey cleanup task  **Problem:** Repetitive cycle logs (031-045) accumulated after i ALL cycle logs AFTER the marker 4. Update timestamp and add compression note  *nitial compression.  **Solution:** 1. Identify the "compression marker" (e.g., "_This memory is compressed from...") 2. Keep content BEFORE the marker 3. Remove*Result:** 572 lines → 108 lines (81% reduction)  ### Memory Target Sizes | Term ALL cycle logs AFTER the marker 4. Update timestamp and add compression note  *inal | Target | Actual | |----------|--------|--------| | Monitor | <20KB | 2KB *Result:** 572 lines → 108 lines (81% reduction)  ### Memory Target Sizes | Term✅ | | Conductor | <30KB | 6KB ✅ | | Root | <30KB | 5KB ✅ | | Architect | <25KB |inal | Target | Actual | |----------|--------|--------| | Monitor | <20KB | 2KB  1KB ✅ | | Others | <50KB | <10KB ✅ |  ### Key Insight Memory files should NOT c✅ | | Conductor | <30KB | 6KB ✅ | | Root | <30KB | 5KB ✅ | | Architect | <25KB |ontain repetitive status logs. These belong in: - Outbox messages (temporal, arc 1KB ✅ | | Others | <50KB | <10KB ✅ |  ### Key Insight Memory files should NOT chived) - Session logs (ephemeral) - NOT memory files (permanent context)    --- ontain repetitive status logs. These belong in: - Outbox messages (temporal, arc## DOMAIN KNOWLEDGE (Auto-loaded)  Loaded domains: shared, nexus Approximate tokhived) - Session logs (ephemeral) - NOT memory files (permanent context)    --- ens: 1707  ### SHARED Memory  # Shared Domain Memory  > Minden task-hoz betöltőd## DOMAIN KNOWLEDGE (Auto-loaded)  Loaded domains: shared, nexus Approximate tokik - cross-domain patterns és általános szabályok.  ## SpaceOS Golden Rules  1. ens: 1707  ### SHARED Memory  # Shared Domain Memory  > Minden task-hoz betöltőd**Data → Rules → Geometry** — Frontend rajzol, C# Driver számol, LLM csak paraméik - cross-domain patterns és általános szabályok.  ## SpaceOS Golden Rules  1. tereket ad 2. **Modular Monolith** — Kernel `IParametricProduct` interfészen dol**Data → Rules → Geometry** — Frontend rajzol, C# Driver számol, LLM csak paramégozik 3. **Immutability & Trust** — Nincs UPDATE CAD adatokon, SHA-256 audit evetereket ad 2. **Modular Monolith** — Kernel `IParametricProduct` interfészen dolnt 4. **Need-to-Know RBAC** — Megrendelő nem látja a gyártó anyaglistáját 5. **Wgozik 3. **Immutability & Trust** — Nincs UPDATE CAD adatokon, SHA-256 audit event 4. **Need-to-Know RBAC** — Megrendelő nem látja a gyártó anyaglistáját 5. **Walking Skeleton First** — E2E pipeline előbb, matematika utóbb  ## Clean Architealking Skeleton First** — E2E pipeline előbb, matematika utóbb  ## Clean Architecture  ``` ┌─────────────────────────────────────────┐ │  API Layer (Controllerscture  ``` ┌─────────────────────────────────────────┐ │  API Layer (Controllers, Endpoints)     │ ├─────────────────────────────────────────┤ │  Application La, Endpoints)     │ ├─────────────────────────────────────────┤ │  Application Layer (Commands, Queries)  │ ├─────────────────────────────────────────┤ │  Domainyer (Commands, Queries)  │ ├─────────────────────────────────────────┤ │  Domain Layer (Entities, Value Objects) │ ├─────────────────────────────────────────┤ │ Layer (Entities, Value Objects) │ ├─────────────────────────────────────────┤ │  Infrastructure (DB, External Services) │ └────────────────────────────────────  Infrastructure (DB, External Services) │ └─────────────────────────────────────────┘  Dependency: Outer → Inner (never reverse) ```  ## CQRS Pattern  ```cshar─────┘  Dependency: Outer → Inner (never reverse) ```  ## CQRS Pattern  ```csharp // Command (write) public record CreateOrderCommand(Guid CustomerId, List<Ordep // Command (write) public record CreateOrderCommand(Guid CustomerId, List<OrderItem> Items) : IRequest<Guid>;  // Query (read) public record GetOrderQuery(GuirItem> Items) : IRequest<Guid>;  // Query (read) public record GetOrderQuery(Guid OrderId) : IRequest<OrderDto>;  // Handler public class CreateOrderCommandHandd OrderId) : IRequest<OrderDto>;  // Handler public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Guid> {     public async Task<Guid> Haler : IRequestHandler<CreateOrderCommand, Guid> {     public async Task<Guid> Handle(CreateOrderCommand request, CancellationToken ct)     {         var order =ndle(CreateOrderCommand request, CancellationToken ct)     {         var order = Order.Create(request.CustomerId, request.Items);         await _repository.AddA Order.Create(request.CustomerId, request.Items);         await _repository.AddAsync(order, ct);         return order.Id;     } } ```  ## Testing Patterns  ```csync(order, ct);         return order.Id;     } } ```  ## Testing Patterns  ```csharp // Unit test - Handler [Fact] public async Task Handle_ValidCommand_Returnsharp // Unit test - Handler [Fact] public async Task Handle_ValidCommand_ReturnsOrderId() {     var handler = new CreateOrderCommandHandler(_mockRepo.Object); sOrderId() {     var handler = new CreateOrderCommandHandler(_mockRepo.Object);     var result = await handler.Handle(new CreateOrderCommand(...), CancellationT    var result = await handler.Handle(new CreateOrderCommand(...), CancellationToken.None);     result.Should().NotBeEmpty(); }  // Integration test - Endpoint oken.None);     result.Should().NotBeEmpty(); }  // Integration test - Endpoint [Fact] public async Task Post_ValidOrder_Returns201Created() {     var client = [Fact] public async Task Post_ValidOrder_Returns201Created() {     var client = _factory.CreateClient();     var response = await client.PostAsJsonAsync("/api/o_factory.CreateClient();     var response = await client.PostAsJsonAsync("/api/orders", new { ... });     response.StatusCode.Should().Be(HttpStatusCode.Createdrders", new { ... });     response.StatusCode.Should().Be(HttpStatusCode.Created); } ```  ## Database Patterns  ```csharp // EF Core configuration modelBuilder.); } ```  ## Database Patterns  ```csharp // EF Core configuration modelBuilder.Entity<Order>(e => {     e.ToTable("orders", "spaceos_kernel");     e.HasKey(o =Entity<Order>(e => {     e.ToTable("orders", "spaceos_kernel");     e.HasKey(o => o.Id);     e.Property(o => o.Id).ValueGeneratedNever();     e.HasIndex(o => o.> o.Id);     e.Property(o => o.Id).ValueGeneratedNever();     e.HasIndex(o => o.TenantId); });  // RLS policy CREATE POLICY tenant_isolation ON orders     USING (tenant_id = current_setting('app.tenant_id')::uuid); ```  ## Build & Test CommTenantId); });  // RLS policy CREATE POLICY tenant_isolation ON orders     USINGands  ```bash # Build dotnet build  # Test all dotnet test  # Test specific dotn (tenant_id = current_setting('app.tenant_id')::uuid); ```  ## Build & Test Commet test --filter "FullyQualifiedName~OrderTests"  # Watch mode dotnet watch testands  ```bash # Build dotnet build  # Test all dotnet test  # Test specific dotn ```  ## Error Handling  ```csharp // Domain exception public class OrderNotFounet test --filter "FullyQualifiedName~OrderTests"  # Watch mode dotnet watch testdException : DomainException {     public OrderNotFoundException(Guid id)        ```  ## Error Handling  ```csharp // Domain exception public class OrderNotFoun  : base($"Order {id} not found") { } }  // Global handler app.UseExceptionHandldException : DomainException {     public OrderNotFoundException(Guid id)       er(error => error.Run(async context => {     var exception = context.Features.Ge  : base($"Order {id} not found") { } }  // Global handler app.UseExceptionHandlt<IExceptionHandlerFeature>()?.Error;     var response = exception switch     { er(error => error.Run(async context => {     var exception = context.Features.Ge        DomainException => new ProblemDetails { Status = 400 },         NotFoundt<IExceptionHandlerFeature>()?.Error;     var response = exception switch     { Exception => new ProblemDetails { Status = 404 },         _ => new ProblemDetail        DomainException => new ProblemDetails { Status = 400 },         NotFounds { Status = 500 }     };     await context.Response.WriteAsJsonAsync(response)Exception => new ProblemDetails { Status = 404 },         _ => new ProblemDetail })); ```  ## Conventions  - **File naming:** PascalCase for classes, camelCase s { Status = 500 }     };     await context.Response.WriteAsJsonAsync(response)for variables - **Folder structure:** Feature-based (not layer-based) - **API versioning:** `/api/v1/...` - **Date format:** ISO 8601 (`2026-06-29T12:00:00Z`) - })); ```  ## Conventions  - **File naming:** PascalCase for classes, camelCase  **ID format:** GUID v7 (time-sortable)   ### NEXUS Memory  # Nexus Domain Memorfor variables - **Folder structure:** Feature-based (not layer-based) - **API vey  > Automatikusan betöltődik ha a feladat Knowledge Service / Agent Infra modulrsioning:** `/api/v1/...` - **Date format:** ISO 8601 (`2026-06-29T12:00:00Z`) -hoz kapcsolódik.  ## Domain Scope  - **Modul:** `spaceos-nexus/knowledge-service **ID format:** GUID v7 (time-sortable)   ### NEXUS Memory  # Nexus Domain Memor` - **Felelősség:** MCP server, Terminal coordination, Mailbox, Memory managemeny  > Automatikusan betöltődik ha a feladat Knowledge Service / Agent Infra modult - **Tech stack:** Node.js 22, TypeScript, SQLite, Express  ## Aktív Patterns  hoz kapcsolódik.  ## Domain Scope  - **Modul:** `spaceos-nexus/knowledge-service### 1. Parallel Workers (ADR-049 Phase 3) ```typescript // Worker registry inter` - **Felelősség:** MCP server, Terminal coordination, Mailbox, Memory managemenface WorkerState {   id: string;           // work-001, work-002   terminal: strt - **Tech stack:** Node.js 22, TypeScript, SQLite, Express  ## Aktív Patterns  ing;     // backend, frontend   taskId: string;       // MSG-BACKEND-080   statu### 1. Parallel Workers (ADR-049 Phase 3) ```typescript // Worker registry inters: 'running' | 'done' | 'failed' | 'queued';   model: string;        // haiku, sface WorkerState {   id: string;           // work-001, work-002   terminal: stronnet, opus   startedAt: string;   depends_on: string[]; }  // Parallel spawninging;     // backend, frontend   taskId: string;       // MSG-BACKEND-080   statu const workers = await spawnParallelWorkers({   terminal: 'backend',   tasks: [ s: 'running' | 'done' | 'failed' | 'queued';   model: string;        // haiku, s    { id: 'api', prompt: 'Implement API endpoint' },     { id: 'tests', prompt: onnet, opus   startedAt: string;   depends_on: string[]; }  // Parallel spawning'Write unit tests', depends_on: ['api'] }   ] }); ```  ### 2. DAG Validation (Ka const workers = await spawnParallelWorkers({   terminal: 'backend',   tasks: [ hn's Algorithm) ```typescript function validateDependencies(tasks: WorkTask[]):     { id: 'api', prompt: 'Implement API endpoint' },     { id: 'tests', prompt: ValidationResult {   // Cycle detection   // Topological sort   // Parallel batch generation }  function getParallelBatches(tasks: WorkTask[]): string[][] {   /'Write unit tests', depends_on: ['api'] }   ] }); ```  ### 2. DAG Validation (Ka/ Returns tasks grouped by execution level   // Level 0: no dependencies (can ruhn's Algorithm) ```typescript function validateDependencies(tasks: WorkTask[]): n immediately)   // Level 1: depends on level 0   // etc. } ```  ### 3. Cost-BasValidationResult {   // Cycle detection   // Topological sort   // Parallel batced Limits ```typescript const MODEL_COSTS = {   'haiku': 0.002,   // $0.12/hour h generation }  function getParallelBatches(tasks: WorkTask[]): string[][] {   /  'sonnet': 0.02,   // $1.20/hour   'opus': 0.10      // $6.00/hour };  const LI/ Returns tasks grouped by execution level   // Level 0: no dependencies (can ruMITS = {   SOFT: 3,      // $3/hour - log warning   HARD: 5,      // $5/hour - Tn immediately)   // Level 1: depends on level 0   // etc. } ```  ### 3. Cost-Baselegram alert   CRITICAL: 10  // $10/hour - auto-kill + escalate }; ```  ### 4. ed Limits ```typescript const MODEL_COSTS = {   'haiku': 0.002,   // $0.12/hour Memory Store (SQLite WAL) ```typescript class MemoryStore {   // Sections: chat,  'sonnet': 0.02,   // $1.20/hour   'opus': 0.10      // $6.00/hour };  const LI work, shared   append(section: MemorySection, content: string, author: string):MITS = {   SOFT: 3,      // $3/hour - log warning   HARD: 5,      // $5/hour - T number;   read(section: MemorySection, limit: number): MemoryEntry[];   exportTelegram alert   CRITICAL: 10  // $10/hour - auto-kill + escalate }; ```  ### 4. oMarkdown(): string; } ```  ## MCP Tools  | Tool | Purpose | |------|---------| Memory Store (SQLite WAL) ```typescript class MemoryStore {   // Sections: chat,| `spawn_parallel_workers` | DAG-validated parallel worker spawning | | `spawn_r work, shared   append(section: MemorySection, content: string, author: string):aw_workers` | Best-of-N prototyping | | `get_worker_status` | Worker status + cost monitoring | | `create_task` | Task creation with acceptance criteria | | `co number;   read(section: MemorySection, limit: number): MemoryEntry[];   exportToMarkdown(): string; } ```  ## MCP Tools  | Tool | Purpose | |------|---------| mplete_task` | Task completion + memory save | | `telegram_reply` | Telegram message response |  ## Session Types  | Session | Model | Mode | Purpose | |---------| `spawn_parallel_workers` | DAG-validated parallel worker spawning | | `spawn_r|-------|------|---------| | `{terminal}-chat` | Haiku | Continuous | Telegram, aw_workers` | Best-of-N prototyping | | `get_worker_status` | Worker status + coquick responses | | `{terminal}-work` | Sonnet | Cold | Main inbox tasks | | `{tst monitoring | | `create_task` | Task creation with acceptance criteria | | `coerminal}-work-NNN` | Sonnet/Opus | Cold | Parallel workers | | `{terminal}-raw-Nmplete_task` | Task completion + memory save | | `telegram_reply` | Telegram mesNN` | Haiku | Cold | Quick prototypes |  ## Legutóbbi Tanulságok  - **SQLite WALsage response |  ## Session Types  | Session | Model | Mode | Purpose | |--------- mode** concurrent read/write support - **tmux session naming** fontos az egyedi|-------|------|---------| | `{terminal}-chat` | Haiku | Continuous | Telegram, ség - **MCP tool validation** inputSchema mindig kell - **Heartbeat** stalled woquick responses | | `{terminal}-work` | Sonnet | Cold | Main inbox tasks | | `{trker detection  ## Kapcsolódó Fájlok  - `src/sessionStarter.ts` - Session manageerminal}-work-NNN` | Sonnet/Opus | Cold | Parallel workers | | `{terminal}-raw-Nment - `src/mcp.ts` - MCP tool definitions - `src/pipeline/workerRegistry.ts` - NN` | Haiku | Cold | Quick prototypes |  ## Legutóbbi Tanulságok  - **SQLite WALWorker tracking - `src/pipeline/dagValidator.ts` - DAG validation - `src/pipelin mode** concurrent read/write support - **tmux session naming** fontos az egyedie/costLimiter.ts` - Cost controls - `src/memoryStore.ts` - SQLite memory   --- ség - **MCP tool validation** inputSchema mindig kell - **Heartbeat** stalled worker detection  ## Kapcsolódó Fájlok  - `src/sessionStarter.ts` - Session management - `src/mcp.ts` - MCP tool definitions - `src/pipeline/workerRegistry.ts` - Worker tracking - `src/pipeline/dagValidator.ts` - DAG validation - `src/pipeline/costLimiter.ts` - Cost controls - `src/memoryStore.ts` - SQLite memory   --- 
+# Session Context  **Terminal:** backend **Task:** MSG-BACKEND-454-REVIEW-REJECT **Inbox Message:** MSG-BACKEND-454-REVIEW-REJECT **Active Domains:** shared, nexus  ## 🔥 Hot Memories (Recent, High Priority)  📝 Session stopped for memory save - cold mode transition    _Context: Task: unknown, End reason: done_  ## 🌍 Shared Memories (Cross-Terminal)  🔧 # SpaceOS Workflow Patterns — Cross-Terminal Knowledge (2026-07-07)  **Source:** Explorer comprehensive task research (188 tasks + 741 outbox) **Synthesized:** Librarian (2026-07-07) **Impact:** All terminals  ## TOP 3 Proven Patterns  ### 1. Week-Based Phase Dispatch **Owner:** Conductor **Reusability:** 52× weeks/year **Pattern:** Sequential priority dispatch (Phase N DONE → Phase N+1 auto-dispatch) **Skill:** `.claude/skills/week-based-phase-dispatch/` **Script:** `scripts/dispatch/auto-phase-transition.sh`  ### 2. Domain Model Workshop (DDD) **Owner:** Architect + Backend **Reusability:** 135 domains (27 worlds × 5 avg) **Pattern:** FSM + Events + Repository + Tests (20-## 3. 3-Phase Archival Workflow **Owner:** Librarian **Reusability:** Quarterly maintenance (12×/year) **Pattern:** Risk-gradated (MINIMAL → LOW → MEDIUM escalation) **Skill:** `.claude/skills/archival-planning-workflow/`  ## Automation Scripts  - **Mailbox Health:** `scripts/mailbox/health-check.sh` (daily cron) - **Phase Dispatch:** `scripts/dispatch/auto-phase-transition.sh` (30 min cron) - **[TASK ASSIGNED] Task ID: MSG-BACKEND-454-REVIEW-REJECT  Neked egy feladat lett kBlocker Alert:** `scripts/monitoring/blocker-detector.sh` (2h cron)  ## Full Dociosztva. Használd az MCP eszközöket a task kezeléséhez:  1. TASK LEKÉRÉSE:    mcumentation  - **Patterns:** `docs/knowledge/patterns/SPACEOS_WORKFLOW_PATTERNS_2p__spaceos-knowledge__fetch_task      terminal: "backend"      message_id: "MSG-026.md` - **Skills:** `.claude/skills/` (7 skills created) - **Scripts:** `scripBACKEND-454-REVIEW-REJECT"  2. TASK FOGADÁS MEGERŐSÍTÉSE:    mcp__spaceos-knowlets/` (5 automation candidates)   🔧 ## Memory Cleanup Best Practices (2026-07-08dge__ack_task      terminal: "backend"      message_id: "MSG-BACKEND-454-REVIEW-)  ### Monitor Memory Compression Pattern **Source:** MSG-LIBRARIAN-021 emergencREJECT"  3. TASK BEFEJEZÉSE (amikor KÉSZ vagy):    mcp__spaceos-knowledge__comply cleanup task  **Problem:** Repetitive cycle logs (031-045) accumulated after iete_task      terminal: "backend"      message_id: "MSG-BACKEND-454-REVIEW-REJECnitial compression.  **Solution:** 1. Identify the "compression marker" (e.g., "T"  FONTOS: Csak ezt az egy feladatot dolgozhatod fel. Más feladathoz nincs hozz_This memory is compressed from...") 2. Keep content BEFORE the marker 3. Remove ALL cycle logs AFTER the marker 4. Update timestamp and add compression note  *áférésed. A token az MCP regisztrációdban van, automatikusan autentikált.*Result:** 572 lines → 108 lines (81% reduction)  ### Memory Target Sizes | Terminal | Target | Actual | |----------|--------|--------| | Monitor | <20KB | 2KB ✅ | | Conductor | <30KB | 6KB ✅ | | Root | <30KB | 5KB ✅ | | Architect | <25KB | 1KB ✅ | | Others | <50KB | <10KB ✅ |  ### Key Insight Memory files should NOT contain repetitive status logs. These belong in: - Outbox messages (temporal, archived) - Session logs (ephemeral) - NOT memory files (permanent context)    --- ## DOMAIN KNOWLEDGE (Auto-loaded)  Loaded domains: shared, nexus Approximate tokens: 1707  ### SHARED Memory  # Shared Domain Memory  > Minden task-hoz betöltődik - cross-domain patterns és általános szabályok.  ## SpaceOS Golden Rules  1. 
+**Data → Rules → Geometry** — Frontend rajzol, C# Driver számol, LLM csak paramétereket ad 2. **Modular Monolith** — Kernel `IParametricProduct` interfészen dolgozik 3. **Immutability & Trust** — Nincs UPDATE CAD adatokon, SHA-256 audit event 4. **Need-to-Know RBAC** — Megrendelő nem látja a gyártó anyaglistáját 5. **Walking Skeleton First** — E2E pipeline előbb, matematika utóbb  ## Clean Architecture  ``` ┌─────────────────────────────────────────┐ │  API Layer (Controllers, Endpoints)     │ ├─────────────────────────────────────────┤ │  Application Layer (Commands, Queries)  │ ├─────────────────────────────────────────┤ │  Domain Layer (Entities, Value Objects) │ ├─────────────────────────────────────────┤ │  Infrastructure (DB, External Services) │ └─────────────────────────────────────────┘  Dependency: Outer → Inner (never reverse) ```  ## CQRS Pattern  ```csharp // Command (write) public record CreateOrderCommand(Guid CustomerId, List<OrderItem> Items) : IRequest<Guid>;  // Query (read) public record GetOrderQuery(Guid OrderId) : IRequest<OrderDto>;  // Handler public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Guid> {     public async Task<Guid> Handle(CreateOrderCommand request, CancellationToken ct)     {         var order = Order.Create(request.CustomerId, request.Items);         await _repository.AddAsync(order, ct);         return order.Id;     } } ```  ## Testing Patterns  ```csharp // Unit test - Handler [Fact] public async Task Handle_ValidCommand_ReturnsOrderId() {     var handler = new CreateOrderCommandHandler(_mockRepo.Object);     var result = await handler.Handle(new CreateOrderCommand(...), CancellationToken.None);     result.Should().NotBeEmpty(); }  // Integration test - Endpoint [Fact] public async Task Post_ValidOrder_Returns201Created() {     var client = _factory.CreateClient();     var response = await client.PostAsJsonAsync("/api/orders", new { ... });     response.StatusCode.Should().Be(HttpStatusCode.Created); } ```  ## Database Patterns  ```csharp // EF Core configuration modelBuilder.Entity<Order>(e => {     e.ToTable("orders", "spaceos_kernel");     e.HasKey(o => o.Id);     e.Property(o => o.Id).ValueGeneratedNever();     e.HasIndex(o => o.TenantId); });  // RLS policy CREATE POLICY tenant_isolation ON orders     USING (tenant_id = current_setting('app.tenant_id')::uuid); ```  ## Build & Test Commands  ```bash # Build dotnet build  # Test all dotnet test  # Test specific dotnet test --filter "FullyQualifiedName~OrderTests"  # Watch mode dotnet watch test ```  ## Error Handling  ```csharp // Domain exception public class OrderNotFoundException : DomainException {     public OrderNotFoundException(Guid id)         : base($"Order {id} not found") { } }  // Global handler app.UseExceptionHandler(error => error.Run(async context => {     var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;     var response = exception switch     {         DomainException => new ProblemDetails { Status = 400 },         NotFoundException => new ProblemDetails { Status = 404 },         _ => new ProblemDetails { Status = 500 }     };     await context.Response.WriteAsJsonAsync(response) })); ```  ## Conventions  - **File naming:** PascalCase for classes, camelCase for variables - **Folder structure:** Feature-based (not layer-based) - **API versioning:** `/api/v1/...` - **Date format:** ISO 8601 (`2026-06-29T12:00:00Z`) - **ID format:** GUID v7 (time-sortable)   ### NEXUS Memory  # Nexus Domain Memory  > Automatikusan betöltődik ha a feladat Knowledge Service / Agent Infra modulhoz kapcsolódik.  ## Domain Scope  - **Modul:** `spaceos-nexus/knowledge-service` - **Felelősség:** MCP server, Terminal coordination, Mailbox, Memory management - **Tech stack:** Node.js 22, TypeScript, SQLite, Express  ## Aktív Patterns  ### 1. Parallel Workers (ADR-049 Phase 3) ```typescript // Worker registry interface WorkerState {   id: string;           // work-001, work-002   terminal: string;     // backend, frontend   taskId: string;       // MSG-BACKEND-080   status: 'running' | 'done' | 'failed' | 'queued';   model: string;        // haiku, sonnet, opus   startedAt: string;   depends_on: string[]; }  // Parallel spawning const workers = await spawnParallelWorkers({   terminal: 'backend',   tasks: [     { id: 'api', prompt: 'Implement API endpoint' },     { id: 'tests', prompt: 'Write unit tests', depends_on: ['api'] }   ] }); ```  ### 2. DAG Validation (Kahn's Algorithm) ```typescript function validateDependencies(tasks: WorkTask[]): ValidationResult {   // Cycle detection   // Topological sort   // Parallel batch generation }  function getParallelBatches(tasks: WorkTask[]): string[][] {   // Returns tasks grouped by execution level   // Level 0: no dependencies (can run immediately)   // Level 1: depends on level 0   // etc. } ```  ### 3. Cost-Based Limits ```typescript const MODEL_COSTS = {   'haiku': 0.002,   // $0.12/hour   'sonnet': 0.02,   // $1.20/hour   'opus': 0.10      // $6.00/hour };  const LIMITS = {   SOFT: 3,      // $3/hour - log warning   HARD: 5,      // $5/hour - Telegram alert   CRITICAL: 10  // $10/hour - auto-kill + escalate }; ```  ### 4. Memory Store (SQLite WAL) ```typescript class MemoryStore {   // Sections: chat, work, shared   append(section: MemorySection, content: string, author: string): number;   read(section: MemorySection, limit: number): MemoryEntry[];   exportToMarkdown(): string; } ```  ## MCP Tools  | Tool | Purpose | |------|---------| | `spawn_parallel_workers` | DAG-validated parallel worker spawning | | `spawn_raw_workers` | Best-of-N prototyping | | `get_worker_status` | Worker status + cost monitoring | | `create_task` | Task creation with acceptance criteria | | `complete_task` | Task completion + memory save | | `telegram_reply` | Telegram message response |  ## Session Types  | Session | Model | Mode | Purpose | |---------|-------|------|---------| | `{terminal}-chat` | Haiku | Continuous | Telegram, quick responses | | `{terminal}-work` | Sonnet | Cold | Main inbox tasks | | `{terminal}-work-NNN` | Sonnet/Opus | Cold | Parallel workers | | `{terminal}-raw-NNN` | Haiku | Cold | Quick prototypes |  ## Legutóbbi Tanulságok  - **SQLite WAL mode** concurrent read/write support - **tmux session naming** fontos az egyediség - **MCP tool validation** inputSchema mindig kell - **Heartbeat** stalled worker detection  ## Kapcsolódó Fájlok  - `src/sessionStarter.ts` - Session management - `src/mcp.ts` - MCP tool definitions - `src/pipeline/workerRegistry.ts` - Worker tracking - `src/pipeline/dagValidator.ts` - DAG validation - `src/pipeline/costLimiter.ts` - Cost controls - `src/memoryStore.ts` - SQLite memory   --- [TASK ASSIGNED] Task ID: MSG-BACKEND-454-REVIEW-REJECT  Neked egy feladat lett kiosztva. Használd az MCP eszközöket a task kezeléséhez:  1. TASK LEKÉRÉSE:    mcp__spaceos-knowledge__fetch_task      terminal: "backend"      message_id: "MSG-BACKEND-454-REVIEW-REJECT"  2. TASK FOGADÁS MEGERŐSÍTÉSE:    mcp__spaceos-knowledge__ack_task      terminal: "backend"      message_id: "MSG-BACKEND-454-REVIEW-REJECT"  3. TASK BEFEJEZÉSE (amikor KÉSZ vagy):    mcp__spaceos-knowledge__complete_task      terminal: "backend"      message_id: "MSG-BACKEND-454-REVIEW-REJECT"  FONTOS: Csak ezt az egy feladatot dolgozhatod fel. Más feladathoz nincs hozzáférésed. A token az MCP regisztrációdban van, automatikusan autentikált.

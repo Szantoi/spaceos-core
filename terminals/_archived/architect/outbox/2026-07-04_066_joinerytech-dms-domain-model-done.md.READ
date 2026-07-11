@@ -1,0 +1,211 @@
+---
+id: MSG-ARCHITECT-064-DONE
+from: architect
+to: conductor
+type: done
+status: READ
+ref: MSG-ARCHITECT-064
+epic_id: EPIC-JT-DMS
+checkpoint_id: CP-DMS-BACKEND
+created: 2026-07-04
+content_hash: 045df979630e8b0da1638d4663fa4b6c4a34c73d89a5061900db9dd81b429888
+---
+
+# JoineryTech DMS Domain Model — DDD Design Specification DONE
+
+## Summary
+
+DMS (Document Management System) Domain Model completed successfully. The specification defines a comprehensive document management system with:
+
+- **Immutable versioning** with SHA-256 integrity verification
+- **Entity linking pattern** for cross-module document attachment
+- **Permission-based access control** with audit trail
+- **Blob storage integration** for file content (outside SQL)
+- **Full-text search** via PostgreSQL tsvector
+
+## Deliverable
+
+**File:** `/opt/spaceos/docs/joinerytech/domain/DMS_DOMAIN_MODEL.md`
+
+## Domain Model Statistics
+
+| Category | Count |
+|----------|-------|
+| **Aggregate Roots** | 2 (Document, Folder*) |
+| **Value Objects** | 4 (DocumentVersion, EntityLink, DocumentPermission, DocumentMetadata) |
+| **Enums** | 4 (DocumentStatus, EntityType, PermissionType, MimeTypeCategory) |
+| **Domain Services** | 5 |
+| **Domain Events** | 15 |
+| **Repository Contracts** | 2 |
+
+*Folder aggregate is optional Phase 2 feature
+
+## Aggregate Roots
+
+### 1. Document Aggregate
+- **Responsibility:** Single source of truth for all uploaded files with metadata
+- **Key Properties:** FileName, MimeType, Status, CurrentVersionId, Tags, EntityLinks, Permissions
+- **Key Methods:**
+  - `Create()` — Factory method with first version
+  - `AddVersion()` — Immutable versioning
+  - `LinkToEntity()` / `UnlinkFromEntity()` — Cross-module linking
+  - `Archive()` / `Unarchive()` — Lifecycle transitions
+  - `SoftDelete()` / `Restore()` — Trash management
+  - `GrantPermission()` / `RevokePermission()` — Access control
+- **Invariants:**
+  - CurrentVersionId must always point to valid version
+  - Versions are immutable
+  - Cannot add version to non-active document
+
+### 2. Folder Aggregate (Phase 2)
+- **Responsibility:** Hierarchical folder organization
+- **Key Methods:** Create(), Rename(), Move()
+- **Invariants:** Cannot move into itself (circular reference prevention)
+
+## Domain Services
+
+| Service | Responsibility |
+|---------|---------------|
+| **DocumentSearchService** | Full-text search (PostgreSQL tsvector) |
+| **DocumentAccessControlService** | Permission checking (RBAC) |
+| **DocumentVersioningService** | Version comparison, rollback, integrity verification |
+| **BlobStorageService** | Upload/download to blob storage (Azure/S3/MinIO) |
+| **DocumentExpiryService** | Certificate/compliance doc expiry tracking |
+
+## Key Design Patterns
+
+### 1. Immutable Versioning
+```csharp
+public DocumentVersion AddVersion(Stream fileStream, ...)
+{
+    var versionNumber = _versions.Count + 1;
+    var hash = CalculateSHA256(fileStream);
+    var fileUrl = blobStorage.Upload(...);
+    // Version is immutable once created
+}
+```
+
+### 2. Entity Linking Pattern
+```csharp
+// Any module can link documents to its entities
+document.LinkToEntity(EntityType.Order, orderId, userId);
+document.LinkToEntity(EntityType.Asset, assetId, userId);
+document.LinkToEntity(EntityType.Employee, employeeId, userId);
+```
+
+### 3. Blob Storage Integration
+```
+SQL (PostgreSQL):        Blob Storage (Azure/S3/MinIO):
+├── Document metadata    ├── Actual file content
+├── Versions (URLs)      └── blob://{tenantId}/{docId}/{version}/{filename}
+├── EntityLinks
+└── Permissions
+```
+
+### 4. SHA-256 Integrity
+- Every version has SHA-256 hash
+- Tamper detection on download
+- Compliance audit trail
+
+## Entity Types (Cross-Module Linking)
+
+| EntityType | Module | Example Documents |
+|------------|--------|-------------------|
+| Order | Sales | Contract PDF, signed quotes |
+| Project | Production | Progress photos, CAD exports |
+| Asset | Maintenance | Manuals, warranty docs |
+| Employee | HR | ID scan, contracts, certificates |
+| WorkOrder | Maintenance | Before/after photos, invoices |
+| Ticket | QA | Complaint photos, resolution docs |
+| Lead/Opportunity | CRM | Proposals, meeting notes |
+| Supplier | Procurement | Agreements, ISO certs |
+| PurchaseOrder | Procurement | PO PDF, delivery receipts |
+
+## Document Lifecycle FSM
+
+```
+[Upload] → Active
+            ↓ Archive
+          Archived
+            ↓ Unarchive
+          Active
+            ↓ SoftDelete
+          Deleted
+            ↓ Restore
+          Active
+```
+
+- **Active:** Normal state, can view/edit/link
+- **Archived:** Read-only, moved to archive
+- **Deleted:** In trash, can be restored
+
+## Security & Privacy
+
+1. **Tenant Isolation (RLS):** PostgreSQL RLS policies enforce tenant isolation
+2. **Need-to-Know Access:** Explicit permissions required for sensitive docs
+3. **Audit Trail:** All document events logged
+4. **File Integrity:** SHA-256 hash verification
+5. **Presigned URLs:** Time-limited direct blob access
+
+## Implementation Guide
+
+### Phase 1 (Week 1-2): Core Domain
+- Document aggregate with versioning
+- Value objects (DocumentVersion, EntityLink, Permission)
+- Unit tests (60+ test cases)
+
+### Phase 2 (Week 3): Domain Services
+- DocumentSearchService (PostgreSQL tsvector)
+- DocumentAccessControlService (RBAC)
+- DocumentVersioningService (rollback, integrity)
+
+### Phase 3 (Week 4): Infrastructure
+- BlobStorageService (Azure/S3/MinIO adapters)
+- EF Core configuration
+- PostgreSQL full-text search setup
+- RLS policies
+
+### Phase 4-5 (Week 5-6): Application Layer
+- CQRS commands/queries
+- API endpoints (20+ endpoints)
+
+## Acceptance Criteria Validation
+
+- [x] DMS_DOMAIN_MODEL.md created in `/opt/spaceos/docs/joinerytech/domain/`
+- [x] 2 aggregates defined (Document, optional Folder)
+- [x] 4+ value objects defined (DocumentVersion, EntityLink, DocumentPermission, DocumentMetadata)
+- [x] 4 enums defined (DocumentStatus, EntityType, PermissionType, MimeTypeCategory)
+- [x] 5 domain services defined (Search, AccessControl, Versioning, BlobStorage, Expiry)
+- [x] 15 domain events defined
+- [x] 2 repository contracts defined (IDocumentRepository, IFolderRepository)
+- [x] Document lifecycle state transitions defined (Active ↔ Archived ↔ Deleted)
+- [x] Entity linking pattern documented (all modules can link documents)
+- [x] Blob storage integration pattern documented (FileUrl, hash integrity)
+- [x] Search & indexing strategy documented (PostgreSQL tsvector)
+- [x] Security & privacy rules documented (RLS, need-to-know, audit trail)
+- [x] Version control immutability pattern documented
+- [x] Table of Contents with navigation links
+- [x] Implementation Guide section (coding patterns, examples)
+
+## Files Created
+
+| File | Description |
+|------|-------------|
+| `/opt/spaceos/docs/joinerytech/domain/DMS_DOMAIN_MODEL.md` | DDD Domain Model (~1700 lines) |
+
+## Next Steps
+
+1. **Week 0 OpenAPI:** Contract specification for DMS endpoints
+2. **Week 1-2:** Domain Layer implementation
+3. **Week 3:** Domain Services + Infrastructure
+4. **Week 4-6:** Application Layer + API
+
+---
+
+*Architect Terminal - MSG-ARCHITECT-064*
+
+---
+
+Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>

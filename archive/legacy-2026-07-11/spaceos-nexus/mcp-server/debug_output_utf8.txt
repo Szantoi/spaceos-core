@@ -1,0 +1,63 @@
+﻿
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mC:/Users/szant/Documents/Development/JoineryTech.McpServer[39m
+
+[90mstdout[2m | src/tests/unit/BootstrapService.test.ts[2m > [22m[2mTASK-10-01: BootstrapService (bootstrap_agent Tool)[2m > [22m[2mType Guard Utilities[2m > [22m[2misBootstrapPayload should return true for valid payload
+[22m[39m[DatabaseConnectionManager] Ôťů Dual-pool initialized (admin=RW, agent=RO)
+[WalOptimizer] Ôťô wal_autocheckpoint = 1000
+[WalOptimizer] Ôťô journal_size_limit = 52428800 bytes
+[WalOptimizer] Ôťô busy_timeout = 5000ms
+[WalOptimizer] Ôťô synchronous = NORMAL
+[WalOptimizer] Ôťô WAL pragmas configured for optimal concurrency
+[AgentDb.initSchema] Ôťů Database initialized: metadata.db with EPIC-08 + EPIC-09 schemas + WAL optimization (FK=ON, WAL, autocheckpoint=1000, busy_timeout=5s)
+DEBUG: Result from bootstrap: {
+  "success": false,
+  "code": "SESSION_CREATION_FAILED",
+  "message": "Session creation failed: Failed to create session for engineering/backend_developer",
+  "details": {
+    "domain": "engineering",
+    "role": "backend_developer"
+  }
+}
+[DatabaseConnectionManager] Ôťů Connection pools closed
+
+node.exe : [90mstderr[2m | src/tests/unit/BootstrapService.test.ts[2m > [22m[2mTASK-10-01: BootstrapService (bootstrap_agent Tool)[2m > [22m[2mType Guard Utilities[2m > [2
+2m[2misBootstrapPayload should return true for valid payload
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([90mstderr[2m...r valid payload:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[22m[39m[BootstrapService.bootstrap] ÔŁî Session creation failed: table sessions has no column named session_id (domain=engineering, role=backend_developer)
+
+ [31mÔŁ»[39m src/tests/unit/BootstrapService.test.ts [2m([22m[2m41 tests[22m[2m | [22m[31m1 failed[39m[2m | [22m[33m40 skipped[39m[2m)[22m[90m 39[2mms[22m[39m
+[31m   [31m├Ś[31m TASK-10-01: BootstrapService (bootstrap_agent Tool)[2m > [22mType Guard Utilities[2m > [22misBootstrapPayload should return true for valid payload[90m 38[2mms[22m[31m[39m
+[31m     Ôćĺ expected false to be true // Object.is equality[39m
+
+[31mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1m[7m Failed Tests 1 [27m[22mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/tests/unit/BootstrapService.test.ts[2m > [22mTASK-10-01: BootstrapService (bootstrap_agent Tool)[2m > [22mType Guard Utilities[2m > [22m
+isBootstrapPayload should return true for valid payload
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2mÔŁ»[22m src/tests/unit/BootstrapService.test.ts:[2m776:48[22m[39m
+    [90m774| [39m            console[33m.[39m[34mlog[39m([32m'DEBUG: Result from bootstrap:'[39m[33m,[39m [33mJSON[39m[33m.[39m[34mstringif[39mÔÇŽ
+    [90m775| [39m
+    [90m776| [39m            [34mexpect[39m([34misBootstrapPayload[39m(result))[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                                               [31m^[39m
+    [90m777| [39m            [34mexpect[39m([34misBootstrapError[39m(result))[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m778| [39m        })[33m;[39m
+
+[31m[2mÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1/1]ÔÄ»[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[33m40 skipped[39m[90m (41)[39m
+[2m   Start at [22m 07:48:31
+[2m   Duration [22m 696ms[2m (transform 149ms, setup 0ms, collect 193ms, tests 39ms, environment 0ms, prepare 154ms)[22m
+

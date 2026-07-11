@@ -1,7 +1,49 @@
 # SpaceOS — Root Orchestration Workflow
 
 > Ez a dokumentum a **teljes SpaceOS multi-terminál workflow**-t definiálja.
-> Minden terminál ezt követi: root · kernel · orchestrator · portal · fe · joinery · abstractions · cutting · inventory · procurement · infra · e2e · tester · librarian · architect
+> Minden terminál ezt követi: root · conductor · backend · frontend · designer · architect · librarian · explorer
+
+---
+
+## TERMINÁL KLÓN ARCHITEKTÚRA (ADR-049)
+
+> **2026-06-29 APPROVED:** 3-rétegű terminál architektúra - Identity, Knowledge, Worker layers.
+
+### 3-Rétegű Architektúra
+
+```
+TERMINAL
+├── IDENTITY LAYER (CLAUDE.md) — fix személyiség
+├── KNOWLEDGE LAYER (domain.memory.md) — dinamikus tudás betöltés
+└── WORKER LAYER — sokszorozható session-ök
+    ├── {role}-chat (Haiku, continuous) — Telegram, koordináció
+    ├── {role}-work (Sonnet, cold) — inbox feladatok
+    └── {role}-work-NNN (parallel) — párhuzamos workerek
+```
+
+### Session elnevezés
+
+| Pattern | Model | Cél |
+|---------|-------|-----|
+| `spaceos-{role}-chat` | Haiku | Telegram, gyors válaszok |
+| `spaceos-{role}-work` | Sonnet | Inbox feladatok |
+| `spaceos-{role}-work-NNN` | Sonnet/Opus | Párhuzamos munka |
+| `spaceos-{role}-raw-NNN` | Haiku | Gyors prototípus |
+
+### Implementáció státusz
+
+**Kész:**
+- `workerRegistry.ts` — worker state tracking
+- `sessionStarter.ts` — `startParallelWorkSession()`
+- `costLimiter.ts` — parallel limit, budget
+- `memoryStore.ts` — SQLite WAL sync
+
+**Folyamatban:**
+- Phase 1: Telegram chat sessions
+- Phase 2: Work spawning
+- Phase 3: Parallel workers
+
+> Részletek: `docs/architecture/decisions/ADR-049-dual-session-chat-work-architecture.md`
 
 ---
 
@@ -927,3 +969,151 @@ Ha valami nem stimmel a workflow-ban, tooling-ban vagy megközelítésben — **
 - Prioritásbeli kérdésekre (mi blokkolja a Soft Launch-ot valójában)
 
 A Root terminál feladata nemcsak koordinálni, hanem **aktívan jelezni ha valami jobb lehetne** — még akkor is ha ez extra munkát jelent rövid távon.
+
+---
+
+## 16. NWT — Nightwatch Tick időmérési rendszer (2026-07-04+)
+
+> **1 NWT = 2 perc = 1 Nightwatch ciklus**
+>
+> Az agent munkát NEM napokban mérjük, hanem NWT-ben. A Conductor napokban becsülne,
+> de az agent futások sokkal gyorsabbak — az NWT realisztikus mérőszámot ad.
+
+### Miért NWT?
+
+A "3 nap" emberi becslés **~120 NWT (4 óra)** agent időben. A Nightwatch ciklus
+a rendszer pulzusa — minden timeout, becslés, checkpoint ennek többszöröse.
+
+### NWT skálák
+
+| Skála | NWT | Emberi idő | Példa |
+|-------|-----|------------|-------|
+| `TICK` | 1 | 2 perc | Egy heartbeat |
+| `QUICK_CHECK` | 3 | 6 perc | Státusz ellenőrzés |
+| `MONITOR_CYCLE` | 5 | 10 perc | Monitor health check |
+| `SHORT_TASK` | 15 | 30 perc | Review, doc update |
+| `STANDARD_TASK` | 30 | 1 óra | Tipikus task |
+| `MEDIUM_FEATURE` | 60 | 2 óra | Közepes feature |
+| `LARGE_FEATURE` | 120 | 4 óra | Nagy feature |
+| `HALF_DAY` | 180 | 6 óra | Fél nap |
+| `WORK_DAY` | 240 | 8 óra | Agent munkanap |
+| `WORK_WEEK` | 1200 | 40 óra | Agent munkahét |
+| `AGENT_SPRINT` | 2400 | 80 óra | 2 emberi hét = 1 agent sprint |
+
+### Timeout konstansok (NWT-ben)
+
+| Timeout | NWT | Emberi idő | Cél |
+|---------|-----|------------|-----|
+| `STUCK_NUDGE` | 2 | 4 perc | Megakadt session ösztönzése |
+| `INBOX_NUDGE` | 3 | 6 perc | UNREAD inbox figyelmeztetés |
+| `IDLE_WARNING` | 5 | 10 perc | Idle session figyelmeztetés |
+| `IDLE_SHUTDOWN` | 8 | 16 perc | Idle session leállítás |
+| `TASK_WARNING` | 15 | 30 perc | Task túl sokáig tart |
+| `TASK_RETRY` | 30 | 1 óra | Első újrapróbálkozás |
+| `TASK_ESCALATE` | 60 | 2 óra | Magasabb szintre eszkaláció |
+| `TASK_CRITICAL` | 120 | 4 óra | Kritikus eszkaláció |
+| `REVIEW_TIMEOUT` | 15 | 30 perc | Review befejezési limit |
+| `PIPELINE_TIMEOUT` | 30 | 1 óra | Teljes pipeline timeout |
+
+### Task becslési irányelvek
+
+**Bugfix:**
+| Komplexitás | NWT | Emberi idő |
+|-------------|-----|------------|
+| Triviális (typo, one-liner) | 5 | 10 perc |
+| Egyszerű | 15 | 30 perc |
+| Közepes | 30 | 1 óra |
+| Komplex | 60 | 2 óra |
+
+**Feature:**
+| Méret | NWT | Emberi idő |
+|-------|-----|------------|
+| Tiny (egy mező, kis UI) | 15 | 30 perc |
+| Small | 30 | 1 óra |
+| Medium | 60 | 2 óra |
+| Large | 120 | 4 óra |
+| Epic | 240 | 8 óra |
+
+**Egyéb:**
+| Típus | NWT | Emberi idő |
+|-------|-----|------------|
+| Quick review | 5 | 10 perc |
+| Thorough review | 15 | 30 perc |
+| Documentation | 15 | 30 perc |
+| Architecture review | 30 | 1 óra |
+| Spike / research | 60 | 2 óra |
+| API endpoint | 30 | 1 óra |
+| API module | 120 | 4 óra |
+| Integration test | 30 | 1 óra |
+| E2E test suite | 60 | 2 óra |
+
+### Context Saturation (Goal Persistence)
+
+| Threshold | NWT | Turn count | Akció |
+|-----------|-----|------------|-------|
+| `CONTEXT_WARNING` | 15 | ~30 turn | Figyelmeztetés log |
+| `CONTEXT_CRITICAL` | 25 | ~50 turn | Kritikus figyelmeztetés |
+| `CONTEXT_REANCHOR` | 25 | ~50 turn | Auto re-anchoring trigger |
+
+### Használat Conductor feladatkiosztásban
+
+```yaml
+# EPICS.yaml példa NWT becslésekkel
+- id: EPIC-CUTTING-Q3
+  estimated_nwt: 480  # 16 óra
+  checkpoints:
+    - id: CP-KERNEL
+      estimated_nwt: 120  # 4 óra
+    - id: CP-FRONTEND
+      estimated_nwt: 180  # 6 óra
+```
+
+```markdown
+# Task inbox példa
+---
+id: MSG-BACKEND-130
+estimated_nwt: 60  # 2 óra
+---
+```
+
+### Konverziós képletek
+
+```typescript
+// NWT → idő
+nwtToMs(nwt)      = nwt * 120_000    // milliszekundum
+nwtToMinutes(nwt) = nwt * 2          // perc
+nwtToHours(nwt)   = nwt * 2 / 60     // óra
+
+// Idő → NWT (felkerekítve)
+minutesToNwt(min) = ceil(min / 2)
+hoursToNwt(h)     = ceil(h * 60 / 2)
+msToNwt(ms)       = ceil(ms / 120_000)
+```
+
+### Implementáció
+
+**Konstansok:** `spaceos-nexus/knowledge-service/src/constants/nwt.ts`
+
+```typescript
+import { NWT_SCALES, NWT_TIMEOUTS, NWT_ESTIMATES, formatNwt, nwtToHours } from '../constants/nwt';
+
+// Példa: timeout ellenőrzés
+if (elapsedNwt(taskStart) > NWT_TIMEOUTS.TASK_ESCALATE) {
+  escalateTask(taskId);
+}
+
+// Példa: formázott kiírás
+console.log(formatNwt(120)); // "120 NWT (4h)"
+```
+
+### NWT vs emberi idő
+
+| Emberi becslés | NWT valóság | Arány |
+|----------------|-------------|-------|
+| "1 nap" | 120-180 NWT (4-6 óra) | 4-6× |
+| "1 hét" | 600-900 NWT (20-30 óra) | 5-7× |
+| "1 sprint" (2 hét) | 2400 NWT (80 óra) | ~5× |
+
+**Szabály:** Ha Conductor "napokban" becsül, oszd el 5-tel és konvertáld NWT-re.
+
+---

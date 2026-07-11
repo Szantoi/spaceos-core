@@ -1,0 +1,7 @@
+{
+  "SpaceOS.Modules.Inventory.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
+  "SpaceOS.Modules.Inventory.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
+  "SpaceOS.Modules.Inventory.Contracts, Version=1.1.0.0, Culture=neutral, PublicKeyToken=null": "~",
+  "SpaceOS.Modules.Inventory.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
+  "SpaceOS.Modules.Inventory.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~"
+}

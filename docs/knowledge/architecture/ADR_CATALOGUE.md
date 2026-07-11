@@ -332,6 +332,103 @@ Responsibility separation:
 
 ---
 
+## ADR-058: JoineryTech Backend-Frontend Integration Architecture
+
+**Döntés:** 2026-07-02 FINAL
+
+| Item | Decision |
+|---|---|
+| **State Management** | TanStack Query (server-first) — localStorage removed |
+| **Authentication** | HttpOnly cookie + SameSite (XSS-proof) |
+| **API Contract** | OpenAPI 3.1 spec (Week 0 contract-first) |
+| **Code Generation** | Orval (Frontend) + NSwag (Backend) |
+| **Real-Time Sync** | HTTP polling Phase 1 → WebSocket Phase 2 |
+| **Error Handling** | Global Axios interceptor + TanStack Query onError |
+| **Migration Path** | 3 phases (Infrastructure → Transaction → Complete cutover) |
+| **Testing Strategy** | Contract tests (OpenAPI), Component (Vitest), E2E (Playwright) |
+
+**8 Critical Integration Gaps Resolved:**
+
+| # | Gap | Solution | Phase |
+|---|-----|----------|-------|
+| 1 | State Management | localStorage → TanStack Query | 1-3 |
+| 2 | Authentication | JWT HttpOnly cookie + refresh token rotation | 1 |
+| 3 | Real-Time Sync | HTTP polling (Phase 1) → WebSocket (Phase 2) | 2 |
+| 4 | API Contract | OpenAPI spec Week 0 (contract-first) | 0 |
+| 5 | Error Handling | Global interceptor + per-query handlers | 1 |
+| 6 | Performance | Vite build (4.2 MB → 2.2 MB), code splitting | 1-3 |
+| 7 | Data Validation | OpenAPI-based validators (frontend + backend sync) | 1 |
+| 8 | Testing Strategy | Contract + Component + E2E (80%/70%/60% coverage) | 1-3 |
+
+**5 Golden Rules Compliance:**
+
+| Rule | Compliance Assessment |
+|------|----------------------|
+| **1. Data → Rules → Geometry** | ✅ Backend enforces FSM (quote → order → invoice), Frontend renders UI |
+| **2. Modular Monolith** | ✅ 8 modules (CRM, Kontrolling, HR, QA, EHS, DMS, Maintenance, AI) with clear boundaries |
+| **3. Immutability & Trust** | ✅ PostgreSQL RLS enforces multi-tenant isolation, audit trail SHA-256 hashed |
+| **4. Need-to-Know RBAC** | ✅ Role-based RLS policies (sales sees Qualified leads, managers see all) |
+| **5. Walking Skeleton First** | ✅ Phase 1 = Auth + Catalog only (E2E working), Phase 2 = Transactions, Phase 3 = All 8 modules |
+
+**3-Phase Migration Path:**
+
+```
+Week 0 (Contract-First Design)
+  ├─ OpenAPI 3.1 spec writing (Architect + Backend + Frontend)
+  ├─ Auth, Catalog, CRM, Sales endpoints documented
+  └─ Acceptance: All teams reviewed and approved spec
+
+Phase 1 (Weeks 1-4): Infrastructure
+  ├─ Backend: Auth API, Catalog API, RLS, Gateway
+  ├─ Frontend: Vite setup, TanStack Query, JWT cookie, Error handling
+  ├─ localStorage: Keep transaction state (read-only fallback)
+  └─ Exit: Auth + Catalog working E2E, 80% test coverage, <200ms API
+
+Phase 2 (Weeks 5-12): Transaction State Migration
+  ├─ Backend: CRM, Sales, Real-time sync (WebSocket/SSE)
+  ├─ Frontend: TanStack Query for transactions, Optimistic UI
+  ├─ localStorage: Read-only cache for lookups only
+  └─ Exit: Quote lifecycle E2E, multi-user tested, 70% coverage
+
+Phase 3 (Weeks 13-20): Complete Cutover
+  ├─ Backend: All 8 modules API complete, event sourcing
+  ├─ Frontend: localStorage removed, API-only, code splitting
+  └─ Exit: All modules E2E, Lighthouse ≥85, 60% coverage, <300ms API
+```
+
+**Risk Mitigation:**
+
+| Risk | Impact | Mitigation |
+|------|--------|-----------|
+| State mismatch data loss | CRITICAL | Early spike (Week 2): Prototype quote approval with TanStack Query |
+| API contract undefined | CRITICAL | Write OpenAPI spec Week 0, contract tests in CI/CD |
+| JWT token expiration | HIGH | Token refresh early, test rotation edge cases (Week 3) |
+| App-store monolith blocks perf | HIGH | Modularize parallel with API (Weeks 1-4) |
+| localStorage fallback inconsistency | HIGH | Phase 1 = Auth only, minimize localStorage scope |
+
+**Success Metrics:**
+
+| Phase | Target | Measurement |
+|-------|--------|-------------|
+| Phase 1 | <200ms API, 2.2 MB build, 80% auth coverage | APM, `npm run build`, Vitest |
+| Phase 2 | <250ms API, <500ms sync, <1% conflict, 70% CRM/Sales coverage | WebSocket metrics, Sentry |
+| Phase 3 | <300ms API, Lighthouse ≥85, 0 data loss, 60% all modules | Lighthouse CI, Sentry, Vitest/Playwright |
+
+**Contract-First ROI:**
+- **Investment:** $4k (3-4 days OpenAPI spec writing Week 0)
+- **Savings:** $11k-16k (prevents rework, enables parallel dev, code-gen automation)
+- **Total ROI:** 175%-300% return
+
+**Alkalmazás:**
+1. **Week 0:** OpenAPI spec írás (3-4 nap) — minden endpoint dokumentálva, példákkal
+2. **Week 1-4:** Auth + Catalog API (Backend), Vite + TanStack Query (Frontend)
+3. **Week 5-12:** CRM + Sales API migration, WebSocket real-time sync
+4. **Week 13-20:** All 8 modules, localStorage removal, code splitting, Lighthouse optimization
+
+**Teljes spec:** `docs/architecture/decisions/ADR-058-joinerytech-integration-architecture.md`
+
+---
+
 ## Referencia
 
 - Teljes vision: `docs/vision/SpaceOS_Vision_Master.md`

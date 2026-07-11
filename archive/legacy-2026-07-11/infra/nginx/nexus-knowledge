@@ -1,0 +1,126 @@
+# ============================================================================
+# nexus.joinerytech.hu — SpaceOS Knowledge Service (MCP endpoint)
+# 2026-06-20 — Claude Code MCP integration
+# ============================================================================
+
+upstream nexus_knowledge_backend {
+    server 127.0.0.1:3456 max_fails=3 fail_timeout=30s;
+}
+
+# --- HTTP → HTTPS redirect ---
+server {
+    listen 80;
+    server_name nexus.joinerytech.hu;
+
+    # Let's Encrypt challenge
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://nexus.joinerytech.hu$request_uri;
+    }
+}
+
+# --- nexus.joinerytech.hu (HTTPS) ---
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name nexus.joinerytech.hu;
+
+    # SSL cert (certbot) - initially use joinerytech.hu, then switch to nexus-specific
+    ssl_certificate /etc/letsencrypt/live/joinerytech.hu/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/joinerytech.hu/privkey.pem;
+
+    # TLS hardening
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_stapling on;
+    ssl_stapling_verify on;
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options DENY always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+
+    # Rate limiting zone (defined in http block)
+    # limit_req zone=nexus_limit burst=20 nodelay;
+
+    # Health check (no auth)
+    location /health {
+        proxy_pass http://nexus_knowledge_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # MCP endpoint (main)
+    location /mcp {
+        proxy_pass http://nexus_knowledge_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Pass Authorization header
+        proxy_set_header Authorization $http_authorization;
+
+        # Timeout for MCP calls
+        proxy_read_timeout 60s;
+        proxy_connect_timeout 10s;
+    }
+
+    # SSE endpoint - no buffering
+    location /api/mailbox/ {
+        proxy_pass http://nexus_knowledge_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization $http_authorization;
+
+        # SSE specific
+        proxy_buffering off;
+        proxy_read_timeout 86400s;
+        proxy_cache off;
+        chunked_transfer_encoding off;
+    }
+
+    # Knowledge API
+    location /api/knowledge/ {
+        proxy_pass http://nexus_knowledge_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization $http_authorization;
+        proxy_read_timeout 30s;
+    }
+
+    # Tasks API
+    location /api/tasks/ {
+        proxy_pass http://nexus_knowledge_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization $http_authorization;
+        proxy_read_timeout 30s;
+    }
+
+    # Block everything else
+    location / {
+        return 403 '{"error": "Access denied. Use /mcp endpoint."}';
+        add_header Content-Type application/json;
+    }
+}

@@ -1,0 +1,21 @@
+id: GOAL-2026-07-10-998
+created: '2026-07-10T21:57:55.998Z'
+created_by: root
+goal:
+  description: Verification test after MSG-NEXUS-021 fix
+completion_criteria:
+  - type: done_outbox
+    terminal: nexus
+on_complete:
+  trigger_terminal: root
+  prompt: Test
+status: triggered
+triggered_at: '2026-07-10T21:58:42.725Z'
+trigger_message_id: MSG-ROOT-103
+criteria_results:
+  - criterion:
+      type: done_outbox
+      terminal: nexus
+    met: true
+    details: 'Found: 2026-07-10_001_msg-nexus-002-frontend-mcp-tools-done.md'
+    checked_at: '2026-07-10T21:58:42.708Z'

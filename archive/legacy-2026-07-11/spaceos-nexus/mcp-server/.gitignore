@@ -1,0 +1,27 @@
+node_modules/
+dist/
+build/
+*.js.map
+
+# Database
+metadata.db
+*.db-shm
+*.db-wal
+
+# Env
+.env
+
+# Test results
+test-results/
+playwright-results.json
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript build info
+*.tsbuildinfo

@@ -1,0 +1,8 @@
+FAILURES_spaceos=0
+ALERTED_spaceos=false
+FAILURES_joinerytech=0
+ALERTED_joinerytech=false
+FAILURES_nexus=0
+ALERTED_nexus=false
+FAILURES_doorstar=0
+ALERTED_doorstar=false

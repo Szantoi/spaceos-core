@@ -1,0 +1,10 @@
+{
+  "terminal": "root",
+  "epicId": "EPIC-DOORSTAR-SOFTLAUNCH",
+  "epicProgress": 15,
+  "lastActiveTask": "tmux-sendkeys-enter-bug-fix",
+  "completedCheckpoints": ["CP-PLANNING-COMPLETE"],
+  "nextCheckpointId": "CP-BACKEND-IMPLEMENTATION",
+  "timestamp": "2026-07-10T19:15:00Z",
+  "sessionNotes": "tmux send-keys Enter bug javítva 5 fájlban - sessionStarter, sessionManager, terminalReviewer, chatSessionStarter. Claude session indítás most működik API-n keresztül."
+}

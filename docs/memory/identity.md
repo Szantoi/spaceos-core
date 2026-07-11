@@ -1,50 +1,50 @@
-# IDENTITY Memory
+# Identity Terminal Memory — Updated 2026-06-20
 
-Utolsó frissítés: 2026-06-20
+## TRACK A-E: COMPLETED ✅
 
-## Aktuális állapot
+**Module:** spaceos-modules-identity (Port: 5008)
+**Tests:** 67/67 PASS
+**Build:** 0 errors, 0 warnings
+**Git:** `c1324ec` (GET /users?role={role})
 
-- **Modul:** spaceos-modules-identity (Port: 5008)
-- **Tesztek:** 67/67 PASS
-- **Build:** 0 error, 0 warning
-- **Git:** `c1324ec` (GET /users?role={role} endpoint)
+---
 
-## Fontos kontextus
+## API ENDPOINTS (9 implemented)
 
-- **Track A-E:** COMPLETED — teljes Identity modul implementálva
-- **MSG-IDENTITY-006:** APPROVED — GET /users?role={role} endpoint
-- **MSG-IDENTITY-007:** READ — ROOT APPROVE döntés
-- **TOP 3 PHASE 2:** Backend dependency RESOLVED
-- **VPS Deploy:** Ready, várjuk Cutting DONE → együtt deploy
+**User Management:**
+- GET `/identity/users` (list, filter by role)
+- GET/POST/PUT `/identity/users/{id}` (CRUD)
+- POST `/identity/users/{id}/disable`, `/enable`, `/reset-password` (actions)
 
-## API Endpoints (implementált)
+**Admin:**
+- POST `/identity/admin/tenants/{id}/sync-from-keycloak` (Keycloak sync)
 
-| Method | Path | Status |
-|--------|------|--------|
-| GET | `/identity/users` | ✅ |
-| GET | `/identity/users?role={role}` | ✅ NEW |
-| GET | `/identity/users/{id}` | ✅ |
-| POST | `/identity/users` | ✅ |
-| PUT | `/identity/users/{id}` | ✅ |
-| POST | `/identity/users/{id}/disable` | ✅ |
-| POST | `/identity/users/{id}/enable` | ✅ |
-| POST | `/identity/users/{id}/reset-password` | ✅ |
-| POST | `/identity/admin/tenants/{id}/sync-from-keycloak` | ✅ |
+---
 
-## Következő lépések
+## KEY PATTERNS
 
-- Nincs aktív inbox feladat
-- Várunk VPS deploy-ra (Cutting-gel együtt)
-- Készen állunk további feladatokra
+### Role Whitelist (Security over Flexibility)
+Hardcoded: `machine_operator`, `production_manager`, `admin`
 
-## Megoldott problémák
+### Keycloak Integration
+- Plain HttpClient (Keycloak.AuthServices.Sdk net10.0 incompatibility)
+- User ID → GUID mapping: `Guid.TryParse()` filter
+- SEC-09 compliance: `tid` exclusively from JWT
 
-- Keycloak.AuthServices.Sdk net10.0 inkompatibilitás → plain HttpClient megoldás
-- EF Core materialization issue → fixed (commit 616a89f)
-- AllowedHosts TestServer 400 → `UseSetting("AllowedHosts", "*")`
+---
 
-## Session tapasztalatok
+## DEPLOYMENT STATUS
 
-- Role whitelist hardcoded: `machine_operator`, `production_manager`, `admin` — security over flexibility
-- Keycloak User ID → GUID mapping: `Guid.TryParse()` filter praktikus megoldás
-- SEC-09 compliance: tid kizárólag JWT-ből
+- **VPS Deploy:** Ready, waiting for Cutting DONE (joint deploy)
+- **Backend Dependency:** RESOLVED (TOP 3 PHASE 2)
+
+---
+
+**Last Updated:** 2026-06-20
+**Status:** 🟢 OPERATIONAL
+**Focus:** Auth & user management (Keycloak integration)
+**Memory Tier:** Warm (14-day, stable implementation)
+
+---
+
+_This memory is compressed from 1.7KB to ~1.0KB by converting endpoint table to summary. Preserved: API endpoint count, key patterns (role whitelist, Keycloak integration), and deployment status._

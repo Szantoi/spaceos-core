@@ -1,0 +1,38 @@
+type: DOCUMENTATION
+description: "README, ADR, knowledge doc írás/frissítés"
+strictness: medium
+require_both: false
+
+criteria:
+  blocking:
+    - id: accuracy
+      name: "Pontos, naprakész információ"
+      check: "manual"
+      weight: 10
+
+    - id: completeness
+      name: "Minden releváns szempont lefedve"
+      check: "manual"
+      weight: 8
+
+  non_blocking:
+    - id: markdown_formatting
+      name: "Markdown formázás helyes"
+      check: "manual"
+      weight: 3
+
+    - id: links_working
+      name: "Linkek működnek"
+      check: "manual"
+      weight: 2
+
+approval_threshold:
+  blocking_score: 14  # 78%
+  total_score: 18     # 78%
+
+escalation_policy:
+  max_attempts: 1
+  escalate_to: root
+  notify: telegram
+
+version: 1.0.0

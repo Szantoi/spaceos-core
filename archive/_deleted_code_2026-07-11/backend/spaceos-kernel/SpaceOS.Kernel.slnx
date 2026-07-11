@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="SpaceOS.Kernel.Domain/SpaceOS.Kernel.Domain.csproj" />
+  <Project Path="SpaceOS.Kernel.Tests/SpaceOS.Kernel.Tests.csproj" />
+  <Project Path="SpaceOS.Infrastructure/SpaceOS.Infrastructure.csproj" />
+</Solution>

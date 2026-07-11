@@ -1,0 +1,78 @@
+name: API Client Generation
+
+# DRAFT — Not activated yet
+# This workflow will automatically regenerate API clients when OpenAPI specs change
+
+on:
+  push:
+    paths:
+      - 'backend/spaceos-kernel/**/Program.cs'
+      - 'backend/spaceos-kernel/**/Endpoints/*.cs'
+      - '.github/workflows/api-client-gen.yml'
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  generate-portal-clients:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Portal dependencies
+        working-directory: datahaven-web/client
+        run: npm ci
+
+      - name: Generate Portal API clients
+        working-directory: datahaven-web/client
+        run: npm run generate:api
+
+      - name: Commit Portal generated files
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git add datahaven-web/client/src/api/generated/
+          git diff --staged --quiet || git commit -m "chore(portal): regenerate API clients [skip ci]"
+
+  generate-orchestrator-clients:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Orchestrator dependencies
+        working-directory: backend/spaceos-orchestrator
+        run: npm ci
+
+      - name: Generate Orchestrator API clients
+        working-directory: backend/spaceos-orchestrator
+        run: npm run generate:api
+
+      - name: Commit Orchestrator generated files
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git add backend/spaceos-orchestrator/src/api/generated/
+          git diff --staged --quiet || git commit -m "chore(orchestrator): regenerate API clients [skip ci]"
+
+  push-changes:
+    needs: [generate-portal-clients, generate-orchestrator-clients]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Pull latest changes
+        run: git pull --rebase origin main
+
+      - name: Push changes
+        run: git push origin main

@@ -1,0 +1,50 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Datahaven" [level=1] [ref=e5]
+      - text: Message Queue Dashboard
+    - generic [ref=e9]: Connected
+  - main [ref=e15]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]: "0"
+        - generic [ref=e19]: Total Messages
+      - generic [ref=e20]:
+        - generic [ref=e21]: "0"
+        - generic [ref=e22]: Pending
+      - generic [ref=e23]:
+        - generic [ref=e24]: "0"
+        - generic [ref=e25]: Acknowledged
+      - generic [ref=e26]:
+        - generic [ref=e27]: "2"
+        - generic [ref=e28]: Daemons
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - heading "Daemons" [level=2] [ref=e32]
+          - button "Refresh" [ref=e33] [cursor=pointer]
+        - generic [ref=e34]:
+          - generic [ref=e58]:
+            - generic [ref=e59]: telegram-bot
+            - generic [ref=e60]: No description
+          - generic [ref=e64]:
+            - generic [ref=e65]: telegram-bot-test
+            - generic [ref=e66]: No description
+      - generic [ref=e36]:
+        - generic [ref=e37]:
+          - heading "Recent Messages" [level=2] [ref=e38]
+          - generic [ref=e39]:
+            - combobox [ref=e40]:
+              - option "All Status" [selected]
+              - option "Pending"
+              - option "Acknowledged"
+            - button "Refresh" [ref=e41] [cursor=pointer]
+        - generic [ref=e67]: No messages found
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - heading "Knowledge Search" [level=2] [ref=e46]
+        - generic [ref=e49]: Online (0 docs)
+      - generic [ref=e50]:
+        - textbox "Search knowledge base..." [ref=e51]
+        - button "Search" [ref=e52] [cursor=pointer]
+      - paragraph [ref=e54]: Enter a query to search the knowledge base.

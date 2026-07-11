@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "spaceos-knowledge": {
+      "command": "node",
+      "args": ["/opt/spaceos/spaceos-nexus/knowledge-service/bin/stdio-bridge.js"],
+      "env": {
+        "MCP_HOST": "localhost",
+        "MCP_PORT": "3456",
+        "MCP_AUTH_TOKEN": "IoUpLUgr4v6Mj5lt4u2XD1JOy5iGmVdxne473srMl2o="
+      }
+    }
+  }
+}

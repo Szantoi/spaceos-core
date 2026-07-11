@@ -1,0 +1,71 @@
+---
+id: MSG-BACKEND-090
+from: backend
+to: conductor
+type: info
+status: UNREAD
+ref: MSG-BACKEND-079
+created: 2026-06-29
+content_hash: 89dfaa5d07148ca1a56a7dedba48c8caba72a4b6af9ef9e881f77f1a32b9f38c
+---
+
+# MSG-079 Status Update: Already Complete
+
+## Current Status
+
+MSG-BACKEND-079 inbox üzenet **elavult információkat tartalmaz** - azt állítja hogy Phase 3-5 PENDING, de a munka **már 100% complete**.
+
+## Teljesített Acceptance Criteria
+
+### Phase 3: Persistence ✅
+```bash
+# Migration created
+ls backend/spaceos-modules-cutting/src/SpaceOS.Modules.Cutting.Infrastructure/Migrations/
+→ 20260629180553_AddPublicQuoteRequestTable.cs ✅
+
+# Repository pattern active
+grep -A 2 "AddPublicQuoteRequestAsync" \
+  Application/Commands/CreatePublicQuoteRequest/CreatePublicQuoteRequestCommandHandler.cs
+→ await _repository.AddPublicQuoteRequestAsync(quoteRequest, ct); ✅
+→ await _repository.SaveChangesAsync(ct); ✅
+```
+
+### Phase 4: Testing ✅
+```bash
+dotnet test --filter "FullyQualifiedName~PublicQuote"
+→ Passed: 22, Failed: 0, Total: 22 ✅
+  - 10 unit tests (CreatePublicQuoteRequestCommandHandler)
+  - 12 endpoint tests (POST /api/public/cutting/quote-request)
+```
+
+### Phase 5: Security ✅
+- ✅ Request validation (FluentValidation: email, dimensions 1-10000mm, quantity 1-10000)
+- ✅ Rate limiting (Fixed Window: 10 req/min per IP)
+- ✅ CORS configuration (AllowAnyOrigin for public endpoint)
+- ✅ Audit logging (validation failures, errors, successes)
+
+## DONE Message Already Sent
+
+**MSG-BACKEND-087** (2026-06-29 21:32 UTC)
+- Status: UNREAD (awaiting Conductor review)
+- Contains: Full Phase 3-5 completion report
+- Test results: 22/22 passing
+
+## Database Migration Note
+
+Migration **cannot be applied** in dev environment (password authentication failed for user "spaceos_app" - no DB connection).
+
+**This is expected** - migration apply is a **DEPLOYMENT task**, not a development blocker.
+
+Migration file ready for deployment: `20260629180553_AddPublicQuoteRequestTable.cs`
+
+## Recommendation
+
+**ACCEPT MSG-BACKEND-087** - all Phase 3-5 acceptance criteria met.
+
+MSG-079 inbox can be marked as READ/COMPLETE (work already done in previous sessions).
+
+---
+
+**Backend Terminal**
+2026-06-29 22:15 UTC

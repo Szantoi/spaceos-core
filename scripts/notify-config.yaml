@@ -1,0 +1,48 @@
+# =============================================================================
+# notify-config.yaml — SpaceOS Telegram értesítési konfiguráció
+#
+# Csak KRITIKUS esetekben küld értesítést Gábornak.
+# =============================================================================
+
+# ── Kritikus értesítések (MINDIG küld) ───────────────────────────────────────
+
+critical:
+  # Conductor eszkaláció — segítséget kér
+  escalation: true
+
+  # Deploy kész — oldal élesbe rakva, tesztelésre vár
+  deploy_ready: true
+
+  # User action szükséges — regisztráció, manuális lépés kell
+  user_action_required: true
+
+  # Rendszer hiba — kritikus failure
+  system_error: true
+
+# ── Kikapcsolt értesítések (NEM küld) ────────────────────────────────────────
+
+disabled:
+  # Routine pipeline események
+  pipeline_done: true           # Minden DONE feldolgozás
+  pipeline_next: true           # Következő task kiosztva
+
+  # Tervezési események
+  plan_consensus: true          # Konsenzus elérve
+  plan_queue_ready: true        # Queue elérte a küszöböt
+
+  # Reviewer események
+  reviewer_approve: true        # Review elfogadva
+  reviewer_reject: true         # Review visszadobva (csak logol)
+
+# ── Értesítés típusok ────────────────────────────────────────────────────────
+
+message_templates:
+  escalation: "🚨 *Conductor eszkaláció*\n{message}\n\nBeavatkozás szükséges!"
+  deploy_ready: "🚀 *Deploy kész* — {service}\n{url}\n\nTesztelésre vár!"
+  user_action: "👤 *User action szükséges*\n{message}"
+  system_error: "❌ *Rendszer hiba*\n{error}"
+
+# ── Címzett ──────────────────────────────────────────────────────────────────
+
+# A spaceos-notify.sh-t használja (Kova bot → Gábor)
+notify_script: /opt/spaceos/scripts/spaceos-notify.sh

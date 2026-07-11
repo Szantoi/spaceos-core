@@ -1,0 +1,61 @@
+# SpaceOS Telegram Bot Configuration
+# Copy to telegram-bots.yaml and fill in tokens
+
+bots:
+  root:
+    username: spaceos_root_bot
+    token: "YOUR_TOKEN_HERE"
+    terminal: root
+    model: sonnet  # Root gets Sonnet for strategic decisions
+
+  conductor:
+    username: spaceos_conductor_bot
+    token: "YOUR_TOKEN_HERE"
+    terminal: conductor
+    model: haiku
+
+  backend:
+    username: spaceos_backend_bot
+    token: "YOUR_TOKEN_HERE"
+    terminal: backend
+    model: haiku
+
+  frontend:
+    username: spaceos_frontend_bot
+    token: "YOUR_TOKEN_HERE"
+    terminal: frontend
+    model: haiku
+
+  architect:
+    username: spaceos_architect_bot
+    token: "YOUR_TOKEN_HERE"
+    terminal: architect
+    model: haiku
+
+  explorer:
+    username: spaceos_explorer_bot
+    token: "YOUR_TOKEN_HERE"
+    terminal: explorer
+    model: haiku
+
+  librarian:
+    username: spaceos_librarian_bot
+    token: "YOUR_TOKEN_HERE"
+    terminal: librarian
+    model: haiku
+
+  designer:
+    username: spaceos_designer_bot
+    token: "YOUR_TOKEN_HERE"
+    terminal: designer
+    model: haiku
+
+# Shared settings
+defaults:
+  chat_session_suffix: "-chat"
+  work_session_suffix: "-work"
+  memory_db: "memory.db"
+
+# Allowed users (Telegram user IDs)
+allowed_users:
+  - 6157685055  # Gábor

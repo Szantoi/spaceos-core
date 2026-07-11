@@ -1,0 +1,34 @@
+# ⚠️ VPS INKOMPATIBILITÁS: quay.io/keycloak/keycloak:24.0.5 NEM INDUL ezen a VPS-en
+# Hiba: "CPU does not support x86-64-v2"
+# JELENLEG: bare-metal 24.0.0 fut systemd alatt (/opt/keycloak-app/bin/kc.sh)
+# Kezelés: sudo systemctl restart keycloak | sudo journalctl -u keycloak
+# Ha Docker-re kell váltani: x86-64-v2 kompatibilis base image szükséges
+version: '3.9'
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.5   # SEC-04: pinned patch version
+    command: start --optimized
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://host.docker.internal:5433/spaceos_keycloak
+      KC_DB_USERNAME: spaceos_keycloak_user
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_PORT: 8080
+      KC_PROXY: edge
+      KC_HEALTH_ENABLED: "true"
+      KC_FEATURES: scripts                     # DB-01: enable JS protocol mapper
+      KEYCLOAK_ADMIN: ${KC_ADMIN_USER}
+      KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

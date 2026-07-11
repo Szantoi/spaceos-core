@@ -1,0 +1,431 @@
+version: "1.0"
+
+# =============================================================================
+# MCP CONNECTOR CONFIGURATION
+# SpaceOS Central MCP Aggregator
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# BACKENDS
+# All MCP servers that the connector proxies to
+# -----------------------------------------------------------------------------
+backends:
+  # SpaceOS Knowledge Service (HTTP)
+  knowledge:
+    type: http
+    url: "http://localhost:3456/mcp"
+    headers:
+      Authorization: "Bearer IoUpLUgr4v6Mj5lt4u2XD1JOy5iGmVdxne473srMl2o="
+    health_check: "/health"
+    timeout: 30000
+
+  # Playwright MCP - Browser automation for E2E testing
+  # Official Microsoft package: https://www.npmjs.com/package/@playwright/mcp
+  playwright:
+    type: stdio
+    command: "npx"
+    args: ["-y", "@playwright/mcp@latest"]
+    auto_restart: true
+    timeout: 60000  # Browser operations can be slow
+
+  # Ref MCP - Developer documentation search
+  # Using @anthropic-ai/claude-code-mcp-adapter for ref
+  ref:
+    type: stdio
+    command: "npx"
+    args: ["-y", "@anthropic-ai/mcp-server-fetch"]
+    auto_restart: true
+    timeout: 30000
+
+  # Context7 MCP - Library documentation
+  context7:
+    type: stdio
+    command: "npx"
+    args: ["-y", "@upstash/context7-mcp"]
+    auto_restart: true
+    timeout: 30000
+
+  # Brave Search MCP - Web search
+  # Using modelcontextprotocol official package
+  brave-search:
+    type: stdio
+    command: "npx"
+    args: ["-y", "@modelcontextprotocol/server-brave-search"]
+    env:
+      BRAVE_API_KEY: "${BRAVE_API_KEY}"
+    auto_restart: true
+    timeout: 30000
+
+# -----------------------------------------------------------------------------
+# ROUTING
+# Maps tool names to backends
+# -----------------------------------------------------------------------------
+routing:
+  # =========================================================================
+  # KNOWLEDGE SERVICE TOOLS (80+)
+  # =========================================================================
+
+  # Mailbox tools
+  list_inbox: knowledge
+  send_message: knowledge
+  read_inbox_message: knowledge
+  complete_inbox_message: knowledge
+  append_to_message: knowledge
+  submit_done: knowledge
+
+  # Task tools
+  create_task: knowledge
+  fetch_task: knowledge
+  ack_task: knowledge
+  complete_task: knowledge
+  get_task_status: knowledge
+  tmb_create_task: knowledge
+  tmb_read_message: knowledge
+  tmb_complete_message: knowledge
+  tmb_append_note: knowledge
+  tmb_get_inbox: knowledge
+  tmb_get_outbox: knowledge
+
+  # Identity & Memory
+  get_identity: knowledge
+  read_memory: knowledge
+  write_memory: knowledge
+  append_memory: knowledge
+  list_terminals: knowledge
+  get_terminal_docs: knowledge
+  get_terminals_index: knowledge
+
+  # Terminal Status
+  register_working: knowledge
+  register_idle: knowledge
+  get_terminal_status: knowledge
+  get_terminal_status_aggregate: knowledge
+
+  # Context Persistence
+  build_session_start_context: knowledge
+  get_context_saturation: knowledge
+  read_session_state: knowledge
+  write_session_state: knowledge
+  read_terminal_status_md: knowledge
+  write_terminal_status_md: knowledge
+  increment_turn_count: knowledge
+  reset_turn_count: knowledge
+  get_context_files_status: knowledge
+  get_all_context_files_status: knowledge
+
+  # Checkpoints
+  read_checkpoints_md: knowledge
+  append_checkpoint_to_md: knowledge
+  get_checkpoint_status: knowledge
+  refresh_checkpoint_subscriptions: knowledge
+
+  # Knowledge Search
+  search_knowledge: knowledge
+  get_skill: knowledge
+  list_skills: knowledge
+  get_workflow: knowledge
+  get_terminal_setup: knowledge
+  get_project_context: knowledge
+  list_terminal_docs: knowledge
+
+  # Domain Memory
+  list_domain_memories: knowledge
+  detect_task_domains: knowledge
+
+  # Work Sessions
+  request_work_session: knowledge
+  spawn_work_session: knowledge
+
+  # Focus Queue
+  get_focus_queue: knowledge
+  set_active_task: knowledge
+  add_focus_item: knowledge
+  set_task_status: knowledge
+  set_focus_queue: knowledge
+
+  # Projects
+  create_project: knowledge
+  get_project_status: knowledge
+  dispatch_next: knowledge
+  list_blocked: knowledge
+
+  # Code Generation
+  generate_skeleton: knowledge
+  generate_endpoint: knowledge
+  generate_api_client: knowledge
+  generate_component: knowledge
+  generate_module: knowledge
+  generate_hook: knowledge
+  get_codegen_status: knowledge
+  check_api_client_status: knowledge
+  verify_frontend_build: knowledge
+  scaffold_from_pattern: knowledge
+  analyze_bundle_size: knowledge
+
+  # Memory Management
+  save_tiered_memory: knowledge
+  promote_memory: knowledge
+  get_session_context: knowledge
+  run_retrospective: knowledge
+  apply_retrospective: knowledge
+  generate_handoff: knowledge
+  generate_daily_digest: knowledge
+  memory_health_report: knowledge
+  compress_memory: knowledge
+  extract_patterns: knowledge
+
+  # Skills
+  create_skill: knowledge
+  list_all_skills: knowledge
+  get_skill_metadata: knowledge
+  delete_skill: knowledge
+
+  # Epic Management
+  get_epic_progress: knowledge
+  get_all_epics_progress: knowledge
+  resolve_epic_dependencies: knowledge
+
+  # Subscriptions
+  subscribe_to_task: knowledge
+  subscribe_to_terminal: knowledge
+  unsubscribe: knowledge
+  get_subscriptions: knowledge
+
+  # Goals
+  create_goal: knowledge
+  list_goals: knowledge
+  get_goal: knowledge
+  check_goal_criteria: knowledge
+  trigger_goal: knowledge
+  complete_goal: knowledge
+
+  # Domain Patterns
+  match_domain_pattern: knowledge
+  scaffold_react_hook: knowledge
+  transfer_session_context: knowledge
+
+  # Workers
+  spawn_parallel_workers: knowledge
+  spawn_raw_workers: knowledge
+  get_worker_status: knowledge
+
+  # Telegram
+  telegram_reply: knowledge
+  telegram_broadcast: knowledge
+  get_telegram_history: knowledge
+
+  # Review
+  request_review: knowledge
+
+  # Service Status
+  get_service_status: knowledge
+  get_capabilities: knowledge
+
+  # =========================================================================
+  # PLAYWRIGHT MCP TOOLS
+  # Browser automation for E2E testing
+  # =========================================================================
+  playwright_navigate: playwright
+  playwright_screenshot: playwright
+  playwright_click: playwright
+  playwright_fill: playwright
+  playwright_select: playwright
+  playwright_hover: playwright
+  playwright_evaluate: playwright
+  playwright_console_logs: playwright
+  playwright_close: playwright
+  playwright_resize: playwright
+
+  # =========================================================================
+  # REF MCP TOOLS
+  # Developer documentation search
+  # =========================================================================
+  ref_search_documentation: ref
+  ref_read_url: ref
+
+  # =========================================================================
+  # CONTEXT7 MCP TOOLS
+  # Library documentation
+  # =========================================================================
+  resolve-library-id: context7
+  get-library-docs: context7
+
+  # =========================================================================
+  # BRAVE SEARCH MCP TOOLS
+  # Web search
+  # =========================================================================
+  brave_web_search: brave-search
+  brave_local_search: brave-search
+
+# -----------------------------------------------------------------------------
+# PERMISSIONS
+# Terminal-based access control
+# -----------------------------------------------------------------------------
+permissions:
+  # Root - full access
+  root:
+    - "*"
+
+  # Conductor - coordination tools
+  conductor:
+    backends: [knowledge, brave-search]
+    tools:
+      - search_knowledge
+      - list_inbox
+      - send_message
+      - create_task
+      - get_terminal_status_aggregate
+      - get_focus_queue
+      - set_active_task
+      - register_working
+      - register_idle
+      - get_epic_progress
+      - resolve_epic_dependencies
+      - spawn_work_session
+      - brave_web_search
+
+  # Backend - development tools
+  backend:
+    backends: [knowledge, ref, context7, playwright]
+    tools:
+      - search_knowledge
+      - read_memory
+      - append_memory
+      - fetch_task
+      - ack_task
+      - complete_task
+      - register_working
+      - register_idle
+      - build_session_start_context
+      - get_context_saturation
+      - ref_search_documentation
+      - ref_read_url
+      - resolve-library-id
+      - get-library-docs
+      - playwright_navigate
+      - playwright_screenshot
+      - playwright_click
+      - playwright_fill
+      - playwright_evaluate
+
+  # Frontend - UI development tools
+  frontend:
+    backends: [knowledge, ref, context7, playwright]
+    tools:
+      - search_knowledge
+      - read_memory
+      - append_memory
+      - fetch_task
+      - ack_task
+      - complete_task
+      - register_working
+      - register_idle
+      - build_session_start_context
+      - ref_search_documentation
+      - resolve-library-id
+      - get-library-docs
+      - playwright_navigate
+      - playwright_screenshot
+      - playwright_click
+      - playwright_fill
+      - playwright_evaluate
+
+  # Architect - design tools
+  architect:
+    backends: [knowledge, ref, brave-search]
+    tools:
+      - search_knowledge
+      - read_memory
+      - append_memory
+      - register_working
+      - register_idle
+      - ref_search_documentation
+      - ref_read_url
+      - brave_web_search
+
+  # Librarian - documentation tools
+  librarian:
+    backends: [knowledge, ref]
+    tools:
+      - search_knowledge
+      - read_memory
+      - write_memory
+      - append_memory
+      - register_working
+      - register_idle
+      - ref_search_documentation
+      - ref_read_url
+
+  # Explorer - research tools
+  explorer:
+    backends: [knowledge, ref, brave-search]
+    tools:
+      - search_knowledge
+      - read_memory
+      - register_working
+      - register_idle
+      - ref_search_documentation
+      - brave_web_search
+
+  # Designer - UI/UX tools
+  designer:
+    backends: [knowledge, ref, playwright]
+    tools:
+      - search_knowledge
+      - read_memory
+      - register_working
+      - register_idle
+      - ref_search_documentation
+      - playwright_navigate
+      - playwright_screenshot
+
+  # Monitor - status tools
+  monitor:
+    backends: [knowledge]
+    tools:
+      - get_terminal_status_aggregate
+      - get_context_saturation
+      - get_epic_progress
+      - list_goals
+      - check_goal_criteria
+
+  # Nexus - infrastructure tools
+  nexus:
+    backends: [knowledge, ref, context7]
+    tools:
+      - search_knowledge
+      - read_memory
+      - write_memory
+      - append_memory
+      - fetch_task
+      - ack_task
+      - complete_task
+      - register_working
+      - register_idle
+      - ref_search_documentation
+      - resolve-library-id
+      - get-library-docs
+
+# -----------------------------------------------------------------------------
+# AUDIT
+# Centralized logging
+# -----------------------------------------------------------------------------
+audit:
+  enabled: true
+  log_file: "/opt/spaceos/logs/mcp-connector-audit.log"
+  log_format: json
+  log_level: info
+  metrics_enabled: false  # Enable in Phase 2
+
+# -----------------------------------------------------------------------------
+# PERFORMANCE
+# Tuning and circuit breaker
+# -----------------------------------------------------------------------------
+performance:
+  request_timeout: 30000
+  max_concurrent_requests: 100
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 5
+    timeout: 60000
+    half_open_after: 30000

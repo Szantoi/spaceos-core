@@ -1,0 +1,544 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SpaceOS.Modules.FlowManagement</name>
+    </assembly>
+    <members>
+        <member name="T:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone">
+            <summary>
+            Represents a milestone within a <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProject"/>.
+            Milestones group <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowTask"/> instances and mark significant delivery points.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone.Id">
+            <summary>Gets the unique identifier of this milestone.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone.Name">
+            <summary>Gets the display name of the milestone.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone.ProjectId">
+            <summary>Gets the project this milestone belongs to.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone.TargetDate">
+            <summary>Gets the optional target completion date of the milestone.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone.Status">
+            <summary>Gets the current status of the milestone (e.g. "Open", "Completed").</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone.TenantId">
+            <summary>Gets the tenant that owns this milestone.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone.Phase">
+            <summary>Gets the current workflow phase of this milestone.</summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone.Create(System.String,System.Guid,System.Guid)">
+            <summary>
+            Creates a new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone"/> with the given name and project.
+            </summary>
+            <param name="name">The display name of the milestone. Must not be null or whitespace.</param>
+            <param name="projectId">The project this milestone belongs to.</param>
+            <param name="tenantId">The tenant that owns this milestone.</param>
+            <returns>A new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone"/> instance with status "Open" and phase Discovery.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when <paramref name="name"/> is null or whitespace.</exception>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone.Complete">
+            <summary>
+            Transitions this milestone to the "Completed" status and the <see cref="F:SpaceOS.Modules.Abstractions.WorkflowPhase.ClosedDone"/> phase.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone.UpdateTargetDate(System.Nullable{System.DateTimeOffset})">
+            <summary>
+            Updates the target completion date of this milestone.
+            </summary>
+            <param name="date">The new target date, or <c>null</c> to clear it.</param>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Domain.FlowProgram">
+            <summary>
+            Represents a high-level program that groups related <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProject"/> instances.
+            A program is the top-level container in the FlowManagement hierarchy.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowProgram.Id">
+            <summary>Gets the unique identifier of this program.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowProgram.Name">
+            <summary>Gets the display name of the program.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowProgram.TenantId">
+            <summary>Gets the tenant that owns this program.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowProgram.Description">
+            <summary>Gets an optional description of the program.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowProgram.Phase">
+            <summary>Gets the current workflow phase of this program.</summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.FlowProgram.Create(System.String,System.Guid,System.String)">
+            <summary>
+            Creates a new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProgram"/> with the given name and tenant.
+            </summary>
+            <param name="name">The display name of the program. Must not be null or whitespace.</param>
+            <param name="tenantId">The tenant that owns this program.</param>
+            <param name="description">An optional description of the program.</param>
+            <returns>A new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProgram"/> instance with phase Discovery.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when <paramref name="name"/> is null or whitespace.</exception>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Domain.FlowProject">
+            <summary>
+            Represents a project within a <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProgram"/>.
+            Projects group related <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone"/> and <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowTask"/> instances.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowProject.Id">
+            <summary>Gets the unique identifier of this project.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowProject.Name">
+            <summary>Gets the display name of the project.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowProject.ProgramId">
+            <summary>Gets the optional program this project belongs to.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowProject.Description">
+            <summary>Gets an optional description of the project.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowProject.StartDate">
+            <summary>Gets the optional planned start date of the project.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowProject.EndDate">
+            <summary>Gets the optional planned end date of the project.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowProject.TenantId">
+            <summary>Gets the tenant that owns this project.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowProject.Phase">
+            <summary>Gets the current workflow phase of this project.</summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.FlowProject.Create(System.String,System.Guid,System.Nullable{System.Guid})">
+            <summary>
+            Creates a new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProject"/> with the given name and tenant.
+            </summary>
+            <param name="name">The display name of the project. Must not be null or whitespace.</param>
+            <param name="tenantId">The tenant that owns this project.</param>
+            <param name="programId">An optional program to assign this project to.</param>
+            <returns>A new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProject"/> instance with phase Discovery.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when <paramref name="name"/> is null or whitespace.</exception>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.FlowProject.UpdateDates(System.Nullable{System.DateTimeOffset},System.Nullable{System.DateTimeOffset})">
+            <summary>
+            Updates the planned start and end dates of this project.
+            </summary>
+            <param name="start">The new start date, or <c>null</c> to clear it.</param>
+            <param name="end">The new end date, or <c>null</c> to clear it.</param>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Domain.FlowTask">
+            <summary>
+            Represents an individual work item within the FlowManagement module.
+            <see cref="P:SpaceOS.Modules.FlowManagement.Domain.FlowTask.EpicKernelId"/> is a UUID-only reference to a Kernel <c>FlowEpic</c> —
+            no foreign key is maintained across the module boundary.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowTask.Id">
+            <summary>Gets the unique identifier of this task.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowTask.EpicKernelId">
+            <summary>
+            Gets the UUID of the Kernel <c>FlowEpic</c> this task is associated with.
+            This is a UUID-only link — no foreign key constraint is enforced across the module boundary.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowTask.MilestoneId">
+            <summary>Gets the optional milestone this task is grouped under.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowTask.Name">
+            <summary>Gets the display name of the task.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowTask.Description">
+            <summary>Gets an optional description of the task.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowTask.AssigneeId">
+            <summary>Gets the optional user assigned to this task.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowTask.Status">
+            <summary>Gets the current status of the task (e.g. "Open", "Completed").</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowTask.DueDate">
+            <summary>Gets the optional due date of the task.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowTask.TenantId">
+            <summary>Gets the tenant that owns this task.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowTask.Phase">
+            <summary>Gets the current workflow phase of this task.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowTask.IsSyncedToKernel">
+            <summary>
+            Gets a value indicating whether this task has been successfully synchronised
+            with the Kernel at least once.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.FlowTask.LastSyncAt">
+            <summary>
+            Gets the UTC timestamp of the most recent successful sync, or <c>null</c> if the
+            task has never been synchronised.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.FlowTask.Create(System.Guid,System.String,System.Guid,System.Nullable{System.Guid})">
+            <summary>
+            Creates a new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowTask"/> linked to the given Kernel epic.
+            </summary>
+            <param name="epicKernelId">The UUID of the Kernel FlowEpic. UUID-only — no FK.</param>
+            <param name="name">The display name of the task. Must not be null or whitespace.</param>
+            <param name="tenantId">The tenant that owns this task.</param>
+            <param name="milestoneId">An optional milestone to group this task under.</param>
+            <returns>A new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowTask"/> instance with status "Open" and phase Discovery.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when <paramref name="name"/> is null or whitespace.</exception>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.FlowTask.Complete">
+            <summary>
+            Transitions this task to the "Completed" status and the <see cref="F:SpaceOS.Modules.Abstractions.WorkflowPhase.ClosedDone"/> phase.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.FlowTask.Reopen">
+            <summary>
+            Transitions this task back to the "Open" status and the <see cref="F:SpaceOS.Modules.Abstractions.WorkflowPhase.Discovery"/> phase.
+            Can only be called when the current status is "Completed".
+            </summary>
+            <exception cref="T:System.InvalidOperationException">Thrown when the task is not in "Completed" status.</exception>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.FlowTask.Assign(System.Guid)">
+            <summary>
+            Assigns this task to the specified user.
+            </summary>
+            <param name="assigneeId">The identifier of the user to assign this task to.</param>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.FlowTask.MarkSynced(System.DateTimeOffset)">
+            <summary>
+            Records a successful synchronisation with the Kernel.
+            </summary>
+            <param name="syncedAt">The UTC timestamp of the sync event.</param>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowMilestoneRepository">
+            <summary>
+            Repository contract for <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone"/> persistence.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowMilestoneRepository.GetByIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves a <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone"/> by its identifier, or <c>null</c> if not found.
+            </summary>
+            <param name="id">The unique identifier of the milestone.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>The matching milestone, or <c>null</c>.</returns>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowMilestoneRepository.AddAsync(SpaceOS.Modules.FlowManagement.Domain.FlowMilestone,System.Threading.CancellationToken)">
+            <summary>
+            Persists a new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone"/> to the store.
+            </summary>
+            <param name="milestone">The milestone to add.</param>
+            <param name="ct">Cancellation token.</param>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowMilestoneRepository.UpdateAsync(SpaceOS.Modules.FlowManagement.Domain.FlowMilestone,System.Threading.CancellationToken)">
+            <summary>
+            Persists changes to an existing <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone"/>.
+            </summary>
+            <param name="milestone">The milestone to update.</param>
+            <param name="ct">Cancellation token.</param>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowMilestoneRepository.ListByProjectAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Returns all milestones belonging to the given project.
+            </summary>
+            <param name="projectId">The identifier of the project.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>A list of milestones belonging to the project.</returns>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowProgramRepository">
+            <summary>
+            Repository contract for <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProgram"/> persistence.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowProgramRepository.GetByIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves a <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProgram"/> by its identifier, or <c>null</c> if not found.
+            </summary>
+            <param name="id">The unique identifier of the program.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>The matching program, or <c>null</c>.</returns>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowProgramRepository.AddAsync(SpaceOS.Modules.FlowManagement.Domain.FlowProgram,System.Threading.CancellationToken)">
+            <summary>
+            Persists a new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProgram"/> to the store.
+            </summary>
+            <param name="program">The program to add.</param>
+            <param name="ct">Cancellation token.</param>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowProgramRepository.UpdateAsync(SpaceOS.Modules.FlowManagement.Domain.FlowProgram,System.Threading.CancellationToken)">
+            <summary>
+            Persists changes to an existing <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProgram"/>.
+            </summary>
+            <param name="program">The program to update.</param>
+            <param name="ct">Cancellation token.</param>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowProgramRepository.ListByTenantAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Returns all programs owned by the given tenant.
+            </summary>
+            <param name="tenantId">The identifier of the tenant.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>A list of programs belonging to the tenant.</returns>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowProjectRepository">
+            <summary>
+            Repository contract for <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProject"/> persistence.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowProjectRepository.GetByIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves a <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProject"/> by its identifier, or <c>null</c> if not found.
+            </summary>
+            <param name="id">The unique identifier of the project.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>The matching project, or <c>null</c>.</returns>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowProjectRepository.AddAsync(SpaceOS.Modules.FlowManagement.Domain.FlowProject,System.Threading.CancellationToken)">
+            <summary>
+            Persists a new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProject"/> to the store.
+            </summary>
+            <param name="project">The project to add.</param>
+            <param name="ct">Cancellation token.</param>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowProjectRepository.UpdateAsync(SpaceOS.Modules.FlowManagement.Domain.FlowProject,System.Threading.CancellationToken)">
+            <summary>
+            Persists changes to an existing <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProject"/>.
+            </summary>
+            <param name="project">The project to update.</param>
+            <param name="ct">Cancellation token.</param>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowProjectRepository.ListByProgramAsync(System.Nullable{System.Guid},System.Threading.CancellationToken)">
+            <summary>
+            Returns all projects optionally scoped to the given program.
+            Pass <c>null</c> to retrieve projects not assigned to any program.
+            </summary>
+            <param name="programId">
+            The identifier of the program to filter by, or <c>null</c> for unassigned projects.
+            </param>
+            <param name="ct">Cancellation token.</param>
+            <returns>A list of projects matching the filter.</returns>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowTaskRepository">
+            <summary>
+            Repository contract for <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowTask"/> persistence.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowTaskRepository.GetByIdAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Retrieves a <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowTask"/> by its identifier, or <c>null</c> if not found.
+            </summary>
+            <param name="id">The unique identifier of the task.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>The matching task, or <c>null</c>.</returns>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowTaskRepository.AddAsync(SpaceOS.Modules.FlowManagement.Domain.FlowTask,System.Threading.CancellationToken)">
+            <summary>
+            Persists a new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowTask"/> to the store.
+            </summary>
+            <param name="task">The task to add.</param>
+            <param name="ct">Cancellation token.</param>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowTaskRepository.UpdateAsync(SpaceOS.Modules.FlowManagement.Domain.FlowTask,System.Threading.CancellationToken)">
+            <summary>
+            Persists changes to an existing <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowTask"/>.
+            </summary>
+            <param name="task">The task to update.</param>
+            <param name="ct">Cancellation token.</param>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.Interfaces.IFlowTaskRepository.ListByEpicAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Returns all tasks associated with the given Kernel epic identifier.
+            </summary>
+            <param name="epicKernelId">The UUID of the Kernel FlowEpic.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>A list of tasks belonging to the epic.</returns>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem">
+            <summary>
+            Represents a queued offline sync operation awaiting ingestion by the Kernel.
+            Items expire after 30 days. The (TenantId, ClientSignalId) pair is unique
+            to prevent duplicate processing of the same client-generated signal.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem.Id">
+            <summary>Gets the unique identifier of this queue item.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem.TenantId">
+            <summary>Gets the tenant that owns this queue item.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem.Payload">
+            <summary>Gets the serialised payload of the queued operation.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem.ClientSignalId">
+            <summary>
+            Gets the client-generated idempotency key.
+            Combined with <see cref="P:SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem.TenantId"/>, this must be unique in the queue.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem.ExpiresAt">
+            <summary>Gets the UTC timestamp after which this item may be purged.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem.CreatedAt">
+            <summary>Gets the UTC timestamp when this item was created.</summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem.Create(System.Guid,System.String,System.Guid)">
+            <summary>
+            Creates a new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem"/> that expires 30 days from now.
+            </summary>
+            <param name="tenantId">The tenant that owns this queue item.</param>
+            <param name="payload">The serialised payload. Must not be null or whitespace.</param>
+            <param name="clientSignalId">The client-generated idempotency key.</param>
+            <returns>A new <see cref="T:SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem"/> instance.</returns>
+            <exception cref="T:System.ArgumentException">Thrown when <paramref name="payload"/> is null or whitespace.</exception>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Infrastructure.Configurations.FlowMilestoneConfiguration">
+            <summary>
+            EF Core entity type configuration for <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone"/>.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Infrastructure.Configurations.FlowMilestoneConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder{SpaceOS.Modules.FlowManagement.Domain.FlowMilestone})">
+            <inheritdoc/>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Infrastructure.Configurations.FlowProgramConfiguration">
+            <summary>
+            EF Core entity type configuration for <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProgram"/>.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Infrastructure.Configurations.FlowProgramConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder{SpaceOS.Modules.FlowManagement.Domain.FlowProgram})">
+            <inheritdoc/>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Infrastructure.Configurations.FlowProjectConfiguration">
+            <summary>
+            EF Core entity type configuration for <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProject"/>.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Infrastructure.Configurations.FlowProjectConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder{SpaceOS.Modules.FlowManagement.Domain.FlowProject})">
+            <inheritdoc/>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Infrastructure.Configurations.FlowTaskConfiguration">
+            <summary>
+            EF Core entity type configuration for <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowTask"/>.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Infrastructure.Configurations.FlowTaskConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder{SpaceOS.Modules.FlowManagement.Domain.FlowTask})">
+            <inheritdoc/>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Infrastructure.Configurations.OfflineSyncQueueItemConfiguration">
+            <summary>
+            EF Core entity type configuration for <see cref="T:SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem"/>.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Infrastructure.Configurations.OfflineSyncQueueItemConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder{SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem})">
+            <inheritdoc/>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Infrastructure.ModulesDbContext">
+            <summary>
+            EF Core database context for the FlowManagement module.
+            On PostgreSQL, all tables are placed in the <c>modules</c> schema.
+            On SQLite (development / tests), schema is not supported and is omitted.
+            </summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Infrastructure.ModulesDbContext.FlowTasks">
+            <summary>Gets the <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowTask"/> entities.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Infrastructure.ModulesDbContext.FlowMilestones">
+            <summary>Gets the <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowMilestone"/> entities.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Infrastructure.ModulesDbContext.FlowProjects">
+            <summary>Gets the <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProject"/> entities.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Infrastructure.ModulesDbContext.FlowPrograms">
+            <summary>Gets the <see cref="T:SpaceOS.Modules.FlowManagement.Domain.FlowProgram"/> entities.</summary>
+        </member>
+        <member name="P:SpaceOS.Modules.FlowManagement.Infrastructure.ModulesDbContext.OfflineSyncQueue">
+            <summary>Gets the <see cref="T:SpaceOS.Modules.FlowManagement.Domain.OfflineSyncQueueItem"/> entities.</summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Infrastructure.ModulesDbContext.#ctor(Microsoft.EntityFrameworkCore.DbContextOptions{SpaceOS.Modules.FlowManagement.Infrastructure.ModulesDbContext})">
+            <summary>
+            Initialises a new instance of <see cref="T:SpaceOS.Modules.FlowManagement.Infrastructure.ModulesDbContext"/> with the given options.
+            </summary>
+            <param name="options">The EF Core context options.</param>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Infrastructure.ModulesDbContext.OnModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc/>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Services.FlowNodeResolver">
+            <summary>
+            Resolves the level and identity of a flow node by searching all node collections
+            in the FlowManagement hierarchy (Task → Milestone → Project → Program).
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Services.FlowNodeResolver.#ctor(SpaceOS.Modules.FlowManagement.Infrastructure.ModulesDbContext)">
+            <summary>
+            Initialises a new instance of <see cref="T:SpaceOS.Modules.FlowManagement.Services.FlowNodeResolver"/>.
+            </summary>
+            <param name="db">The modules database context.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="db"/> is <c>null</c>.</exception>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Services.FlowNodeResolver.ResolveAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Resolves the level and identifier of a flow node with the given <paramref name="id"/>.
+            Searches FlowTasks, then FlowMilestones, then FlowProjects, then FlowPrograms.
+            </summary>
+            <param name="id">The identifier to look up.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>
+            A tuple of <c>(Level, Id)</c> where <c>Level</c> is one of "Task", "Milestone", "Project",
+            "Program"; or <c>null</c> if no matching node is found.
+            </returns>
+        </member>
+        <member name="T:SpaceOS.Modules.FlowManagement.Services.OfflineQueueService">
+            <summary>
+            Manages the offline sync queue for the FlowManagement module.
+            Queue items represent pending operations that must be delivered to the Kernel.
+            </summary>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Services.OfflineQueueService.#ctor(SpaceOS.Modules.FlowManagement.Infrastructure.ModulesDbContext)">
+            <summary>
+            Initialises a new instance of <see cref="T:SpaceOS.Modules.FlowManagement.Services.OfflineQueueService"/>.
+            </summary>
+            <param name="db">The modules database context.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="db"/> is <c>null</c>.</exception>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Services.OfflineQueueService.EnqueueAsync(System.Guid,System.String,System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Creates a new queue item with the given payload and persists it.
+            </summary>
+            <param name="tenantId">The tenant that owns this queue item.</param>
+            <param name="payload">The serialised operation payload. Must not be null or whitespace.</param>
+            <param name="clientSignalId">The client-generated idempotency key.</param>
+            <param name="ct">Cancellation token.</param>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Services.OfflineQueueService.GetPendingAsync(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Returns a batch of non-expired queue items ordered by creation time (oldest first).
+            </summary>
+            <param name="batchSize">The maximum number of items to return.</param>
+            <param name="ct">Cancellation token.</param>
+            <returns>A read-only list of pending queue items.</returns>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Services.OfflineQueueService.RemoveAsync(System.Guid,System.Threading.CancellationToken)">
+            <summary>
+            Removes a queue item by its identifier.
+            No-ops silently if the item no longer exists.
+            </summary>
+            <param name="id">The identifier of the queue item to remove.</param>
+            <param name="ct">Cancellation token.</param>
+        </member>
+        <member name="M:SpaceOS.Modules.FlowManagement.Services.OfflineQueueService.GetBackoffDelay(System.Int32)">
+            <summary>
+            Calculates the exponential back-off delay for a retry attempt.
+            The delay is capped at 60 seconds: <c>min(2^retryCount, 60)</c> seconds.
+            </summary>
+            <param name="retryCount">The zero-based retry attempt number.</param>
+            <returns>The back-off delay to wait before the next attempt.</returns>
+        </member>
+    </members>
+</doc>

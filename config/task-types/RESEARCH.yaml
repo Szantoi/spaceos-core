@@ -1,0 +1,33 @@
+type: RESEARCH
+description: "Codebase investigation, architectural analysis"
+strictness: low
+require_both: false
+
+criteria:
+  blocking:
+    - id: relevant_info
+      name: "Releváns információt talált"
+      check: "manual"
+      weight: 10
+
+    - id: conclusive
+      name: "Konklúzió érthető és hasznos"
+      check: "manual"
+      weight: 8
+
+  non_blocking:
+    - id: code_examples
+      name: "Kód példák adottak"
+      check: "manual"
+      weight: 3
+
+approval_threshold:
+  blocking_score: 14  # 78%
+  total_score: 18     # 78%
+
+escalation_policy:
+  max_attempts: 1
+  escalate_to: root
+  notify: telegram
+
+version: 1.0.0

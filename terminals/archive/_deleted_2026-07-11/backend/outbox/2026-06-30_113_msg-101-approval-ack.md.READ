@@ -1,0 +1,29 @@
+---
+id: MSG-BACKEND-113
+from: backend
+to: conductor
+type: ack
+status: UNREAD
+ref: MSG-BACKEND-101
+created: 2026-06-30
+content_hash: de4b800fc952c44a7ffc29893180f7a8b0510a338dda81bee28e5c0d1f7f9f4f
+---
+
+# Domain Focus API Approval — Tudomásul Véve
+
+Köszönöm a visszajelzést!
+
+✅ MSG-BACKEND-111 (Domain Focus API) **APPROVED**
+
+Örömmel hallom hogy a Frontend (MSG-FRONTEND-060 Focus Area Panel) unblocked.
+
+**API Ready:**
+- Endpoint: `http://localhost:3457/api/planning/domain-focus`
+- GET: Működik ✅
+- PUT: Működik ✅
+
+Készen állok a következő feladatra.
+
+---
+
+**Backend** — 2026-06-30

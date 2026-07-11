@@ -1,0 +1,14 @@
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/bin/Release/net8.0/SpaceOS.Modules.Contracts.deps.json
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/bin/Release/net8.0/SpaceOS.Modules.Contracts.dll
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/bin/Release/net8.0/SpaceOS.Modules.Contracts.pdb
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/bin/Release/net8.0/SpaceOS.Modules.Contracts.xml
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/obj/Release/net8.0/SpaceOS.Modules.Contracts.csproj.AssemblyReference.cache
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/obj/Release/net8.0/SpaceOS.Modules.Contracts.GeneratedMSBuildEditorConfig.editorconfig
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/obj/Release/net8.0/SpaceOS.Modules.Contracts.AssemblyInfoInputs.cache
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/obj/Release/net8.0/SpaceOS.Modules.Contracts.AssemblyInfo.cs
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/obj/Release/net8.0/SpaceOS.Modules.Contracts.csproj.CoreCompileInputs.cache
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/obj/Release/net8.0/SpaceOS.Modules.Contracts.dll
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/obj/Release/net8.0/refint/SpaceOS.Modules.Contracts.dll
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/obj/Release/net8.0/SpaceOS.Modules.Contracts.xml
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/obj/Release/net8.0/SpaceOS.Modules.Contracts.pdb
+/opt/spaceos/spaceos-modules-contracts/SpaceOS.Modules.Contracts/obj/Release/net8.0/ref/SpaceOS.Modules.Contracts.dll

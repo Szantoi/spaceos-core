@@ -1,0 +1,1209 @@
+openapi: 3.1.0
+info:
+  title: JoineryTech Kontrolling API
+  version: 1.0.0
+  license:
+    name: Proprietary
+    url: https://joinerytech.hu/license
+  description: |
+    Cost calculation, EAC projection, overhead allocation for JoineryTech ERP.
+
+    **Domain:** Kontrolling (Cost Management)
+    **Pattern:** Read-heavy calculation layer aggregating Production, HR, Finance, Warehouse, Logistics
+    **Authentication:** Bearer JWT (HttpOnly cookie)
+
+    **Key Features:**
+    - Planned vs. Actual cost tracking (6 cost categories)
+    - EAC (Estimate at Completion) projection using MAX(planned, actual)
+    - Portfolio-level aggregation
+    - Manual cost adjustments
+    - Overhead allocation configuration
+
+    **ADR References:**
+    - ADR-055: JoineryTech Kontrolling Domain Model
+    - ADR-058: JoineryTech Integration Architecture
+
+servers:
+  - url: https://api.joinerytech.local
+    description: Local development
+  - url: https://api.joinerytech.hu/v1
+    description: Production
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Cost Calculation
+    description: Project-level cost queries (read-only, calculated)
+  - name: Portfolio
+    description: Portfolio-level aggregation queries
+  - name: Configuration
+    description: Overhead allocation configuration (write)
+  - name: Adjustments
+    description: Manual cost adjustments (write)
+
+paths:
+  # ========================================
+  # COST CALCULATION QUERIES (Read-Heavy)
+  # ========================================
+
+  /api/kontrolling/projects/{projectId}/cost-summary:
+    get:
+      summary: Get project cost summary
+      description: |
+        Real-time cost summary for a project:
+        - Planned, Actual, EAC costs (6 categories)
+        - Revenue (Planned, Actual)
+        - Margins (Planned, Actual, EAC)
+
+        **Data Sources:**
+        - Production (planned material, labor)
+        - HR (actual labor from time logs)
+        - Finance (actual revenue, supplier costs)
+        - Warehouse (actual material receipts)
+        - Logistics (planned/actual shipment costs)
+
+        **Calculation:** On-demand, not stored
+      operationId: getProjectCostSummary
+      tags: [Cost Calculation]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Cost summary calculated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostSummaryDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/kontrolling/projects/{projectId}/eac-calculation:
+    get:
+      summary: Get EAC (Estimate at Completion) calculation
+      description: |
+        Detailed EAC projection with breakdown by cost category.
+
+        **EAC Formula (per category):**
+        ```
+        projected[category] = MAX(planned[category], actual[category])
+        ```
+
+        **Cost Categories:**
+        - Material (Anyag)
+        - Labor (Munka)
+        - Subcontracting (Bérmunka)
+        - Logistics (Szállítás)
+        - Supplier (Beszállító)
+        - Overhead (Rezsi)
+
+        **Result:** Realistic margin forecast throughout project lifecycle
+      operationId: getEACCalculation
+      tags: [Cost Calculation]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: EAC calculation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EACCalculationDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/kontrolling/projects/{projectId}/cost-breakdown:
+    get:
+      summary: Get cost breakdown by category and source
+      description: |
+        Detailed cost breakdown showing:
+        - Cost by category (Material, Labor, etc.)
+        - Cost by source module (Production, HR, Finance, etc.)
+        - Planned vs. Actual comparison
+        - Percentage contribution
+
+        **Use Case:** Drill-down analysis for project managers
+      operationId: getCostBreakdown
+      tags: [Cost Calculation]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Cost breakdown calculated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostBreakdownDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/kontrolling/projects/{projectId}/variance-analysis:
+    get:
+      summary: Get variance analysis (Planned vs. Actual)
+      description: |
+        Variance report comparing planned and actual costs:
+        - Variance amount (Actual - Planned)
+        - Variance percentage ((Actual - Planned) / Planned * 100)
+        - Top overruns and underruns
+        - Category-level breakdown
+
+        **Use Case:** Cost control and budget tracking
+      operationId: getVarianceAnalysis
+      tags: [Cost Calculation]
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Variance analysis completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VarianceAnalysisDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ========================================
+  # PORTFOLIO QUERIES
+  # ========================================
+
+  /api/kontrolling/portfolio/summary:
+    get:
+      summary: Get portfolio-level cost summary
+      description: |
+        Aggregated cost summary for all active projects in the tenant.
+
+        **Aggregations:**
+        - Total planned/actual/EAC revenue and costs
+        - Total margins (planned, actual, EAC)
+        - Project count
+        - Top 5 projects by margin
+        - Bottom 5 projects by margin
+        - Top 10 largest cost variances
+
+        **Use Case:** Executive dashboard, portfolio management
+      operationId: getPortfolioSummary
+      tags: [Portfolio]
+      responses:
+        '200':
+          description: Portfolio summary calculated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioSummaryDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ========================================
+  # CONFIGURATION QUERIES
+  # ========================================
+
+  /api/kontrolling/overhead-config:
+    get:
+      summary: Get overhead allocation configuration
+      description: |
+        Retrieve tenant-level overhead configuration:
+        - Overhead rate (percentage, default 15%)
+        - Allocation method (DirectCostPercentage, LaborHours, Revenue)
+        - Category exclusions (optional)
+
+        **Cached:** Indefinitely until updated
+      operationId: getOverheadConfig
+      tags: [Configuration]
+      responses:
+        '200':
+          description: Overhead config retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverheadConfigDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Set overhead allocation configuration (initial setup)
+      description: |
+        Create initial overhead configuration for tenant.
+
+        **Auth:** `controlling.admin` permission required
+        **Idempotent:** If config exists, returns existing config (use PUT to update)
+      operationId: setOverheadConfig
+      tags: [Configuration]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetOverheadConfigCommand'
+      responses:
+        '201':
+          description: Overhead config created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverheadConfigDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Config already exists (use PUT to update)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/kontrolling/overhead-config/{tenantId}:
+    put:
+      summary: Update overhead allocation configuration
+      description: |
+        Update existing overhead configuration.
+
+        **Auth:** `controlling.admin` permission required
+        **Cache Invalidation:** Clears all cached project cost calculations
+      operationId: updateOverheadConfig
+      tags: [Configuration]
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Tenant ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetOverheadConfigCommand'
+      responses:
+        '200':
+          description: Overhead config updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverheadConfigDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ========================================
+  # COST ADJUSTMENTS (Manual Corrections)
+  # ========================================
+
+  /api/kontrolling/adjustments:
+    post:
+      summary: Create cost adjustment
+      description: |
+        Create manual cost adjustment (correction or forecast).
+
+        **Use Cases:**
+        - Missing data (subcontractor invoice not yet entered)
+        - Calculation errors (incorrect material allocation)
+        - Forecast adjustments (expected cost overrun)
+
+        **Scope:**
+        - Project: Applies to specific project
+        - Portfolio: Applies to all projects (e.g., global overhead correction)
+
+        **Auth:** `controlling.manage` permission required
+      operationId: createCostAdjustment
+      tags: [Adjustments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCostAdjustmentCommand'
+      responses:
+        '201':
+          description: Cost adjustment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostAdjustmentDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Project not found (if scope=Project)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/kontrolling/adjustments/{adjustmentId}:
+    delete:
+      summary: Delete cost adjustment
+      description: |
+        Remove manual cost adjustment.
+
+        **Auth:** `controlling.manage` permission required
+        **Cache Invalidation:** Clears affected project cost calculations
+      operationId: deleteCostAdjustment
+      tags: [Adjustments]
+      parameters:
+        - name: adjustmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Adjustment ID
+      responses:
+        '204':
+          description: Cost adjustment deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ========================================
+# COMPONENTS
+# ========================================
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token (HttpOnly cookie in production, Bearer header in development)
+
+  parameters:
+    ProjectId:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Project ID
+
+  # ========================================
+  # RESPONSE SCHEMAS
+  # ========================================
+
+  schemas:
+    # ----------------------------------------
+    # Cost Summary Response
+    # ----------------------------------------
+    CostSummaryDto:
+      type: object
+      required:
+        - projectId
+        - revenue
+        - costs
+        - margins
+        - timestamp
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        revenue:
+          $ref: '#/components/schemas/Revenue'
+        costs:
+          type: object
+          required: [planned, actual, eac]
+          properties:
+            planned:
+              $ref: '#/components/schemas/Money'
+            actual:
+              $ref: '#/components/schemas/Money'
+            eac:
+              $ref: '#/components/schemas/Money'
+        margins:
+          type: object
+          required: [planned, actual, eac]
+          properties:
+            planned:
+              $ref: '#/components/schemas/Margin'
+            actual:
+              $ref: '#/components/schemas/Margin'
+            eac:
+              $ref: '#/components/schemas/Margin'
+        timestamp:
+          type: string
+          format: date-time
+          description: Calculation timestamp (cached)
+
+    # ----------------------------------------
+    # EAC Calculation Response
+    # ----------------------------------------
+    EACCalculationDto:
+      type: object
+      required:
+        - projectId
+        - categories
+        - totalCost
+        - margin
+        - timestamp
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        categories:
+          type: object
+          required: [material, labor, subcontracting, logistics, supplier, overhead]
+          properties:
+            material:
+              $ref: '#/components/schemas/CategoryCost'
+            labor:
+              $ref: '#/components/schemas/CategoryCost'
+            subcontracting:
+              $ref: '#/components/schemas/CategoryCost'
+            logistics:
+              $ref: '#/components/schemas/CategoryCost'
+            supplier:
+              $ref: '#/components/schemas/CategoryCost'
+            overhead:
+              $ref: '#/components/schemas/CategoryCost'
+        totalCost:
+          type: object
+          required: [planned, actual, projected]
+          properties:
+            planned:
+              $ref: '#/components/schemas/Money'
+            actual:
+              $ref: '#/components/schemas/Money'
+            projected:
+              $ref: '#/components/schemas/Money'
+              description: EAC = SUM(MAX(planned, actual) per category)
+        margin:
+          $ref: '#/components/schemas/Margin'
+          description: EAC margin (actualRevenue - projectedCost)
+        timestamp:
+          type: string
+          format: date-time
+
+    # ----------------------------------------
+    # Cost Breakdown Response
+    # ----------------------------------------
+    CostBreakdownDto:
+      type: object
+      required:
+        - projectId
+        - byCategory
+        - bySource
+        - timestamp
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        byCategory:
+          type: array
+          items:
+            type: object
+            required: [category, planned, actual, variance, percentage]
+            properties:
+              category:
+                $ref: '#/components/schemas/CostCategory'
+              planned:
+                $ref: '#/components/schemas/Money'
+              actual:
+                $ref: '#/components/schemas/Money'
+              variance:
+                $ref: '#/components/schemas/Money'
+              percentage:
+                type: number
+                format: decimal
+                description: Percentage of total cost
+        bySource:
+          type: array
+          items:
+            type: object
+            required: [source, planned, actual]
+            properties:
+              source:
+                type: string
+                enum: [Production, HR, Finance, Warehouse, Logistics, Adjustments]
+              planned:
+                $ref: '#/components/schemas/Money'
+              actual:
+                $ref: '#/components/schemas/Money'
+        timestamp:
+          type: string
+          format: date-time
+
+    # ----------------------------------------
+    # Variance Analysis Response
+    # ----------------------------------------
+    VarianceAnalysisDto:
+      type: object
+      required:
+        - projectId
+        - variances
+        - topOverruns
+        - topUnderruns
+        - totalVariance
+        - timestamp
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        variances:
+          type: array
+          items:
+            type: object
+            required: [category, planned, actual, variance, variancePercentage]
+            properties:
+              category:
+                $ref: '#/components/schemas/CostCategory'
+              planned:
+                $ref: '#/components/schemas/Money'
+              actual:
+                $ref: '#/components/schemas/Money'
+              variance:
+                $ref: '#/components/schemas/Money'
+                description: Actual - Planned
+              variancePercentage:
+                type: number
+                format: decimal
+                description: (Actual - Planned) / Planned * 100
+        topOverruns:
+          type: array
+          description: Top 5 largest cost overruns
+          items:
+            $ref: '#/components/schemas/VarianceItem'
+        topUnderruns:
+          type: array
+          description: Top 5 largest cost underruns
+          items:
+            $ref: '#/components/schemas/VarianceItem'
+        totalVariance:
+          $ref: '#/components/schemas/Money'
+          description: Total variance across all categories
+        timestamp:
+          type: string
+          format: date-time
+
+    # ----------------------------------------
+    # Portfolio Summary Response
+    # ----------------------------------------
+    PortfolioSummaryDto:
+      type: object
+      required:
+        - projectCount
+        - totalRevenue
+        - totalCost
+        - totalMargin
+        - topProjects
+        - flopProjects
+        - topVariances
+        - timestamp
+      properties:
+        projectCount:
+          type: integer
+          minimum: 0
+        totalRevenue:
+          type: object
+          required: [planned, actual]
+          properties:
+            planned:
+              $ref: '#/components/schemas/Money'
+            actual:
+              $ref: '#/components/schemas/Money'
+        totalCost:
+          type: object
+          required: [planned, actual, eac]
+          properties:
+            planned:
+              $ref: '#/components/schemas/Money'
+            actual:
+              $ref: '#/components/schemas/Money'
+            eac:
+              $ref: '#/components/schemas/Money'
+        totalMargin:
+          type: object
+          required: [planned, actual, eac]
+          properties:
+            planned:
+              $ref: '#/components/schemas/Margin'
+            actual:
+              $ref: '#/components/schemas/Margin'
+            eac:
+              $ref: '#/components/schemas/Margin'
+        topProjects:
+          type: array
+          description: Top 5 projects by EAC margin
+          items:
+            $ref: '#/components/schemas/ProjectSummary'
+        flopProjects:
+          type: array
+          description: Bottom 5 projects by EAC margin
+          items:
+            $ref: '#/components/schemas/ProjectSummary'
+        topVariances:
+          type: array
+          description: Top 10 largest cost variances across all projects
+          items:
+            $ref: '#/components/schemas/VarianceItem'
+        timestamp:
+          type: string
+          format: date-time
+
+    # ----------------------------------------
+    # Overhead Config Response
+    # ----------------------------------------
+    OverheadConfigDto:
+      type: object
+      required:
+        - tenantId
+        - overheadRate
+        - allocationMethod
+        - updatedBy
+        - updatedAt
+      properties:
+        tenantId:
+          type: string
+          format: uuid
+        overheadRate:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 1
+          description: Overhead rate (e.g., 0.15 = 15%)
+          example: 0.15
+        allocationMethod:
+          $ref: '#/components/schemas/OverheadAllocationMethod'
+        exclusions:
+          type: array
+          description: Categories excluded from overhead base (optional)
+          items:
+            $ref: '#/components/schemas/CostCategory'
+        updatedBy:
+          type: string
+          format: uuid
+          description: User ID who last updated config
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ----------------------------------------
+    # Cost Adjustment Response
+    # ----------------------------------------
+    CostAdjustmentDto:
+      type: object
+      required:
+        - adjustmentId
+        - scope
+        - category
+        - reason
+        - createdBy
+        - createdAt
+        - tenantId
+      properties:
+        adjustmentId:
+          type: string
+          format: uuid
+        scope:
+          $ref: '#/components/schemas/AdjustmentScope'
+        projectId:
+          type: [string, "null"]
+          format: uuid
+          description: Required if scope=Project
+        category:
+          $ref: '#/components/schemas/CostCategory'
+        plannedAdjustment:
+          anyOf:
+            - $ref: '#/components/schemas/Money'
+            - type: "null"
+        actualAdjustment:
+          anyOf:
+            - $ref: '#/components/schemas/Money'
+            - type: "null"
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 500
+          description: Explanation for adjustment
+        createdBy:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        tenantId:
+          type: string
+          format: uuid
+
+    # ----------------------------------------
+    # Command Schemas (Request Bodies)
+    # ----------------------------------------
+
+    SetOverheadConfigCommand:
+      type: object
+      required:
+        - overheadRate
+        - allocationMethod
+      properties:
+        overheadRate:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 1
+          description: Overhead rate (0.0 - 1.0, default 0.15 = 15%)
+          example: 0.15
+        allocationMethod:
+          $ref: '#/components/schemas/OverheadAllocationMethod'
+        exclusions:
+          type: array
+          description: Categories to exclude from overhead base (optional)
+          items:
+            $ref: '#/components/schemas/CostCategory'
+
+    CreateCostAdjustmentCommand:
+      type: object
+      required:
+        - scope
+        - category
+        - reason
+      properties:
+        scope:
+          $ref: '#/components/schemas/AdjustmentScope'
+        projectId:
+          type: [string, "null"]
+          format: uuid
+          description: Required if scope=Project
+        category:
+          $ref: '#/components/schemas/CostCategory'
+        plannedAdjustment:
+          anyOf:
+            - $ref: '#/components/schemas/Money'
+            - type: "null"
+          description: Adjustment to planned cost (optional)
+        actualAdjustment:
+          anyOf:
+            - $ref: '#/components/schemas/Money'
+            - type: "null"
+          description: Adjustment to actual cost (optional)
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 500
+          description: Explanation for adjustment (mandatory)
+          example: "Subcontractor invoice pending entry, expected amount 500,000 HUF"
+
+    # ----------------------------------------
+    # Value Objects
+    # ----------------------------------------
+
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:
+          type: number
+          format: decimal
+          description: Monetary amount
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: ISO 4217 currency code
+          example: HUF
+
+    Revenue:
+      type: object
+      required: [planned, actual]
+      properties:
+        planned:
+          $ref: '#/components/schemas/Money'
+          description: Planned revenue (from contract value)
+        actual:
+          $ref: '#/components/schemas/Money'
+          description: Actual revenue (from invoices)
+
+    CategoryCost:
+      type: object
+      required: [planned, actual, projected, variance]
+      properties:
+        planned:
+          $ref: '#/components/schemas/Money'
+        actual:
+          $ref: '#/components/schemas/Money'
+        projected:
+          $ref: '#/components/schemas/Money'
+          description: EAC = MAX(planned, actual)
+        variance:
+          $ref: '#/components/schemas/Money'
+          description: Actual - Planned
+
+    Margin:
+      type: object
+      required: [amount, percentage]
+      properties:
+        amount:
+          $ref: '#/components/schemas/Money'
+          description: Margin amount (Revenue - Cost)
+        percentage:
+          type: number
+          format: decimal
+          description: Margin percentage (Margin / Revenue * 100)
+          example: 24.5
+
+    ProjectSummary:
+      type: object
+      required: [projectId, projectName, eacMargin]
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        projectName:
+          type: string
+        eacMargin:
+          $ref: '#/components/schemas/Margin'
+
+    VarianceItem:
+      type: object
+      required: [projectId, projectName, category, variance, variancePercentage]
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        projectName:
+          type: string
+        category:
+          $ref: '#/components/schemas/CostCategory'
+        variance:
+          $ref: '#/components/schemas/Money'
+        variancePercentage:
+          type: number
+          format: decimal
+
+    # ----------------------------------------
+    # Enums
+    # ----------------------------------------
+
+    CostCategory:
+      type: string
+      enum:
+        - Material
+        - Labor
+        - Subcontracting
+        - Logistics
+        - Supplier
+        - Overhead
+      description: |
+        Cost category classification:
+        - Material: Anyag (from Warehouse receipts)
+        - Labor: Munka (from HR time logs)
+        - Subcontracting: Bérmunka (from B2B handshakes)
+        - Logistics: Szállítás (from Shipment costs)
+        - Supplier: Beszállító (from Inbound invoices)
+        - Overhead: Rezsi (calculated percentage)
+
+    OverheadAllocationMethod:
+      type: string
+      enum:
+        - DirectCostPercentage
+        - LaborHours
+        - Revenue
+      description: |
+        Overhead allocation method:
+        - DirectCostPercentage: % of direct costs (default)
+        - LaborHours: Based on labor hours
+        - Revenue: Based on project revenue
+
+    AdjustmentScope:
+      type: string
+      enum:
+        - Project
+        - Portfolio
+      description: |
+        Adjustment scope:
+        - Project: Applies to specific project
+        - Portfolio: Applies to all projects (global correction)
+
+    # ----------------------------------------
+    # Integration DTOs (Read-Only, From Other Modules)
+    # ----------------------------------------
+
+    MfgPrepCostData:
+      type: object
+      required: [projectId, materialCost, laborCost, estimatedLaborHours]
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        materialCost:
+          $ref: '#/components/schemas/Money'
+          description: Planned material cost
+        laborCost:
+          $ref: '#/components/schemas/Money'
+          description: Planned labor cost
+        estimatedLaborHours:
+          type: integer
+          minimum: 0
+          description: Estimated labor hours
+      description: |
+        **Source:** Production Module (MfgPrep service)
+        **Usage:** Planned Material and Labor costs
+
+    TimeLogCostData:
+      type: object
+      required: [projectId, employeeId, hoursWorked, hourlyRate, costTotal]
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+          format: uuid
+        hoursWorked:
+          type: number
+          format: decimal
+          minimum: 0
+        hourlyRate:
+          $ref: '#/components/schemas/Money'
+        costTotal:
+          $ref: '#/components/schemas/Money'
+          description: hoursWorked * hourlyRate
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+      description: |
+        **Source:** HR Module (TimeLog service)
+        **Usage:** Actual Labor costs
+
+    InboundInvoiceData:
+      type: object
+      required: [invoiceId, projectId, supplierId, amount, invoiceDate]
+      properties:
+        invoiceId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        supplierId:
+          type: string
+          format: uuid
+        amount:
+          $ref: '#/components/schemas/Money'
+        invoiceDate:
+          type: string
+          format: date
+        category:
+          type: string
+          description: Invoice category (material, service, etc.)
+      description: |
+        **Source:** Finance Module (Invoice service)
+        **Usage:** Actual Supplier costs
+
+    WarehouseReceiptData:
+      type: object
+      required: [receiptId, projectId, materialId, quantity, unitCost, totalCost]
+      properties:
+        receiptId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        materialId:
+          type: string
+          format: uuid
+        quantity:
+          type: number
+          format: decimal
+          minimum: 0
+        unitCost:
+          $ref: '#/components/schemas/Money'
+        totalCost:
+          $ref: '#/components/schemas/Money'
+          description: quantity * unitCost
+        receivedAt:
+          type: string
+          format: date-time
+      description: |
+        **Source:** Warehouse Module (Receipt service)
+        **Usage:** Actual Material costs
+
+    ShipmentCostData:
+      type: object
+      required: [shipmentId, projectId, estimatedCost, actualCost]
+      properties:
+        shipmentId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        estimatedCost:
+          $ref: '#/components/schemas/Money'
+          description: Planned logistics cost
+        actualCost:
+          $ref: '#/components/schemas/Money'
+          description: Actual logistics cost (from invoice)
+        shipmentDate:
+          type: string
+          format: date-time
+      description: |
+        **Source:** Logistics Module (Shipment service)
+        **Usage:** Planned and Actual Logistics costs
+
+    # ----------------------------------------
+    # Error Responses
+    # ----------------------------------------
+
+    Error:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+          description: Error code
+          example: UNAUTHORIZED
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid or expired token
+        timestamp:
+          type: string
+          format: date-time
+
+    ValidationError:
+      type: object
+      required: [code, message, errors, timestamp]
+      properties:
+        code:
+          type: string
+          enum: [VALIDATION_FAILED]
+        message:
+          type: string
+          example: Validation failed
+        errors:
+          type: array
+          items:
+            type: object
+            required: [field, message]
+            properties:
+              field:
+                type: string
+                example: overheadRate
+              message:
+                type: string
+                example: Overhead rate must be between 0 and 1
+        timestamp:
+          type: string
+          format: date-time
+
+  # ========================================
+  # REUSABLE RESPONSES
+  # ========================================
+
+  responses:
+    Unauthorized:
+      description: Unauthorized (token missing or invalid)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: UNAUTHORIZED
+            message: Invalid or expired token
+            timestamp: "2026-07-04T10:30:00Z"
+
+    Forbidden:
+      description: Forbidden (insufficient permissions)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: FORBIDDEN
+            message: Permission 'controlling.view' required
+            timestamp: "2026-07-04T10:30:00Z"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: NOT_FOUND
+            message: Project not found
+            timestamp: "2026-07-04T10:30:00Z"
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+          example:
+            code: VALIDATION_FAILED
+            message: Validation failed
+            errors:
+              - field: overheadRate
+                message: Overhead rate must be between 0 and 1
+            timestamp: "2026-07-04T10:30:00Z"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: INTERNAL_ERROR
+            message: An unexpected error occurred
+            timestamp: "2026-07-04T10:30:00Z"

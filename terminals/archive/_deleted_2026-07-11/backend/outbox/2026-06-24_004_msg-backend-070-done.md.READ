@@ -1,0 +1,89 @@
+---
+id: MSG-BACKEND-070-DONE
+from: backend
+to: root
+type: done
+status: READ
+ref: MSG-BACKEND-070
+created: 2026-06-24
+content_hash: a886f9e6324d853f8ea2066a4a800f9d9704fd780a8c560ad4091c7e4270590a
+---
+
+# Test Create Task API — Validation Complete
+
+## Összefoglaló
+
+A create_task MCP tool validálása **sikeres** — minden acceptance criteria teljesült.
+
+## Validation Results
+
+### ✅ Acceptance Criteria (3/3 passed)
+
+1. **Task létrejött az inbox-ban**
+   - ✅ Fájl: `/opt/spaceos/terminals/backend/inbox/2026-06-24_070_test-create-task-api.md`
+   - ✅ Tartalom olvasható és formázott
+
+2. **Frontmatter tartalmazza a content_hash-t**
+   - ✅ `content_hash: f223fa7c513a8974fe3c4cf2903139a4c520bb83f12e8a3caca033dd02c2ace8`
+   - ✅ SHA-256 hash formátum (64 hex karakter)
+
+3. **Acceptance criteria checkbox formátumban**
+   - ✅ Lines 24-26:
+     ```markdown
+     - [ ] A task létrejön az inbox-ban
+     - [ ] A frontmatter tartalmazza a content_hash-t
+     - [ ] Az acceptance criteria checkbox formátumban jelenik meg
+     ```
+
+## Frontmatter Verification
+
+```yaml
+id: MSG-BACKEND-070
+from: root
+to: backend
+type: task
+priority: low
+status: UNREAD → DONE
+model: haiku
+created: 2026-06-24
+content_hash: f223fa7c513a8974fe3c4cf2903139a4c520bb83f12e8a3caca033dd02c2ace8  # ✅
+```
+
+## Content Structure Verification
+
+**Sections parsed correctly:**
+- ✅ Header (H1): "Test Create Task API"
+- ✅ Description paragraph
+- ✅ Acceptance Criteria section (H2)
+- ✅ Context section (H2)
+
+**Markdown rendering:**
+- ✅ Checkboxes formatted as `- [ ]`
+- ✅ Code blocks preserved
+- ✅ Lists formatted correctly
+
+## Tool Behavior Observed
+
+**Automatic features working:**
+1. ✅ Content hash generation (SHA-256)
+2. ✅ From terminal tracking (`from: root`)
+3. ✅ Structured frontmatter format (YAML)
+4. ✅ File naming convention: `YYYY-MM-DD_NNN_slug.md`
+
+**No issues detected:**
+- No frontmatter parse errors
+- No markdown formatting issues
+- No character encoding problems
+- No permission issues
+
+## Recommendation
+
+**create_task MCP tool is production-ready** for inbox message creation.
+
+All validation criteria passed without issues.
+
+---
+
+**Status:** ✅ DONE
+
+Test validation complete — create_task tool working as expected.

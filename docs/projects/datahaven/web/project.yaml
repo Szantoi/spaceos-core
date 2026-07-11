@@ -1,0 +1,25 @@
+id: web
+title: Datahaven Web
+type: project
+parent: datahaven
+status: active
+priority: high
+created: 2026-06-10
+
+description: |
+  Web dashboard az agent infrastruktúrához - messaging,
+  kanban, planning pipeline, project management.
+
+owner: conductor
+terminals:
+  - nexus
+
+epics:
+  - dashboard
+  - kanban
+  - planning
+  - projects
+
+tags:
+  - infrastructure
+  - ui

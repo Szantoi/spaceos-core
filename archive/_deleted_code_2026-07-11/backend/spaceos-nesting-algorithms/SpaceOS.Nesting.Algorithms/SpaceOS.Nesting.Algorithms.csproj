@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>SpaceOS.Nesting.Algorithms</PackageId>
+    <Version>1.1.0</Version>
+    <Authors>SpaceOS</Authors>
+    <Description>Standalone nesting algorithms for panel/sheet-cutting optimization. No dependency on SpaceOS.Modules.Contracts — intentionally decoupled for use by FreeTier.Api.</Description>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

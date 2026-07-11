@@ -1,0 +1,37 @@
+# UI Review Loop Configuration
+# Created: 2026-07-10
+# Purpose: Automate Designer review when Frontend completes UI tasks
+
+trigger:
+  type: outbox_watch
+  terminal: frontend
+  pattern: "MSG-FRONTEND-*"
+  status: DONE
+
+action:
+  type: create_task
+  to: designer
+  priority: high
+  template: |
+    ## UI Review Required
+
+    Frontend DONE detected: {{message_id}}
+
+    ### Review Checklist
+    1. Capture screenshots with Playwright CLI
+    2. Compare against `docs/tasks/new/joinerytech/` prototypes
+    3. Check: Layout, colors, spacing, typography, interactions
+    4. If issues found: Create feedback inbox to Frontend
+    5. If OK: Mark as APPROVED
+
+    ### Screenshots Command
+    ```bash
+    npx playwright screenshot --wait-for-timeout=5000 "http://localhost:5173/dashboard/<route>" /tmp/review-<route>.png
+    ```
+
+    Use skill: ui-review-loop
+
+# Nightwatch integration
+nightwatch_hook:
+  script: scripts/watch-ui-review.sh
+  interval: "*/5 * * * *"  # Every 5 minutes

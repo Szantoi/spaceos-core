@@ -1,0 +1,1825 @@
+openapi: 3.1.0
+info:
+  title: JoineryTech HR & Kapacitás API
+  version: 1.0.0
+  license:
+    name: Proprietary
+    url: https://joinerytech.hu/license
+  description: |
+    Employee management, absence tracking (FSM), capacity calculation, vacation entitlement.
+
+    **Domain:** HR & Kapacitás (Human Resources)
+    **Pattern:** CRUD + FSM state machine (Absence approval workflow) + Capacity queries
+    **Authentication:** Bearer JWT (HttpOnly cookie)
+
+    **Key Features:**
+    - Employee management (CRUD + Skills + Pay Grade promotion)
+    - Absence tracking with FSM (Pending -> Approved -> InProgress -> Completed)
+    - Capacity calculation (daily/weekly availability, overload detection)
+    - Vacation entitlement (Hungarian Labor Code Mt. §118 compliance)
+    - Integration with Kontrolling (TimeLog labor cost data)
+
+    **Hungarian Labor Code Compliance:**
+    - Vacation base: 20 days/year (Mt. §118)
+    - Child extra: 1->+2 days, 2->+4 days, 3+->+7 days
+    - Sick leave: 15 days/year (Mt. §123)
+
+    **ADR References:**
+    - MSG-ARCHITECT-046: JoineryTech HR Domain Model
+    - ADR-058: JoineryTech Integration Architecture
+
+servers:
+  - url: https://api.joinerytech.local
+    description: Local development
+  - url: https://api.joinerytech.hu/v1
+    description: Production
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Employee Management
+    description: Employee CRUD operations (skills, pay grade, personal data)
+  - name: Absence Management
+    description: Absence tracking with FSM approval workflow
+  - name: Capacity
+    description: Employee capacity queries (daily, weekly, team)
+  - name: Vacation Entitlement
+    description: Vacation and sick leave balance calculation
+
+paths:
+  # ========================================
+  # EMPLOYEE MANAGEMENT
+  # ========================================
+
+  /api/hr/employees:
+    get:
+      summary: List employees
+      description: |
+        Retrieve list of employees with filtering and pagination.
+
+        **Filters:**
+        - department (Production, Assembly, Logistics, Sales, etc.)
+        - facilityId (filter by facility)
+        - active (true/false - include inactive employees)
+        - skillKey (filter by skill, e.g., "assembly", "cnc")
+
+        **RBAC:** Requires `hr.view` permission
+      operationId: listEmployees
+      tags: [Employee Management]
+      parameters:
+        - name: department
+          in: query
+          schema:
+            $ref: '#/components/schemas/Department'
+          description: Filter by department
+        - name: facilityId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by facility
+        - name: active
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Include only active employees (default true)
+        - name: skillKey
+          in: query
+          schema:
+            type: string
+          description: Filter by skill (e.g., "assembly", "cnc")
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Employee list retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EmployeeDto'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Create employee
+      description: |
+        Create new employee record.
+
+        **Required Fields:**
+        - name, role, department, facilityId, weeklyHours, employmentType
+
+        **Optional Fields:**
+        - email, payGrade (default: Trainee), vacationBase (default: 20)
+
+        **RBAC:** Requires `hr.manage` permission
+      operationId: createEmployee
+      tags: [Employee Management]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEmployeeCommand'
+      responses:
+        '201':
+          description: Employee created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/hr/employees/{employeeId}:
+    get:
+      summary: Get employee details
+      description: |
+        Retrieve employee details including skills, pay grade, personal data.
+
+        **Personal Data Access:**
+        - Requires `hr.admin` permission to view PersonalData fields
+        - Regular `hr.view` permission returns employee without PersonalData
+
+        **RBAC:** Requires `hr.view` permission
+      operationId: getEmployee
+      tags: [Employee Management]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      summary: Update employee
+      description: |
+        Update employee fields (partial updates allowed).
+
+        **Updatable Fields:**
+        - name, role, department, facilityId, weeklyHours, employmentType, email, active
+
+        **Protected Fields (use dedicated endpoints):**
+        - skills (use POST/PUT/DELETE /employees/{id}/skills)
+        - payGrade (use POST /employees/{id}/promote)
+        - personalData (use PUT /employees/{id}/personal-data)
+
+        **RBAC:** Requires `hr.manage` permission
+      operationId: updateEmployee
+      tags: [Employee Management]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEmployeeCommand'
+      responses:
+        '200':
+          description: Employee updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      summary: Delete employee (soft delete)
+      description: |
+        Soft delete employee (sets active=false).
+
+        **Validation:**
+        - Employee must not have active assignments
+        - Employee must not have pending absences
+
+        **RBAC:** Requires `hr.admin` permission
+      operationId: deleteEmployee
+      tags: [Employee Management]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '204':
+          description: Employee deleted (soft delete)
+        '400':
+          description: Cannot delete employee with active assignments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/hr/employees/{employeeId}/skills:
+    post:
+      summary: Add skill to employee
+      description: |
+        Add new skill to employee skill set.
+
+        **Skill Keys:**
+        - assembly, edgebanding, cnc, delivery, painting, packing, quality, design
+
+        **Proficiency Levels:**
+        - 1: Basic, 2: Intermediate, 3: Expert
+
+        **RBAC:** Requires `hr.manage` permission
+      operationId: addEmployeeSkill
+      tags: [Employee Management]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddSkillCommand'
+      responses:
+        '200':
+          description: Skill added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Skill already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/hr/employees/{employeeId}/skills/{skill}:
+    put:
+      summary: Update skill proficiency level
+      description: |
+        Update existing skill proficiency level.
+
+        **RBAC:** Requires `hr.manage` permission
+      operationId: updateEmployeeSkill
+      tags: [Employee Management]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - name: skill
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Skill key (e.g., "assembly")
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [proficiencyLevel]
+              properties:
+                proficiencyLevel:
+                  $ref: '#/components/schemas/ProficiencyLevel'
+      responses:
+        '200':
+          description: Skill updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      summary: Remove skill from employee
+      description: |
+        Remove skill from employee skill set.
+
+        **RBAC:** Requires `hr.manage` permission
+      operationId: deleteEmployeeSkill
+      tags: [Employee Management]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - name: skill
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Skill key (e.g., "assembly")
+      responses:
+        '204':
+          description: Skill removed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/hr/employees/{employeeId}/promote:
+    post:
+      summary: Promote employee to higher pay grade
+      description: |
+        Promote employee to higher pay grade.
+
+        **Pay Grade Progression:**
+        - Trainee (2500 HUF/h) -> Junior (3000 HUF/h) -> Skilled (3800 HUF/h) -> Master (4500 HUF/h) -> Lead (5500 HUF/h)
+
+        **Validation:**
+        - New pay grade must be higher than current
+        - Effective date cannot be in the past
+
+        **RBAC:** Requires `hr.admin` permission
+      operationId: promoteEmployee
+      tags: [Employee Management]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromoteEmployeeCommand'
+      responses:
+        '200':
+          description: Employee promoted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ========================================
+  # ABSENCE MANAGEMENT (FSM)
+  # ========================================
+
+  /api/hr/absences:
+    get:
+      summary: List absences
+      description: |
+        Retrieve list of absences with filtering and pagination.
+
+        **Filters:**
+        - employeeId (filter by employee)
+        - status (Pending, Approved, Rejected, InProgress, Completed)
+        - type (Vacation, SickLeave, UnpaidLeave, Other)
+        - startDate, endDate (date range filter)
+
+        **RBAC:** Requires `hr.view` permission (or self for own absences)
+      operationId: listAbsences
+      tags: [Absence Management]
+      parameters:
+        - name: employeeId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by employee
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/AbsenceStatus'
+          description: Filter by status
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/AbsenceType'
+          description: Filter by type
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter by start date (YYYY-MM-DD)
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter by end date (YYYY-MM-DD)
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Absence list retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, pagination]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AbsenceDto'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Create absence request
+      description: |
+        Create new absence request (initial status: Pending).
+
+        **Validation:**
+        - endDate ≥ startDate
+        - No overlapping absences for same employee
+        - Vacation days cannot exceed entitlement (application service check)
+
+        **RBAC:** Requires `hr.view` permission (employee can create own absence)
+      operationId: createAbsence
+      tags: [Absence Management]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAbsenceCommand'
+      responses:
+        '201':
+          description: Absence created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbsenceDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Overlapping absence or entitlement exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/hr/absences/{absenceId}:
+    get:
+      summary: Get absence details
+      description: |
+        Retrieve absence details.
+
+        **RBAC:** Requires `hr.view` permission (or self for own absence)
+      operationId: getAbsence
+      tags: [Absence Management]
+      parameters:
+        - $ref: '#/components/parameters/AbsenceId'
+      responses:
+        '200':
+          description: Absence retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbsenceDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      summary: Update absence (Pending only)
+      description: |
+        Update absence fields (only Pending status can be updated).
+
+        **Updatable Fields:**
+        - type, startDate, endDate, reason
+
+        **RBAC:** Requires `hr.view` permission (employee can update own Pending absence)
+      operationId: updateAbsence
+      tags: [Absence Management]
+      parameters:
+        - $ref: '#/components/parameters/AbsenceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAbsenceCommand'
+      responses:
+        '200':
+          description: Absence updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbsenceDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Cannot update absence (not in Pending status)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      summary: Delete absence (Pending or Rejected only)
+      description: |
+        Delete absence (only Pending or Rejected status can be deleted).
+
+        **RBAC:** Requires `hr.view` permission (employee can delete own Pending/Rejected absence)
+      operationId: deleteAbsence
+      tags: [Absence Management]
+      parameters:
+        - $ref: '#/components/parameters/AbsenceId'
+      responses:
+        '204':
+          description: Absence deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Cannot delete absence (not in Pending/Rejected status)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ========================================
+  # ABSENCE FSM TRANSITIONS
+  # ========================================
+
+  /api/hr/absences/{absenceId}/approve:
+    post:
+      summary: "Approve absence (FSM: Pending -> Approved)"
+      description: |
+        Manager approves absence request.
+
+        **FSM Transition:** Pending -> Approved
+        **Validation:**
+        - Absence must be in Pending status
+        - Dates not in past
+        - Employee exists and active
+        - No overlapping approved absences
+
+        **RBAC:** Requires `hr.manage` permission
+      operationId: approveAbsence
+      tags: [Absence Management]
+      parameters:
+        - $ref: '#/components/parameters/AbsenceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApproveAbsenceCommand'
+      responses:
+        '200':
+          description: Absence approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbsenceDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Invalid FSM transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/hr/absences/{absenceId}/reject:
+    post:
+      summary: "Reject absence (FSM: Pending -> Rejected)"
+      description: |
+        Manager rejects absence request.
+
+        **FSM Transition:** Pending -> Rejected
+        **Validation:**
+        - Absence must be in Pending status
+        - Rejection reason required (min 10 chars)
+
+        **RBAC:** Requires `hr.manage` permission
+      operationId: rejectAbsence
+      tags: [Absence Management]
+      parameters:
+        - $ref: '#/components/parameters/AbsenceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectAbsenceCommand'
+      responses:
+        '200':
+          description: Absence rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbsenceDto'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Invalid FSM transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/hr/absences/{absenceId}/start:
+    post:
+      summary: "Start absence (FSM: Approved -> InProgress)"
+      description: |
+        Start absence (manual or auto-triggered when startDate reached).
+
+        **FSM Transition:** Approved -> InProgress
+        **Validation:**
+        - Absence must be in Approved status
+        - Start date reached
+        - Employee active
+
+        **RBAC:** Requires `hr.manage` permission
+      operationId: startAbsence
+      tags: [Absence Management]
+      parameters:
+        - $ref: '#/components/parameters/AbsenceId'
+      responses:
+        '200':
+          description: Absence started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbsenceDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Invalid FSM transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/hr/absences/{absenceId}/complete:
+    post:
+      summary: "Complete absence (FSM: InProgress -> Completed)"
+      description: |
+        Complete absence (manual or auto-triggered when endDate reached).
+
+        **FSM Transition:** InProgress -> Completed
+        **Validation:**
+        - Absence must be in InProgress status
+        - End date reached
+
+        **RBAC:** Requires `hr.manage` permission
+      operationId: completeAbsence
+      tags: [Absence Management]
+      parameters:
+        - $ref: '#/components/parameters/AbsenceId'
+      responses:
+        '200':
+          description: Absence completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbsenceDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Invalid FSM transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/hr/absences/{absenceId}/reopen:
+    post:
+      summary: "Reopen absence (FSM: Rejected -> Pending)"
+      description: |
+        Employee reopens rejected absence request.
+
+        **FSM Transition:** Rejected -> Pending
+        **Validation:**
+        - Absence must be in Rejected status
+
+        **RBAC:** Requires `hr.view` permission (employee can reopen own rejected absence)
+      operationId: reopenAbsence
+      tags: [Absence Management]
+      parameters:
+        - $ref: '#/components/parameters/AbsenceId'
+      responses:
+        '200':
+          description: Absence reopened
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbsenceDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Invalid FSM transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ========================================
+  # CAPACITY QUERIES (Read-Heavy)
+  # ========================================
+
+  /api/hr/capacity/employees/{employeeId}/daily:
+    get:
+      summary: Get employee daily capacity
+      description: |
+        Calculate employee daily capacity for a specific date.
+
+        **Calculation:**
+        - totalCapacity = weeklyHours / 5 (assuming 5-day work week)
+        - totalLoad = SUM(assignments + crew hours) - blocking absences
+        - availableCapacity = totalCapacity - totalLoad
+        - isOverloaded = totalLoad > totalCapacity
+
+        **RBAC:** Requires `hr.view` permission
+      operationId: getEmployeeDailyCapacity
+      tags: [Capacity]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Target date (YYYY-MM-DD)
+      responses:
+        '200':
+          description: Daily capacity calculated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyCapacityDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/hr/capacity/employees/{employeeId}/weekly:
+    get:
+      summary: Get employee weekly capacity
+      description: |
+        Calculate employee weekly capacity summary.
+
+        **Calculation:**
+        - totalHours = weeklyHours
+        - daysAbsent = Count of days with blocking absences
+        - daysOverloaded = Count of days where load > capacity
+
+        **RBAC:** Requires `hr.view` permission
+      operationId: getEmployeeWeeklyCapacity
+      tags: [Capacity]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - name: weekStart
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Week start date (YYYY-MM-DD, Monday)
+      responses:
+        '200':
+          description: Weekly capacity calculated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyCapacityDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/hr/capacity/team/{departmentId}:
+    get:
+      summary: Get team capacity (by department)
+      description: |
+        Calculate aggregated capacity for all employees in a department.
+
+        **Aggregation:**
+        - employees[] — List of employees with their capacity
+        - aggregatedCapacity — Sum of available capacity across all team members
+
+        **RBAC:** Requires `hr.view` permission
+      operationId: getTeamCapacity
+      tags: [Capacity]
+      parameters:
+        - name: departmentId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Department'
+          description: Department name
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Target date (YYYY-MM-DD)
+      responses:
+        '200':
+          description: Team capacity calculated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamCapacityDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ========================================
+  # VACATION ENTITLEMENT
+  # ========================================
+
+  /api/hr/vacation-entitlement/{employeeId}:
+    get:
+      summary: Get vacation entitlement balance
+      description: |
+        Calculate vacation entitlement and balance per Hungarian Labor Code (Mt. §118).
+
+        **Calculation:**
+        - vacationBase = 20 days/year (Mt. §118)
+        - childExtra = 1->+2 days, 2->+4 days, 3+->+7 days
+        - totalEntitlement = vacationBase + childExtra
+        - used = Count of Completed absences with type=Vacation
+        - remaining = totalEntitlement - used
+
+        **RBAC:** Requires `hr.view` permission (or self for own entitlement)
+      operationId: getVacationEntitlement
+      tags: [Vacation Entitlement]
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Vacation entitlement calculated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VacationEntitlementDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+# ========================================
+# COMPONENTS
+# ========================================
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token (HttpOnly cookie in production, Bearer header in development)
+
+  parameters:
+    EmployeeId:
+      name: employeeId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Employee ID
+
+    AbsenceId:
+      name: absenceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Absence ID
+
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Page number
+
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 10
+        maximum: 100
+        default: 50
+      description: Page size
+
+  # ========================================
+  # RESPONSE SCHEMAS
+  # ========================================
+
+  schemas:
+    # ----------------------------------------
+    # Employee DTOs
+    # ----------------------------------------
+    EmployeeDto:
+      type: object
+      required:
+        - employeeId
+        - name
+        - role
+        - department
+        - facilityId
+        - payGrade
+        - weeklyHours
+        - employmentType
+        - active
+        - vacationBase
+        - skills
+      properties:
+        employeeId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+        role:
+          type: string
+          description: Job role (e.g., "Asztalos", "Lakatos", "Szerelő")
+        department:
+          $ref: '#/components/schemas/Department'
+        facilityId:
+          type: string
+          format: uuid
+          description: Facility where employee works
+        payGrade:
+          $ref: '#/components/schemas/PayGrade'
+        weeklyHours:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 168
+          description: Weekly working hours
+        employmentType:
+          $ref: '#/components/schemas/EmploymentType'
+        email:
+          type: [string, "null"]
+          format: email
+        active:
+          type: boolean
+          description: Employee active status
+        vacationBase:
+          type: integer
+          description: Base vacation days (default 20)
+          default: 20
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/Skill'
+        personalData:
+          anyOf:
+            - $ref: '#/components/schemas/PersonalData'
+            - type: "null"
+          description: Sensitive personal data (only visible to hr.admin)
+
+    CreateEmployeeCommand:
+      type: object
+      required:
+        - name
+        - role
+        - department
+        - facilityId
+        - weeklyHours
+        - employmentType
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        role:
+          type: string
+          minLength: 1
+          maxLength: 100
+        department:
+          $ref: '#/components/schemas/Department'
+        facilityId:
+          type: string
+          format: uuid
+        weeklyHours:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 168
+        employmentType:
+          $ref: '#/components/schemas/EmploymentType'
+        email:
+          type: string
+          format: email
+        payGrade:
+          $ref: '#/components/schemas/PayGrade'
+          description: Default Trainee if not specified
+        vacationBase:
+          type: integer
+          minimum: 0
+          default: 20
+
+    UpdateEmployeeCommand:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        role:
+          type: string
+          minLength: 1
+          maxLength: 100
+        department:
+          $ref: '#/components/schemas/Department'
+        facilityId:
+          type: string
+          format: uuid
+        weeklyHours:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 168
+        employmentType:
+          $ref: '#/components/schemas/EmploymentType'
+        email:
+          type: string
+          format: email
+        active:
+          type: boolean
+
+    AddSkillCommand:
+      type: object
+      required:
+        - skillKey
+        - proficiencyLevel
+      properties:
+        skillKey:
+          type: string
+          description: Skill key (e.g., "assembly", "cnc", "edgebanding")
+        proficiencyLevel:
+          $ref: '#/components/schemas/ProficiencyLevel'
+
+    PromoteEmployeeCommand:
+      type: object
+      required:
+        - newPayGrade
+      properties:
+        newPayGrade:
+          $ref: '#/components/schemas/PayGrade'
+        effectiveDate:
+          type: string
+          format: date
+          description: "Effective date (default: today)"
+
+    # ----------------------------------------
+    # Absence DTOs
+    # ----------------------------------------
+    AbsenceDto:
+      type: object
+      required:
+        - absenceId
+        - employeeId
+        - type
+        - status
+        - startDate
+        - endDate
+        - workDays
+        - createdAt
+      properties:
+        absenceId:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/AbsenceType'
+        status:
+          $ref: '#/components/schemas/AbsenceStatus'
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        workDays:
+          type: integer
+          minimum: 1
+          description: Number of work days (excludes weekends)
+        reason:
+          type: [string, "null"]
+          description: Optional reason (required for Other type)
+        approverId:
+          type: [string, "null"]
+          format: uuid
+          description: Manager who approved/rejected (if any)
+        approvedAt:
+          type: [string, "null"]
+          format: date-time
+        rejectionReason:
+          type: [string, "null"]
+          description: Reason for rejection (if rejected)
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateAbsenceCommand:
+      type: object
+      required:
+        - employeeId
+        - type
+        - startDate
+        - endDate
+      properties:
+        employeeId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/AbsenceType'
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 500
+          description: Required for Other type
+
+    UpdateAbsenceCommand:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/AbsenceType'
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 500
+
+    ApproveAbsenceCommand:
+      type: object
+      required:
+        - approverId
+      properties:
+        approverId:
+          type: string
+          format: uuid
+          description: Manager approving the absence
+        notes:
+          type: string
+          maxLength: 500
+
+    RejectAbsenceCommand:
+      type: object
+      required:
+        - approverId
+        - rejectionReason
+      properties:
+        approverId:
+          type: string
+          format: uuid
+          description: Manager rejecting the absence
+        rejectionReason:
+          type: string
+          minLength: 10
+          maxLength: 500
+          description: Reason for rejection (mandatory)
+
+    # ----------------------------------------
+    # Capacity DTOs
+    # ----------------------------------------
+    DailyCapacityDto:
+      type: object
+      required:
+        - employeeId
+        - date
+        - totalCapacity
+        - totalLoad
+        - availableCapacity
+        - isOverloaded
+        - assignments
+        - absences
+      properties:
+        employeeId:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        totalCapacity:
+          type: number
+          format: decimal
+          description: Daily capacity (weeklyHours / 5)
+        totalLoad:
+          type: number
+          format: decimal
+          description: Sum of assignments + crew hours
+        availableCapacity:
+          type: number
+          format: decimal
+          description: totalCapacity - totalLoad
+        isOverloaded:
+          type: boolean
+          description: totalLoad > totalCapacity
+        assignments:
+          type: array
+          items:
+            type: object
+            properties:
+              assignmentId:
+                type: string
+                format: uuid
+              hours:
+                type: number
+                format: decimal
+        absences:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbsenceDto'
+
+    WeeklyCapacityDto:
+      type: object
+      required:
+        - employeeId
+        - weekStart
+        - totalHours
+        - daysAbsent
+        - daysOverloaded
+        - dailyBreakdown
+      properties:
+        employeeId:
+          type: string
+          format: uuid
+        weekStart:
+          type: string
+          format: date
+        totalHours:
+          type: number
+          format: decimal
+          description: Weekly working hours
+        daysAbsent:
+          type: integer
+          minimum: 0
+          description: Count of days with blocking absences
+        daysOverloaded:
+          type: integer
+          minimum: 0
+          description: Count of days where load > capacity
+        dailyBreakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyCapacityDto'
+
+    TeamCapacityDto:
+      type: object
+      required:
+        - department
+        - date
+        - employees
+        - aggregatedCapacity
+      properties:
+        department:
+          $ref: '#/components/schemas/Department'
+        date:
+          type: string
+          format: date
+        employees:
+          type: array
+          items:
+            type: object
+            required: [employeeId, name, totalCapacity, availableCapacity]
+            properties:
+              employeeId:
+                type: string
+                format: uuid
+              name:
+                type: string
+              totalCapacity:
+                type: number
+                format: decimal
+              availableCapacity:
+                type: number
+                format: decimal
+        aggregatedCapacity:
+          type: number
+          format: decimal
+          description: Sum of available capacity across all team members
+
+    # ----------------------------------------
+    # Vacation Entitlement DTO
+    # ----------------------------------------
+    VacationEntitlementDto:
+      type: object
+      required:
+        - employeeId
+        - vacationBase
+        - childExtra
+        - totalEntitlement
+        - used
+        - remaining
+      properties:
+        employeeId:
+          type: string
+          format: uuid
+        vacationBase:
+          type: integer
+          description: Base vacation days (always 20)
+          example: 20
+        childExtra:
+          type: integer
+          description: Extra days based on children (0/2/4/7)
+          example: 4
+        totalEntitlement:
+          type: integer
+          description: vacationBase + childExtra
+          example: 24
+        used:
+          type: integer
+          description: Days used (from Completed absences with type=Vacation)
+          example: 10
+        remaining:
+          type: integer
+          description: totalEntitlement - used
+          example: 14
+
+    # ----------------------------------------
+    # Value Objects
+    # ----------------------------------------
+    Skill:
+      type: object
+      required:
+        - skillKey
+        - proficiencyLevel
+      properties:
+        skillKey:
+          type: string
+          description: Skill identifier (e.g., "assembly", "cnc")
+        proficiencyLevel:
+          $ref: '#/components/schemas/ProficiencyLevel'
+
+    PersonalData:
+      type: object
+      required:
+        - children
+        - maritalStatus
+      properties:
+        children:
+          type: integer
+          minimum: 0
+          description: Number of children (for vacation calculation)
+        maritalStatus:
+          $ref: '#/components/schemas/MaritalStatus'
+        birthDate:
+          type: [string, "null"]
+          format: date
+        mothersName:
+          type: [string, "null"]
+          description: Mother's maiden name (Hungarian ID requirement)
+        taj:
+          type: [string, "null"]
+          description: Social Security Number (TAJ)
+        taxId:
+          type: [string, "null"]
+          description: Tax ID (adóazonosító jel)
+        bankAccount:
+          type: [string, "null"]
+          description: Bank account number (for salary transfer)
+        emergencyContact:
+          type: [string, "null"]
+          description: Emergency contact name and phone
+
+    PaginationResponse:
+      type: object
+      required:
+        - page
+        - pageSize
+        - totalItems
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        pageSize:
+          type: integer
+          minimum: 10
+          maximum: 100
+        totalItems:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+
+    # ----------------------------------------
+    # Enums
+    # ----------------------------------------
+    PayGrade:
+      type: string
+      enum:
+        - Trainee
+        - Junior
+        - Skilled
+        - Master
+        - Lead
+      description: |
+        Pay grade with hourly rates:
+        - Trainee: 2500 HUF/hour
+        - Junior: 3000 HUF/hour
+        - Skilled: 3800 HUF/hour
+        - Master: 4500 HUF/hour
+        - Lead: 5500 HUF/hour
+
+    Department:
+      type: string
+      enum:
+        - Production
+        - Assembly
+        - Logistics
+        - Sales
+        - Design
+        - Admin
+        - Maintenance
+        - Quality
+      description: Organizational department
+
+    AbsenceStatus:
+      type: string
+      enum:
+        - Pending
+        - Approved
+        - Rejected
+        - InProgress
+        - Completed
+      description: |
+        Absence FSM status:
+        - Pending: Initial state (awaiting approval)
+        - Approved: Manager approved (blocking)
+        - Rejected: Manager rejected (can reopen)
+        - InProgress: Absence started (blocking)
+        - Completed: Absence ended (blocking, terminal state)
+
+    AbsenceType:
+      type: string
+      enum:
+        - Vacation
+        - SickLeave
+        - UnpaidLeave
+        - Other
+      description: Leave category
+
+    EmploymentType:
+      type: string
+      enum:
+        - FullTime
+        - PartTime
+        - Contractor
+      description: Contract type
+
+    ProficiencyLevel:
+      type: integer
+      enum: [1, 2, 3]
+      description: |
+        Skill proficiency:
+        - 1: Basic
+        - 2: Intermediate
+        - 3: Expert
+
+    MaritalStatus:
+      type: string
+      enum:
+        - Unknown
+        - Single
+        - Married
+        - Divorced
+        - Widowed
+      description: Marital status (for personal data)
+
+    # ----------------------------------------
+    # Integration DTOs (Exported by HR)
+    # ----------------------------------------
+
+    TimeLogCostData:
+      type: object
+      required:
+        - projectId
+        - employeeId
+        - hoursWorked
+        - hourlyRate
+        - costTotal
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+          format: uuid
+        hoursWorked:
+          type: number
+          format: decimal
+          minimum: 0
+        hourlyRate:
+          type: number
+          format: decimal
+          description: From PayGrade enum (e.g., 3800 HUF for Skilled)
+        costTotal:
+          type: number
+          format: decimal
+          description: hoursWorked × hourlyRate
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+      description: |
+        **Source:** HR Module (TimeLog data)
+        **Consumer:** Kontrolling Module
+        **Usage:** Actual Labor cost calculation
+
+    # ----------------------------------------
+    # Error Responses
+    # ----------------------------------------
+
+    Error:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+          description: Error code
+          example: UNAUTHORIZED
+        message:
+          type: string
+          description: Human-readable error message
+          example: Invalid or expired token
+        timestamp:
+          type: string
+          format: date-time
+
+    ValidationError:
+      type: object
+      required: [code, message, errors, timestamp]
+      properties:
+        code:
+          type: string
+          enum: [VALIDATION_FAILED]
+        message:
+          type: string
+          example: Validation failed
+        errors:
+          type: array
+          items:
+            type: object
+            required: [field, message]
+            properties:
+              field:
+                type: string
+                example: weeklyHours
+              message:
+                type: string
+                example: Weekly hours must be between 0 and 168
+        timestamp:
+          type: string
+          format: date-time
+
+    StateError:
+      type: object
+      required: [code, message, currentStatus, allowedTransitions, timestamp]
+      properties:
+        code:
+          type: string
+          enum: [STATE_INVALID]
+        message:
+          type: string
+          example: Cannot approve absence from current status
+        currentStatus:
+          $ref: '#/components/schemas/AbsenceStatus'
+        allowedTransitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbsenceStatus'
+          description: Valid target statuses from current state
+        timestamp:
+          type: string
+          format: date-time
+
+  # ========================================
+  # REUSABLE RESPONSES
+  # ========================================
+
+  responses:
+    Unauthorized:
+      description: Unauthorized (token missing or invalid)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: UNAUTHORIZED
+            message: Invalid or expired token
+            timestamp: "2026-07-04T20:30:00Z"
+
+    Forbidden:
+      description: Forbidden (insufficient permissions)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: FORBIDDEN
+            message: Permission 'hr.manage' required
+            timestamp: "2026-07-04T20:30:00Z"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: NOT_FOUND
+            message: Employee not found
+            timestamp: "2026-07-04T20:30:00Z"
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+          example:
+            code: VALIDATION_FAILED
+            message: Validation failed
+            errors:
+              - field: weeklyHours
+                message: Weekly hours must be between 0 and 168
+            timestamp: "2026-07-04T20:30:00Z"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: INTERNAL_ERROR
+            message: An unexpected error occurred
+            timestamp: "2026-07-04T20:30:00Z"

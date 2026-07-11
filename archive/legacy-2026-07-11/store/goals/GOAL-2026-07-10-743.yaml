@@ -1,0 +1,23 @@
+id: GOAL-2026-07-10-743
+created: '2026-07-10T21:03:39.743Z'
+created_by: root
+goal:
+  description: Test goal from nexus terminal
+completion_criteria:
+  - type: done_outbox
+    terminal: backend
+    message_pattern: MSG-BACKEND-*
+on_complete:
+  trigger_terminal: conductor
+  prompt: Test prompt
+status: triggered
+triggered_at: '2026-07-10T21:03:46.946Z'
+trigger_message_id: MSG-CONDUCTOR-981
+criteria_results:
+  - criterion:
+      type: done_outbox
+      terminal: backend
+      message_pattern: MSG-BACKEND-*
+    met: true
+    details: 'Found: 2026-07-07_001_msg-backend-166-maintenance-infrastructure-done.md'
+    checked_at: '2026-07-10T21:03:46.939Z'

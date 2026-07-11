@@ -1,0 +1,40 @@
+[Unit]
+Description=SpaceOS Kernel API (.NET 8)
+After=network.target
+
+[Service]
+Type=notify
+User=spaceos
+WorkingDirectory=/opt/spaceos/spaceos-kernel/publish
+ExecStart=/usr/bin/dotnet /opt/spaceos/spaceos-kernel/publish/SpaceOS.Kernel.Api.dll
+EnvironmentFile=/etc/spaceos/kernel.env
+
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+
+# Filesystem hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/spaceos/spaceos-kernel/publish /var/log/spaceos
+
+# Kernel hardening
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Capability and syscall restrictions
+CapabilityBoundingSet=
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Namespace and personality restrictions
+RestrictNamespaces=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

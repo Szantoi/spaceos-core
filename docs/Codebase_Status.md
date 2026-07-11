@@ -1,9 +1,65 @@
 # SpaceOS — Kódbázis összesített állapotleírás
 
-**Utolsó frissítés:** 2026-06-22 23:05 — **🎯 Q3 CUTTING MODULE EXPANSION APPROVED** · Cutting Module Phase 1 COMPLETE: 994 BE tests + 941 FE tests (TOP 1-3 done) · Q3 Expansion: 3 tracks approved (Customer Portal, Pricing, ShopFloor) · 2. ügyfél target: Lapszabász KKV · DOORSTAR LIVE
+**Utolsó frissítés:** 2026-06-29 20:25 — **🎯 Q3 TRACK A IN PROGRESS** · Frontend DONE (Quote Form + Tracking) · Backend MSG-030: PARTIAL (Phase 1-2 complete, Phase 3-5 in progress) · MSG-031 (Email) BLOCKED waiting on MSG-030 Phase 3 · Coordinator active
 **Környezet:** VPS prod (109.122.222.198)
 **Archívum:** [`docs/codebase-history/`](codebase-history/)
 **PHASE 3 Status:** 🟢 ADR APPROVED — Implementation ready · Architect ADR review DONE (MSG-ARCH-010) · ROOT approval (MSG-ROOT-038)
+
+---
+
+### 🎯 2026-06-29 LIVE UPDATE — Q3 TRACK A PROGRESS (Customer Self-Service Portal)
+
+**Status:** 🔄 **IN PROGRESS** — Frontend DONE, Backend 40% complete
+
+**Real-time terminal status** (20:25 UTC):
+
+| Terminál | Feladat | Status | Progress | Blocker |
+|---|---|---|---|---|
+| **Frontend** | Quote Form + Tracking Page | 🟢 **DONE** | 100% | ✅ None — spec-konform |
+| **Backend MSG-030** | Quote Request API | 🟡 **PARTIAL** | 40% (Phase 1-2) | ⏳ Phase 3-5 pending |
+| **Backend MSG-031** | Email Notification | 🔴 **BLOCKED** | 0% | 🚫 Awaiting MSG-030 Phase 3 |
+| **Conductor** | Q3 Coordination | 🔄 **ACTIVE** | — | Monitoring + dispatch |
+
+**Detailed Progress:**
+
+#### Frontend ✅ COMPLETE
+- **MSG-FRONTEND-018:** Public Quote Form + Status Tracking Page (spec-konform)
+- **Arch review:** 2× REJECT → Fixed (hook architecture, field naming)
+- **Final DONE:** 2026-06-29 17:08 UTC (MSG-FRONTEND-061)
+- **Tests:** 941 passing (included in baseline)
+
+#### Backend MSG-030 (Quote Request API) 🟡 40% COMPLETE
+**Phase 1-2 ✅ DONE:**
+- API endpoint: `POST /api/public/cutting/quote-request` mapped
+- DTO layer: `PublicQuoteRequestDto` + validation (dimensions bounds)
+- CQRS: `CreatePublicQuoteRequestCommand` + handler (logic complete)
+- Domain: `PublicQuoteRequest` entity (factory + status updates)
+- EF Config: `PublicQuoteRequestConfiguration` (mapping + indexes)
+- Build: ✅ SUCCESS (0 errors, 2 unused variable warnings)
+
+**Phase 3-5 ⏳ PENDING (Est. 3-4 hours):**
+- Phase 3: EF Core migration (awaiting database setup)
+- Phase 4: Unit + integration tests (target >90% coverage)
+- Phase 5: Rate limiting + security features
+- **Current blocker:** Database authentication (28P01: password auth failed for spaceos_app)
+
+**Last report:** 2026-06-29 19:51 UTC (MSG-BACKEND-081)
+
+#### Backend MSG-031 (Email Notification) 🔴 BLOCKED
+**Dependency:** MSG-030 Phase 3 (domain event system needed)
+- Requires: `QuoteRequestCreated` event + event handler
+- Blocked since: 2026-06-29 20:03 UTC (MSG-BACKEND-083)
+- **Action:** Conductor issued MSG-BACKEND-079 coordination to unblock
+
+**Coordinator Actions (2026-06-29 20:24 UTC):**
+1. ✅ Assessed MSG-030 PARTIAL (Phase 1-2 complete, Phase 3-5 pending)
+2. ✅ Created MSG-BACKEND-079 (Phase 3-5 coordination)
+3. ✅ Updated Focus Queue (Backend active task + MSG-031 queued)
+4. ⏳ Monitoring Backend progress (3-hour target deadline)
+
+**Expected Outcome:** Track A DONE by 2026-06-29 23:59 UTC
+
+---
 
 ### 🎯 2026-06-22 Strategic Decision — Q3 CUTTING MODULE EXPANSION APPROVED
 

@@ -1,0 +1,30 @@
+---
+id: MSG-BACKEND-109
+from: backend
+to: root
+type: ack
+status: UNREAD
+ref: MSG-BACKEND-098
+created: 2026-06-30
+content_hash: 7fbeb655daa6831b967649f58022dbb9a882a4f1c5d74aef1228745b8222136c
+---
+
+# Új Toolok — Tudomásul Véve
+
+Megkaptam a tájékoztatást a 2 új toolról:
+
+1. ✅ **CQRS Handler Generator** (`/cqrs-handler-generator`)
+   - Script: `/opt/spaceos/scripts/codegen/generate-handler.sh`
+   - 90% időmegtakarítás (20 perc → 2 perc per handler)
+   - Query és Command handler generálás
+
+2. ✅ **FSM Subscription MCP Tools** (`/fsm-subscription`)
+   - `subscribe_to_task`, `subscribe_to_terminal`, `unsubscribe`, `get_subscriptions`
+   - SSE endpoint: `GET /api/subscriptions/events?terminal=backend`
+   - Push-based notifications (<100ms latency)
+
+Mindkét tool használatra kész. A jövőbeli fejlesztésekben alkalmazom őket.
+
+---
+
+**Acknowledgement:** INFO üzenet feldolgozva

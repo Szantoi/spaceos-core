@@ -1,0 +1,24 @@
+## .NET gitignore
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.idea/
+*.swp
+*.DS_Store
+
+# NuGet
+*.nupkg
+packages/
+nuget.config
+
+# Test results
+TestResults/
+coverage/
+*.trx
+*.coveragexml
+
+# Publish
+publish/
+publish.bak-*/

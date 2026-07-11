@@ -1,0 +1,46 @@
+id: GOAL-2026-07-10-UI-REVIEW-LOOP
+created: '2026-07-10T22:52:00.000Z'
+created_by: root
+epic_id: EPIC-JOINERYTECH-UI
+goal:
+  description: 'UI Review Loop: Trigger Designer review when Frontend completes UI tasks'
+  checkpoint_id: null
+completion_criteria:
+  - type: done_outbox
+    terminal: frontend
+    message_pattern: MSG-FRONTEND-*
+on_complete:
+  trigger_terminal: designer
+  next_goal: >-
+    If Designer APPROVE: next UI feature. If REJECT: Frontend fix then
+    re-review.
+  prompt: |
+    Frontend DONE message detected!
+
+    ## UI Review Required
+
+    1. Capture screenshots with Playwright CLI:
+       ```bash
+       npx playwright screenshot --wait-for-timeout=5000 "http://localhost:5173/dashboard/crm/leads" /tmp/review-crm.png
+       ```
+
+    2. Compare with prototypes in `docs/tasks/new/joinerytech/`
+
+    3. Check: Layout, colors, spacing, typography, interactions
+
+    4. If issues found: Create feedback inbox for Frontend
+
+    5. If OK: DONE outbox with APPROVED
+
+    Use skill: ui-review-loop
+status: triggered
+triggered_at: '2026-07-10T20:52:13.852Z'
+trigger_message_id: MSG-DESIGNER-029
+criteria_results:
+  - criterion:
+      type: done_outbox
+      terminal: frontend
+      message_pattern: MSG-FRONTEND-*
+    met: true
+    details: 'Found: 2026-07-06_151_msg-frontend-151-done.md'
+    checked_at: '2026-07-10T20:52:13.844Z'

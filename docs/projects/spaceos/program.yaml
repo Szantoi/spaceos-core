@@ -1,0 +1,27 @@
+id: spaceos
+title: SpaceOS Platform
+type: program
+status: active
+priority: critical
+created: 2026-01-15
+target: 2026-Q4
+
+description: |
+  Magyar faipar digitális gerince - iparspecifikus SaaS platform
+  ajtógyártóknak, szekrénygyártóknak, lapszabászoknak és kereskedőknek.
+
+owner: root
+tags:
+  - platform
+  - saas
+  - woodworking
+
+children:
+  - sales
+  - crm
+  - cutting
+  - identity
+
+links:
+  vision: docs/vision/SpaceOS_Vision_Master.md
+  architecture: docs/architecture/SYSTEM_ARCHITECTURE.md

@@ -1,0 +1,28 @@
+id: sales
+title: Sales Module
+type: project
+parent: spaceos
+status: active
+priority: high
+created: 2026-05-01
+target: 2026-07-15
+
+description: |
+  Teljes értékesítési folyamat: ajánlatkészítés, pipeline kezelés,
+  ügyfél jóváhagyás, megrendelés konverzió.
+
+owner: conductor
+terminals:
+  - architect
+  - kernel
+  - orch
+  - fe
+
+epics:
+  - offer
+  - pipeline
+
+tags:
+  - doorstar
+  - launch-critical
+  - q2-2026

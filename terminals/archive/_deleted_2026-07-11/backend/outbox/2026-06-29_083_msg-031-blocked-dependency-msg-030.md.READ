@@ -1,0 +1,213 @@
+---
+id: MSG-BACKEND-083
+from: backend
+to: conductor
+type: blocked
+status: UNREAD
+ref: MSG-BACKEND-031,MSG-BACKEND-030,MSG-BACKEND-081
+priority: high
+created: 2026-06-29
+content_hash: 66eb8a68f0067f8c6bf37200dfa581098233367695970dad7005fb2e3ea18d59
+---
+
+# MSG-031 BLOCKED — Dependency on MSG-030 Completion
+
+## Kontextus
+
+MSG-BACKEND-031 (Q3 Track A Email Notification) **nem implementálható** a jelenlegi állapotban.
+
+## Dependency Analysis
+
+**MSG-031 spec szerint:**
+> "Depends on: MSG-BACKEND-030 (Quote Request API) — must be implemented first to hook into `QuoteRequestCreated` event"
+
+**MSG-030 jelenlegi állapot (PARTIAL DONE - MSG-081):**
+- ⚠️ **Phase 1-2 only** (40% complete)
+- ❌ **Nincs domain event** — `PublicQuoteRequest` simple entity, nem `AggregateRoot`
+- ❌ **Nincs persistence** — handler-ben commented out (awaiting migration)
+- ❌ **Nincs `QuoteRequestCreated` event** — event system nincs implementálva
+
+**MSG-031 requirements:**
+```csharp
+// MSG-031 spec line 116-133:
+public class QuoteRequestCreatedEventHandler : IDomainEventHandler<QuoteRequestCreated>
+{
+    private readonly IEmailService _emailService;
+
+    public async Task Handle(QuoteRequestCreated @event, CancellationToken ct)
+    {
+        var quoteRequest = await _repository.GetByIdAsync(@event.QuoteId, ct);
+
+        // Send customer confirmation
+        await _emailService.SendQuoteConfirmationAsync(quoteRequest, ct);
+
+        // Send internal notification
+        await _emailService.SendQuoteNotificationAsync(quoteRequest, ct);
+
+        _logger.LogInformation("Emails sent for quote {QuoteId}", quoteRequest.Id);
+    }
+}
+```
+
+**Hiányzó komponensek MSG-030-ból:**
+1. ❌ `QuoteRequestCreated` domain event
+2. ❌ `IDomainEventHandler<T>` infrastructure
+3. ❌ Domain event bus/dispatcher
+4. ❌ Persistence (no DB save → no event trigger)
+
+## Existing Email Infrastructure (2026-06-23 implementation)
+
+✅ **Van email service** a kódbázisban (de a régi `CuttingQuoteRequest` aggregate-hez):
+
+```csharp
+// Application/Services/IEmailService.cs (EXISTS)
+public interface IEmailService
+{
+    Task SendQuoteRequestNotification(
+        string customerEmail,
+        string adminEmail,
+        string quoteNumber,
+        string trackingToken,
+        string trackingUrl,
+        CancellationToken ct);
+}
+
+// Infrastructure/Services/EmailService.cs (EXISTS)
+public class EmailService : IEmailService
+{
+    // MailKit/SMTP implementation
+    // Brevo SMTP config: smtp-relay.brevo.com:587
+    // Working templates (customer + admin)
+}
+```
+
+**Probléma:**
+- Ez a régi implementation a **multi-item `CuttingQuoteRequest`** aggregate-hez készült
+- Az új MSG-030 **single-item `PublicQuoteRequest`** entity-t használ
+- Nincs közös interfész / event
+
+## Munkavégzés értékelése
+
+**Mit LEHET implementálni:**
+- ✅ Email service már kész (MailKit/SMTP)
+- ✅ Email templates (customer + admin) léteznek
+- ✅ Configuration pattern (appsettings.json) működik
+
+**Mit NEM LEHET implementálni:**
+- ❌ Event handler (nincs event)
+- ❌ Integration test (nincs persistence → nincs event trigger)
+- ❌ End-to-end flow (endpoint → persistence → event → email)
+
+## Blocker részletezése
+
+| Komponens | MSG-031 Requirement | MSG-030 Status | Blocker? |
+|---|---|---|---|
+| PublicQuoteRequest entity | ✅ Quote data | ⚠️ EXISTS (simple entity) | ✅ OK |
+| Domain event (`QuoteRequestCreated`) | ✅ Event for hook | ❌ NOT IMPLEMENTED | 🚨 BLOCKER |
+| Persistence (DB save) | ✅ Trigger event | ❌ COMMENTED OUT | 🚨 BLOCKER |
+| Event bus/dispatcher | ✅ Event routing | ❌ NOT IMPLEMENTED | 🚨 BLOCKER |
+| Email service | ✅ Send emails | ✅ EXISTS (MailKit) | ✅ OK |
+
+**3/5 blokkoló komponens hiányzik.**
+
+## Javasolt megoldás
+
+### Option A: Complete MSG-030 First (AJÁNLOTT)
+
+**Lépések:**
+1. **Conductor dönt MSG-030 folytatásról:**
+   - Manual PARTIAL approval (MSG-081) + create MSG-BACKEND-032 (Phase 3-4-5)
+   - VAGY re-assign MSG-030 full completion
+2. **MSG-030 Phase 3 implementation:**
+   - Database migration
+   - Persistence in handler
+   - **Domain event system** (`QuoteRequestCreated`, event dispatcher)
+3. **MSG-031 continuation:**
+   - Event handler implementáció
+   - Integration test (full flow)
+
+**Timeline:**
+- MSG-030 Phase 3-4-5: ~4-5 hours
+- MSG-031 implementation: ~2-3 hours (mivel email infra már kész)
+- **Total:** 6-8 hours
+
+### Option B: Partial MSG-031 (Email Service Only)
+
+**Implementálható most:**
+- ✅ Email service adapter `PublicQuoteRequest`-hez
+- ✅ Email templates (HTML customer + plain text admin)
+- ✅ Configuration validation
+- ✅ Unit tests (email service)
+
+**NEM implementálható:**
+- ❌ Event handler (nincs event)
+- ❌ Integration test (nincs event trigger)
+- ❌ End-to-end flow
+
+**Eredmény:** ~30% complete, de **nem használható** production-ben (nincs trigger).
+
+### Option C: Redesign (No Events)
+
+**Alternative approach:** Direct call email service az endpoint-ból (no events).
+
+**Előnyök:**
+- ✅ Implementálható most
+- ✅ Működik MSG-030 PARTIAL-lal
+
+**Hátrányok:**
+- ❌ Nem felel meg MSG-031 spec-nek ("hook into QuoteRequestCreated event")
+- ❌ Tight coupling (endpoint → email service)
+- ❌ Nem event-driven (nem CQRS/DDD pattern)
+
+**Recommendation:** ❌ **NEM AJÁNLOTT** (architecture violation)
+
+## Döntési pont
+
+**Conductor döntés szükséges:**
+
+1. **Accept MSG-031 as BLOCKED** → wait for MSG-030 completion
+2. **Approve MSG-030 PARTIAL** (MSG-081) + create MSG-032 (Phase 3-4-5 + domain events)
+3. **Re-assign MSG-030** full completion (include domain events)
+
+**Preferencia:** **Option 2** (approve PARTIAL + continuation task)
+
+**Indoklás:**
+- MSG-030 Phase 1-2 **helyes munka** (40% done)
+- MSG-031 **logikusan függ** MSG-030 completion-től
+- Sequential delivery helyesebb mint parallel blocking
+
+## Blokkoló összefoglalása
+
+**MSG-031 CANNOT PROCEED because:**
+1. MSG-030 PARTIAL (no domain events)
+2. No `QuoteRequestCreated` event
+3. No persistence (no event trigger)
+4. Event handler cannot be implemented
+
+**MSG-031 CAN PROCEED after:**
+- MSG-030 Phase 3 complete (persistence + domain events)
+- OR redesign to direct call (architecture compromise)
+
+**Recommendation:** ✋ **WAIT for MSG-030 completion**
+
+## Files Changed
+
+None (blocked before implementation started).
+
+## Timeline Impact
+
+**Original plan:** MSG-030 + MSG-031 parallel execution (both done end of day)
+
+**Actual:** MSG-030 PARTIAL → MSG-031 BLOCKED → Sequential delivery required
+
+**Revised timeline:**
+- MSG-030 continuation: 4-5 hours
+- MSG-031 implementation: 2-3 hours
+- **Total:** 6-8 hours (vs original 6 hours with overlap)
+
+**Impact:** +2 hours due to sequential dependency
+
+---
+
+**Backend Terminal**
+2026-06-29 (MSG-031 BLOCKED — Dependency on MSG-030)
