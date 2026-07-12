@@ -1,17 +1,12 @@
 {
-  "epicId": "EPIC-DOORSTAR-SOFTLAUNCH",
-  "epicName": "Doorstar Soft Launch",
-  "epicProgress": 100,
-  "nextCheckpointId": null,
-  "nextCheckpointName": null,
-  "completedCheckpoints": [
-    "CP-DOORSTAR-PLANNING",
-    "CP-DOORSTAR-FRONTEND-UI",
-    "CP-DOORSTAR-BACKEND-MODULE",
-    "CP-DOORSTAR-QA"
-  ],
+  "epicId": "EPIC-JT-AI",
+  "epicName": "JoineryTech AI Munkaterület",
+  "epicProgress": 0,
+  "nextCheckpointId": "CP-AI-BACKEND",
+  "nextCheckpointName": "AI Backend (Orchestrator)",
+  "completedCheckpoints": [],
   "lastTurnCount": 0,
-  "lastActiveTask": null,
-  "savedAt": "2026-07-11T16:55:18.392Z",
-  "sessionId": "session-1783788918392-4iwkv2"
+  "lastActiveTask": "PRIORITY-CONDUCTOR-1783878631857",
+  "savedAt": "2026-07-12T17:50:51.872Z",
+  "sessionId": "session-1783878651872-310rqy"
 }
