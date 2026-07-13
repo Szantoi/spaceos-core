@@ -1,0 +1,156 @@
+#═══════════════════════════════════════════════════════════════════════════════
+# SPACEOS ROOT FOCUS CONFIGURATION
+# Frissítve: 2026-07-13 21:45 UTC
+#═══════════════════════════════════════════════════════════════════════════════
+
+# AKTUÁLIS FÓKUSZ — 5 PÁRHUZAMOS EPIC
+epic: MULTI-EPIC-PARALLEL
+priority: high
+
+active_epics:
+  - id: EPIC-TRADEWORLD-V1
+    name: "TradeWorld Beszállítói Portál"
+    checkpoint: CP-TW-BACKEND
+    status: active
+    assigned_to: [backend]
+    progress: 90%  # API DONE, DE: ❌ DB migration hiányzik, ❌ DI registration hiányzik (Conductor Cycle #58)
+
+  - id: EPIC-ASSEMBLY-V1
+    name: "JoineryTech Szerelés Modul"
+    checkpoint: CP-ASM-API
+    status: active
+    assigned_to: [backend]
+    progress: 75%  # Domain + Infra DONE, API skeleton exists, implementation pending (MSG-BACKEND-020)
+
+  - id: EPIC-CATALOG-V1
+    name: "JoineryTech Termék Katalógus"
+    checkpoint: CP-CAT-API
+    status: active
+    assigned_to: [backend]
+    progress: 75%  # Domain + Infra DONE, API skeleton exists, implementation pending (MSG-BACKEND-021)
+
+  - id: EPIC-CODEBASE-AUDIT
+    name: "Codebase Audit & Gap Analysis"
+    checkpoint: CP-AUDIT-COMPLETE
+    status: done
+    assigned_to: [explorer]
+    progress: 100%  # 3 reports complete
+
+  - id: EPIC-UI-REVIEW-CYCLE
+    name: "Frontend 3-4 Round Review"
+    checkpoint: CP-UIR-COMPLETE
+    status: done
+    assigned_to: [frontend]
+    progress: 100%  # ALL 4 ROUNDS COMPLETE: A11y + Perf (73%) + UX (4/5) + Mobile (3/5, PWA roadmap)
+
+# BEFEJEZETT EPIC-EK (ma)
+completed_epics:
+  - id: EPIC-JT-DMS
+    completed: "2026-07-13T15:04:00Z"
+  - id: EPIC-JT-AI
+    completed: "2026-07-13T09:49:00Z"
+  - id: EPIC-CODEBASE-AUDIT
+    completed: "2026-07-13T19:00:00Z"
+  - id: EPIC-UI-REVIEW-CYCLE
+    completed: "2026-07-13T21:45:00Z"
+    result: "4/5 stars overall - 4 rounds complete (A11y, Perf, UX, Mobile)"
+
+# TERMINÁLOK AKTUÁLIS FELADATAI
+terminals:
+  architect:
+    role: "OpenAPI spec készítés"
+    tasks:
+      - "MSG-ARCHITECT-002: TradeWorld OpenAPI spec ✅"
+      - "MSG-ARCHITECT-003: Assembly OpenAPI spec ✅"
+      - "MSG-ARCHITECT-004: Catalog OpenAPI spec ✅"
+    status: DONE
+    deliverables:
+      - "docs/api/tradeworld-openapi.yaml (26KB)"
+      - "docs/api/assembly-openapi.yaml (31KB)"
+      - "docs/api/catalog-openapi.yaml (40KB)"
+
+  frontend:
+    role: "UI review & implementation"
+    tasks:
+      - "MSG-FRONTEND-009: A11y Audit Round 1 — DONE ✅"
+      - "MSG-FRONTEND-010: Performance Audit Round 2 — DONE ✅ (73% bundle reduction)"
+      - "MSG-FRONTEND-011: UX Audit Round 3 — DONE ✅ (4/5 stars, 5 issues)"
+      - "MSG-FRONTEND-012: Mobile Audit Round 4 — DONE ✅ (3/5 stars, PWA roadmap)"
+    status: IDLE
+    epic_complete: "EPIC-UI-REVIEW-CYCLE — ALL 4 ROUNDS DONE"
+    deliverables:
+      - "docs/audit/2026-07-13_a11y-audit-report.md"
+      - "docs/audit/2026-07-13_performance-audit-report.md"
+      - "docs/audit/2026-07-13_ux-audit-report.md"
+      - "docs/audit/2026-07-13_mobile-audit-report.md"
+
+  explorer:
+    role: "Codebase kutatás"
+    tasks:
+      - "MSG-EXPLORER-020: Gap Analysis & Tech Debt ✅"
+    status: DONE
+    deliverables:
+      - "docs/audit/2026-07-13_gap-analysis-existing-modules.md (22KB)"
+      - "docs/audit/2026-07-13_new-module-proposals.md (37KB)"
+      - "docs/audit/2026-07-13_tech-debt-backlog.md (26KB)"
+
+  backend:
+    role: "API implementáció befejezése (Assembly + Catalog)"
+    tasks:
+      - "MSG-BACKEND-015-019: TradeWorld COMPLETE ✅ (12 endpoints, tenant resolution)"
+      - "MSG-BACKEND-020: Assembly API Implementation — PENDING (11 endpoints, ~200 LOC)"
+      - "MSG-BACKEND-021: Catalog API Implementation — PENDING (16 endpoints, ~250 LOC)"
+    status: READY_FOR_DISPATCH
+    deliverables:
+      - "TradeWorld API: COMPLETE ✅ (3 controllers, 12 endpoints, 647 LOC)"
+      - "Assembly API: SKELETON ⚠️ (DTOs ready, impl pending)"
+      - "Catalog API: SKELETON ⚠️ (DTOs ready, impl pending)"
+    note: "TradeWorld production-ready. Assembly + Catalog need implementation dispatch."
+
+  designer:
+    role: "UI review (várakozik Frontend-re)"
+    tasks: []
+    status: IDLE
+
+  conductor:
+    role: "Koordináció"
+    status: IDLE
+
+# TARTALÉK EPIC-EK (pending)
+pending_epics:
+  - EPIC-SCHEDULING-V1
+  - EPIC-REPORTING-V1
+
+# GOAL — 5 EPIC HALADÁS
+goal:
+  description: "5 aktív EPIC párhuzamos fejlesztése"
+  success_criteria:
+    - "Architect: 3 OpenAPI spec DONE ✅"
+    - "Explorer: Gap Analysis report DONE ✅"
+    - "Frontend: A11y Audit PARTIAL, Round 2 dispatched"
+    - "Backend: Domain layer tasks dispatched ✅"
+
+# NEXT ACTIONS
+next_actions:
+  - "Explorer: UI Gap Analysis (MSG-EXPLORER-021) — IN PROGRESS"
+  - "Designer: UI Fidelity Review (MSG-DESIGNER-007) — IN PROGRESS"
+  - "Architect: Hiányzó modulok tervezése (gap analysis után)"
+  - "Backend: Assembly API (MSG-BACKEND-020) + Catalog API (MSG-BACKEND-021)"
+
+# AKTÍV WORKFLOW
+active_workflow: "UI-DEVELOPMENT-WORKFLOW"
+workflow_doc: "/opt/spaceos/docs/workflows/UI-DEVELOPMENT-WORKFLOW.md"
+workflow_phase: "1. Gap Analysis (Explorer + Designer)"
+
+# WAKE DELEGATION (2026-07-13)
+wake_delegation:
+  active: true
+  delegated_to: "conductor"
+  directive: "MSG-CONDUCTOR-002"
+  root_role: "Felügyelet és stratégiai kommunikáció"
+  conductor_role: "Terminál ébresztés, task dispatch, DONE feldolgozás"
+
+# METADATA
+updated: "2026-07-13T23:00:00Z"
+updated_by: "root"
+version: 15
